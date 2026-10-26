@@ -10,11 +10,8 @@ enum SMBClientService {
             return try await listAvailableShares(endpoint)
         }
 
-        let manager = try makeManager(endpoint)
-        try await connect(manager, share: target.share)
-        do {
+        return try await SMBShareSession.shared.withConnected(endpoint: endpoint, share: target.share) { manager in
             let files = try await manager.contentsOfDirectory(atPath: target.directory)
-            try? await manager.disconnectShare()
             return files.compactMap { entry -> RemoteEntry? in
                 guard let name = entry[.nameKey] as? String else { return nil }
                 if name == "." || name == ".." { return nil }
@@ -26,9 +23,6 @@ enum SMBClientService {
                 return RemoteEntry(name: name, path: childPath, isDirectory: isDir, size: size, downloadURL: nil)
             }
             .sorted { $0.name.localizedStandardCompare($1.name) == .orderedAscending }
-        } catch {
-            try? await manager.disconnectShare()
-            throw mapError(error)
         }
     }
 
@@ -38,15 +32,16 @@ enum SMBClientService {
         guard !target.share.isEmpty else {
             throw RemoteError.requestFailed("フォルダを選んでからファイルを取り込んでください")
         }
-        let manager = try makeManager(endpoint)
-        try await connect(manager, share: target.share)
-        do {
-            let data = try await manager.contents(atPath: target.directory)
-            try data.write(to: local)
-            try? await manager.disconnectShare()
-        } catch {
-            try? await manager.disconnectShare()
-            throw mapError(error)
+        try await SMBShareSession.shared.withConnected(endpoint: endpoint, share: target.share) { manager in
+            // 大きな CBZ をメモリに載せないよう、ディスクへ直接ストリームする。
+            try? FileManager.default.removeItem(at: local)
+            FileManager.default.createFile(atPath: local.path, contents: nil)
+            do {
+                try await manager.downloadItem(atPath: target.directory, to: local, progress: nil)
+            } catch {
+                try? FileManager.default.removeItem(at: local)
+                throw error
+            }
         }
     }
 
@@ -76,9 +71,11 @@ enum SMBClientService {
     }
 
     private static func fetchShares(_ endpoint: Endpoint) async throws -> [(name: String, comment: String)] {
+        // 共有一覧は専用接続。キャッシュ中の share セッションとは分離する。
         let manager = try makeManager(endpoint)
         do {
             let shares = try await manager.listShares(enumerateHidden: false)
+            try? await manager.disconnectShare()
             let filtered = shares.filter { share in
                 let name = share.name
                 if name.isEmpty { return false }
@@ -88,6 +85,7 @@ enum SMBClientService {
             }
             return filtered
         } catch {
+            try? await manager.disconnectShare()
             throw mapError(error)
         }
     }
@@ -132,7 +130,7 @@ enum SMBClientService {
 
     // MARK: - Connection
 
-    private static func connect(_ manager: SMB2Manager, share: String) async throws {
+    fileprivate static func connect(_ manager: SMB2Manager, share: String) async throws {
         do {
             try await manager.connectShare(name: share, encrypted: false)
         } catch {
@@ -144,7 +142,7 @@ enum SMBClientService {
         }
     }
 
-    private static func makeManager(_ endpoint: Endpoint) throws -> SMB2Manager {
+    fileprivate static func makeManager(_ endpoint: Endpoint) throws -> SMB2Manager {
         guard let url = URL(string: endpoint.urlString) else {
             throw RemoteError.invalidURL
         }
@@ -161,7 +159,8 @@ enum SMBClientService {
         return manager
     }
 
-    private static func mapError(_ error: Error) -> RemoteError {
+    fileprivate static func mapError(_ error: Error) -> RemoteError {
+        if let remote = error as? RemoteError { return remote }
         let ns = error as NSError
         let detail = ns.localizedDescription
         let lower = detail.lowercased()
@@ -190,6 +189,10 @@ enum SMBClientService {
         var username: String
         var password: String
         var domain: String
+
+        var sessionKey: String {
+            "\(urlString)|\(domain)|\(username)|\(password)"
+        }
 
         static func resolve(_ source: RemoteSource) throws -> Endpoint {
             var hostField = source.host.trimmingCharacters(in: .whitespacesAndNewlines)
@@ -272,5 +275,73 @@ enum SMBClientService {
                 domain: domain
             )
         }
+    }
+}
+
+/// 同一 NAS / 共有への連続 list・download で TCP/SMB を張り直さない。
+private actor SMBShareSession {
+    static let shared = SMBShareSession()
+
+    private struct Slot {
+        let endpointKey: String
+        let share: String
+        let manager: SMB2Manager
+        var lastUsed: Date
+    }
+
+    private var slot: Slot?
+    private let idleTTL: TimeInterval = 90
+
+    func withConnected<T>(
+        endpoint: SMBClientService.Endpoint,
+        share: String,
+        _ body: (SMB2Manager) async throws -> T
+    ) async throws -> T {
+        let manager = try await acquire(endpoint: endpoint, share: share)
+        do {
+            let value = try await body(manager)
+            if var current = slot,
+               current.endpointKey == endpoint.sessionKey,
+               current.share == share {
+                current.lastUsed = Date()
+                slot = current
+            }
+            return value
+        } catch {
+            await invalidate()
+            throw SMBClientService.mapError(error)
+        }
+    }
+
+    private func acquire(endpoint: SMBClientService.Endpoint, share: String) async throws -> SMB2Manager {
+        if let current = slot {
+            if current.endpointKey == endpoint.sessionKey,
+               current.share == share,
+               Date().timeIntervalSince(current.lastUsed) < idleTTL {
+                return current.manager
+            }
+            await drop(current.manager)
+            slot = nil
+        }
+
+        let manager = try SMBClientService.makeManager(endpoint)
+        do {
+            try await SMBClientService.connect(manager, share: share)
+        } catch {
+            try? await manager.disconnectShare()
+            throw error
+        }
+        slot = Slot(endpointKey: endpoint.sessionKey, share: share, manager: manager, lastUsed: Date())
+        return manager
+    }
+
+    private func invalidate() async {
+        guard let current = slot else { return }
+        slot = nil
+        await drop(current.manager)
+    }
+
+    private func drop(_ manager: SMB2Manager) async {
+        try? await manager.disconnectShare()
     }
 }

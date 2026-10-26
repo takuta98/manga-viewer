@@ -43,6 +43,7 @@
 		C7BA70D1C74E469A8E283685 /* SpreadIndex.swift in Sources */ = {isa = PBXBuildFile; fileRef = F136B87073BA4FFAAD233E3A /* SpreadIndex.swift */; };
 		D4D291BF632A49B38E9010C0 /* Citadel in Frameworks */ = {isa = PBXBuildFile; productRef = D668BA979A7A4CE5AC753D35 /* Citadel */; };
 		D5E6E624B3FC4E2098128D83 /* SpreadIndexTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4C929EA256B94ED2BB6230E3 /* SpreadIndexTests.swift */; };
+		E7A1B2C3D4E5F60718293A4B /* RemoteClientTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = A1B2C3D4E5F60718293A4B5C /* RemoteClientTests.swift */; };
 		DCCC49DCA3EB489C9BCE7E89 /* WebDAVClient.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3D20E5DE48164415AED09101 /* WebDAVClient.swift */; };
 		EB90AA91CEA745E6A36015F7 /* Catalog.swift in Sources */ = {isa = PBXBuildFile; fileRef = 77E189F479AD45DDB111C28D /* Catalog.swift */; };
 		ECEEA8184F8740A087F4DFB2 /* PagePaneView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 13DB73B3A0C04FC483FAEBC7 /* PagePaneView.swift */; };
@@ -77,6 +78,7 @@
 		497006F18A8C458F857C76E9 /* MangaViewerApp.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MangaViewerApp.swift; sourceTree = "<group>"; };
 		4B0F09A33B21459CB630311D /* ReaderView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ReaderView.swift; sourceTree = "<group>"; };
 		4C929EA256B94ED2BB6230E3 /* SpreadIndexTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SpreadIndexTests.swift; sourceTree = "<group>"; };
+		A1B2C3D4E5F60718293A4B5C /* RemoteClientTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RemoteClientTests.swift; sourceTree = "<group>"; };
 		4D1DC8B105684348A8DA5910 /* S3Client.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = S3Client.swift; sourceTree = "<group>"; };
 		5124BFD5B01345BF9886DB6F /* FTPClient.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FTPClient.swift; sourceTree = "<group>"; };
 		69BC7592317646029E37FC5A /* SampleManga */ = {isa = PBXFileReference; lastKnownFileType = folder; name = SampleManga; path = Resources/SampleManga; sourceTree = "<group>"; };
@@ -235,7 +237,8 @@
 		E3FB7D12DCAF4E6FB6FDF627 /* MangaViewerTests */ = {
 			isa = PBXGroup;
 			children = (
-				4C929EA256B94ED2BB6230E3 /* SpreadIndexTests.swift */);
+				4C929EA256B94ED2BB6230E3 /* SpreadIndexTests.swift */,
+				A1B2C3D4E5F60718293A4B5C /* RemoteClientTests.swift */);
 			path = MangaViewerTests;
 			sourceTree = "<group>";
 		};
@@ -385,7 +388,8 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				D5E6E624B3FC4E2098128D83 /* SpreadIndexTests.swift in Sources */);
+				D5E6E624B3FC4E2098128D83 /* SpreadIndexTests.swift in Sources */,
+				E7A1B2C3D4E5F60718293A4B /* RemoteClientTests.swift in Sources */);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
 /* End PBXSourcesBuildPhase section */
