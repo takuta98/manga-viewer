@@ -25,11 +25,11 @@ enum FTPClient {
 
     static func parsePASV(_ reply: String) throws -> (String, UInt16) {
         guard let open = reply.firstIndex(of: "("), let close = reply.firstIndex(of: ")") else {
-            throw RemoteError.requestFailed("PASV parse failed")
+            throw RemoteError.requestFailed("PASV 応答の解析に失敗しました")
         }
         let inner = reply[reply.index(after: open)..<close]
         let parts = inner.split(separator: ",").compactMap { Int($0.trimmingCharacters(in: .whitespaces)) }
-        guard parts.count == 6 else { throw RemoteError.requestFailed("PASV parse failed") }
+        guard parts.count == 6 else { throw RemoteError.requestFailed("PASV 応答の解析に失敗しました") }
         let host = "\(parts[0]).\(parts[1]).\(parts[2]).\(parts[3])"
         let port = UInt16(parts[4] * 256 + parts[5])
         return (host, port)
@@ -103,7 +103,7 @@ final class FTPSession: @unchecked Sendable {
                 case .failed(let err):
                     box.resume { cont.resume(throwing: err) }
                 case .cancelled:
-                    box.resume { cont.resume(throwing: RemoteError.requestFailed("FTP cancelled")) }
+                    box.resume { cont.resume(throwing: RemoteError.requestFailed("FTP 接続がキャンセルされました")) }
                 default:
                     break
                 }
@@ -163,7 +163,7 @@ final class FTPSession: @unchecked Sendable {
         let pasv = try await command("PASV")
         let (host, port) = try FTPClient.parsePASV(pasv)
         guard let nwPort = NWEndpoint.Port(rawValue: port) else {
-            throw RemoteError.requestFailed("PASV parse failed")
+            throw RemoteError.requestFailed("PASV 応答の解析に失敗しました")
         }
         let dataConn = NWConnection(host: NWEndpoint.Host(host), port: nwPort, using: .tcp)
         try await withCheckedThrowingContinuation { (cont: CheckedContinuation<Void, Error>) in
@@ -175,7 +175,7 @@ final class FTPSession: @unchecked Sendable {
                 case .failed(let err):
                     box.resume { cont.resume(throwing: err) }
                 case .cancelled:
-                    box.resume { cont.resume(throwing: RemoteError.requestFailed("FTP cancelled")) }
+                    box.resume { cont.resume(throwing: RemoteError.requestFailed("FTP 接続がキャンセルされました")) }
                 default:
                     break
                 }

@@ -27,7 +27,7 @@ enum S3Client {
         let (data, response) = try await URLSession.shared.data(for: request)
         guard let http = response as? HTTPURLResponse, (200...299).contains(http.statusCode) else {
             let body = String(data: data, encoding: .utf8) ?? ""
-            throw RemoteError.requestFailed("S3 LIST failed: \(body.prefix(200))")
+            throw RemoteError.requestFailed("S3 の一覧取得に失敗しました: \(body.prefix(200))")
         }
         return parseList(xml: String(data: data, encoding: .utf8) ?? "", prefix: prefix)
     }
@@ -43,7 +43,7 @@ enum S3Client {
         try sign(&request, source: source, bucket: bucket, canonicalURI: "/\(bucket)/\(path)")
         let (temp, response) = try await URLSession.shared.download(for: request)
         guard let http = response as? HTTPURLResponse, (200...299).contains(http.statusCode) else {
-            throw RemoteError.requestFailed("S3 GET failed")
+            throw RemoteError.requestFailed("S3 の取得に失敗しました")
         }
         try? FileManager.default.removeItem(at: local)
         try FileManager.default.moveItem(at: temp, to: local)

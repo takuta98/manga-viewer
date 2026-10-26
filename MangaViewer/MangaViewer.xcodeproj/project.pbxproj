@@ -52,6 +52,10 @@
 		D44F34A5F6E77D9B2B0A1434 /* TransferActivityCenter.swift in Sources */ = {isa = PBXBuildFile; fileRef = C33F23F4E5D66C8A1A9F0323 /* TransferActivityCenter.swift */; };
 		F66F56C7B8A99F1D4D2C3656 /* ActivityOverlayView.swift in Sources */ = {isa = PBXBuildFile; fileRef = E55F45B6A7F88E0C3C1B2545 /* ActivityOverlayView.swift */; };
 		B88F78D9C0B11A3F6F4E5878 /* KeychainStore.swift in Sources */ = {isa = PBXBuildFile; fileRef = A77F67C8B9A00F2E5E3D4767 /* KeychainStore.swift */; };
+		D22B33C44D55E66F77889902 /* UserFacingText.swift in Sources */ = {isa = PBXBuildFile; fileRef = C11A22B33C44D55E66F77801 /* UserFacingText.swift */; };
+		F44D55E66F778899AABBC04 /* ImportStaging.swift in Sources */ = {isa = PBXBuildFile; fileRef = E33C44D55E66F778899AAB03 /* ImportStaging.swift */; };
+		B66F778899AABBCCDDEE206 /* UserFacingTextTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = A55E66F778899AABBCCD105 /* UserFacingTextTests.swift */; };
+		A7F2E1D0C9B84A6E5D4C3B21 /* VolumeInfoView.swift in Sources */ = {isa = PBXBuildFile; fileRef = B8E3F2C1D0A95B7F6E5D4C32 /* VolumeInfoView.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -110,6 +114,7 @@
 		C33F23F4E5D66C8A1A9F0323 /* TransferActivityCenter.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TransferActivityCenter.swift; sourceTree = "<group>"; };
 		E55F45B6A7F88E0C3C1B2545 /* ActivityOverlayView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ActivityOverlayView.swift; sourceTree = "<group>"; };
 		A77F67C8B9A00F2E5E3D4767 /* KeychainStore.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = KeychainStore.swift; sourceTree = "<group>"; };
+		B8E3F2C1D0A95B7F6E5D4C32 /* VolumeInfoView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = VolumeInfoView.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -186,7 +191,10 @@
 				77E189F479AD45DDB111C28D /* Catalog.swift */,
 				15C0918C9714460AABEFD2B2 /* ProgressStore.swift */,
 				C33F23F4E5D66C8A1A9F0323 /* TransferActivityCenter.swift */,
+				E33C44D55E66F778899AAB03 /* ImportStaging.swift */,
+				C11A22B33C44D55E66F77801 /* UserFacingText.swift */,
 				A77F67C8B9A00F2E5E3D4767 /* KeychainStore.swift */,
+				B1C2D3E4F5061728394A5B6C /* DisplayLayoutResolver.swift */,
 				1670113F259F4947BBD077F0 /* LibraryStore.swift */,
 				19864E8627D74DE39B2F47E1 /* MangaImporter.swift */,
 				0D5FC453C0334ACD8FDB4583 /* ZipUnarchiver.swift */,
@@ -228,12 +236,14 @@
 				13DB73B3A0C04FC483FAEBC7 /* PagePaneView.swift */,
 				8A3F7CC2B0F944419473F553 /* DuoFrameView.swift */,
 				E1CD00C2C5C442BA89889B8F /* LibraryView.swift */,
+				B8E3F2C1D0A95B7F6E5D4C32 /* VolumeInfoView.swift */,
 				4B0F09A33B21459CB630311D /* ReaderView.swift */,
 				3BE1DD0F916D4E768B1360CB /* SettingsView.swift */,
 				BDDBD9B37D8C4DE9847E102A /* ThumbnailGridView.swift */,
 				97D593CF93DA45BA9A3FE097 /* Import */,
 				DA9D44640C3A42A6B12E4389 /* PageTurnHost.swift */,
-				E55F45B6A7F88E0C3C1B2545 /* ActivityOverlayView.swift */);
+				E55F45B6A7F88E0C3C1B2545 /* ActivityOverlayView.swift */,
+				E66A78F9C1D22B5A9A7E8101 /* TransferStatusView.swift */);
 			path = Views;
 			sourceTree = "<group>";
 		};
@@ -241,7 +251,9 @@
 			isa = PBXGroup;
 			children = (
 				4C929EA256B94ED2BB6230E3 /* SpreadIndexTests.swift */,
-				A1B2C3D4E5F60718293A4B5C /* RemoteClientTests.swift */);
+				A55E66F778899AABBCCD105 /* UserFacingTextTests.swift */,
+				A1B2C3D4E5F60718293A4B5C /* RemoteClientTests.swift */,
+				B66E778899AABBCCDDEE208 /* LibraryStoreDuplicateTests.swift */);
 			path = MangaViewerTests;
 			sourceTree = "<group>";
 		};
@@ -362,13 +374,10 @@
 				EB90AA91CEA745E6A36015F7 /* Catalog.swift in Sources */,
 				27ECDA2C6BC54195BE2B74E5 /* ProgressStore.swift in Sources */,
 				8AC13816DEB14BBF9A6E842F /* LibraryStore.swift in Sources */,
-				B22F12E3D4C55B7F0F8E9212 /* LibraryFolder.swift in Sources */,
 				4E50C9EF3EDB42D8AF8388A1 /* MangaImporter.swift in Sources */,
 				69316BB0E200408989017B50 /* ZipUnarchiver.swift in Sources */,
 				158D08242F054EAA83F6C9E9 /* ComicInfoParser.swift in Sources */,
 				C1BD8C7928324B099542D006 /* RemoteSourceStore.swift in Sources */,
-				B88F78D9C0B11A3F6F4E5878 /* KeychainStore.swift in Sources */,
-				D44F34A5F6E77D9B2B0A1434 /* TransferActivityCenter.swift in Sources */,
 				2F535896C42448FD8403DFF5 /* RemoteGateway.swift in Sources */,
 				DCCC49DCA3EB489C9BCE7E89 /* WebDAVClient.swift in Sources */,
 				03D377B8CC9B4BC59B6067A2 /* FTPClient.swift in Sources */,
@@ -381,6 +390,7 @@
 				ECEEA8184F8740A087F4DFB2 /* PagePaneView.swift in Sources */,
 				274038BF09394D93842210CC /* DuoFrameView.swift in Sources */,
 				BA13E83623F94B58A942B76F /* LibraryView.swift in Sources */,
+				A7F2E1D0C9B84A6E5D4C3B21 /* VolumeInfoView.swift in Sources */,
 				492B16B2C448447380B9E252 /* ReaderView.swift in Sources */,
 				3D30E79610C74253840A2B26 /* SettingsView.swift in Sources */,
 				555A33E99DA94E01B7E37E28 /* ThumbnailGridView.swift in Sources */,
@@ -389,8 +399,14 @@
 				400A88EB27FD49E18ED64C6B /* RemoteBrowserView.swift in Sources */,
 				AD3A2B4781F54602B561F8DB /* WiFiTransferView.swift in Sources */,
 				A49C5DA47F724107B16F51B6 /* PageTurnHost.swift in Sources */,
+				B22F12E3D4C55B7F0F8E9212 /* LibraryFolder.swift in Sources */,
+				D44F34A5F6E77D9B2B0A1434 /* TransferActivityCenter.swift in Sources */,
 				F66F56C7B8A99F1D4D2C3656 /* ActivityOverlayView.swift in Sources */,
-			);
+				B88F78D9C0B11A3F6F4E5878 /* KeychainStore.swift in Sources */,
+				D22B33C44D55E66F77889902 /* UserFacingText.swift in Sources */,
+				F44D55E66F778899AABBC04 /* ImportStaging.swift in Sources */,
+				A0B1C2D3E4F5061728394A5B /* DisplayLayoutResolver.swift in Sources */,
+				F77B89A0D2E33C6B0B8F9212 /* TransferStatusView.swift in Sources */);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
 		F1DC5A6C61744527B991540A /* Sources */ = {
@@ -398,7 +414,9 @@
 			buildActionMask = 2147483647;
 			files = (
 				D5E6E624B3FC4E2098128D83 /* SpreadIndexTests.swift in Sources */,
-				E7A1B2C3D4E5F60718293A4B /* RemoteClientTests.swift in Sources */);
+				E7A1B2C3D4E5F60718293A4B /* RemoteClientTests.swift in Sources */,
+				B66F778899AABBCCDDEE206 /* UserFacingTextTests.swift in Sources */,
+				C77D8899AABBCCDDEE307A /* LibraryStoreDuplicateTests.swift in Sources */);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
 /* End PBXSourcesBuildPhase section */

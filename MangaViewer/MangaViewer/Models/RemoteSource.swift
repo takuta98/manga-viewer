@@ -57,6 +57,10 @@ struct RemoteSource: Identifiable, Hashable {
     var bucket: String?
     var useTLS: Bool
     var createdAt: Date
+    /// リモートブラウザで一覧取得に最後に成功した時刻。旧データは decodeIfPresent で nil。
+    var lastSuccessAt: Date?
+    /// 前回開いていたパス。接続ごとに記憶。
+    var lastBrowsePath: String?
 
     static func blank(_ kind: RemoteSourceKind) -> RemoteSource {
         RemoteSource(
@@ -72,7 +76,9 @@ struct RemoteSource: Identifiable, Hashable {
             region: "us-east-1",
             bucket: "",
             useTLS: kind != .ftp && kind != .smb,
-            createdAt: Date()
+            createdAt: Date(),
+            lastSuccessAt: nil,
+            lastBrowsePath: nil
         )
     }
 
@@ -91,7 +97,7 @@ struct RemoteSource: Identifiable, Hashable {
 
 extension RemoteSource: Codable {
     enum CodingKeys: String, CodingKey {
-        case id, kind, name, host, port, shareOrPath, username, password, domain, region, bucket, useTLS, createdAt
+        case id, kind, name, host, port, shareOrPath, username, password, domain, region, bucket, useTLS, createdAt, lastSuccessAt, lastBrowsePath
     }
 
     init(from decoder: Decoder) throws {
@@ -110,6 +116,8 @@ extension RemoteSource: Codable {
         bucket = try c.decodeIfPresent(String.self, forKey: .bucket)
         useTLS = try c.decodeIfPresent(Bool.self, forKey: .useTLS) ?? true
         createdAt = try c.decodeIfPresent(Date.self, forKey: .createdAt) ?? Date()
+        lastSuccessAt = try c.decodeIfPresent(Date.self, forKey: .lastSuccessAt)
+        lastBrowsePath = try c.decodeIfPresent(String.self, forKey: .lastBrowsePath)
     }
 
     func encode(to encoder: Encoder) throws {
@@ -127,6 +135,8 @@ extension RemoteSource: Codable {
         try c.encodeIfPresent(bucket, forKey: .bucket)
         try c.encode(useTLS, forKey: .useTLS)
         try c.encode(createdAt, forKey: .createdAt)
+        try c.encodeIfPresent(lastSuccessAt, forKey: .lastSuccessAt)
+        try c.encodeIfPresent(lastBrowsePath, forKey: .lastBrowsePath)
     }
 }
 

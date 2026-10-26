@@ -18,7 +18,7 @@ enum WebDAVClient {
 
         let (data, response) = try await URLSession.shared.data(for: request)
         guard let http = response as? HTTPURLResponse, (200...299).contains(http.statusCode) else {
-            throw RemoteError.requestFailed("WebDAV PROPFIND failed")
+            throw RemoteError.requestFailed("WebDAV の一覧取得に失敗しました")
         }
         return parsePropfind(xml: data, basePath: trim(path))
     }
@@ -31,7 +31,7 @@ enum WebDAVClient {
         applyAuth(&request, source: source)
         let (temp, response) = try await URLSession.shared.download(for: request)
         guard let http = response as? HTTPURLResponse, (200...299).contains(http.statusCode) else {
-            throw RemoteError.requestFailed("WebDAV download failed")
+            throw RemoteError.requestFailed("WebDAV のダウンロードに失敗しました")
         }
         try? FileManager.default.removeItem(at: local)
         try FileManager.default.moveItem(at: temp, to: local)

@@ -26,8 +26,8 @@ enum PageLayoutMode: String, CaseIterable, Identifiable, Codable {
 
     var label: String {
         switch self {
-        case .single: return "単ページ"
-        case .spread: return "見開き"
+        case .single: return "単ページ（縦向き・自動）"
+        case .spread: return "見開き（横向き・自動）"
         case .webtoon: return "縦スクロール"
         }
     }
@@ -49,21 +49,48 @@ enum LibrarySort: String, CaseIterable, Identifiable, Codable {
     }
 }
 
+
+enum LibraryDisplayMode: String, CaseIterable, Identifiable, Codable {
+    case list
+    case grid
+
+    var id: String { rawValue }
+
+    var label: String {
+        switch self {
+        case .list: return "リスト"
+        case .grid: return "グリッド"
+        }
+    }
+
+    var systemImage: String {
+        switch self {
+        case .list: return "list.bullet"
+        case .grid: return "square.grid.2x2"
+        }
+    }
+
+    var toggled: LibraryDisplayMode {
+        self == .list ? .grid : .list
+    }
+}
+
 struct ReaderPreferences: Codable, Equatable {
     var direction: ReadingDirection = .rtl
+    /// `.spread` は「横に十分広いとき見開きを許可」の意味（縦は常に単ページ）。
     var layoutMode: PageLayoutMode = .spread
     var fitMode: PageFitMode = .fitScreen
     var coverAlone: Bool = true
     var backgroundBlack: Bool = true
     var brightness: Double = 1.0
     var keepScreenOn: Bool = true
-    var cropMargins: Bool = false
     var turnStyle: PageTurnStyle = .curl
 }
 
 enum AppSettingsStore {
     private static let prefsKey = "manga-viewer.reader-prefs"
     private static let sortKey = "manga-viewer.library-sort"
+    private static let displayModeKey = "manga-viewer.library-display"
 
     static func loadPrefs() -> ReaderPreferences {
         guard let data = UserDefaults.standard.data(forKey: prefsKey),
@@ -89,5 +116,17 @@ enum AppSettingsStore {
 
     static func saveSort(_ sort: LibrarySort) {
         UserDefaults.standard.set(sort.rawValue, forKey: sortKey)
+    }
+
+    static func loadLibraryDisplayMode() -> LibraryDisplayMode {
+        guard let raw = UserDefaults.standard.string(forKey: displayModeKey),
+              let mode = LibraryDisplayMode(rawValue: raw) else {
+            return .list
+        }
+        return mode
+    }
+
+    static func saveLibraryDisplayMode(_ mode: LibraryDisplayMode) {
+        UserDefaults.standard.set(mode.rawValue, forKey: displayModeKey)
     }
 }

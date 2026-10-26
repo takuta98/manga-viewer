@@ -26,9 +26,13 @@ enum MangaImporter {
         try fm.createDirectory(at: pagesDir, withIntermediateDirectories: true)
 
         let ext = sourceURL.pathExtension.lowercased()
-        var title = sourceURL.deletingPathExtension().lastPathComponent
-        if let titleOverride, !titleOverride.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty {
-            title = titleOverride
+        // タイトルは必ず UserFacingText 経由。一時パスの UUID 等を絶対に混ぜない。
+        var title = UserFacingText.title(from: sourceURL)
+        if let titleOverride {
+            let cleaned = UserFacingText.clean(titleOverride)
+            if cleaned != "無題" {
+                title = cleaned
+            }
         }
         var direction: ReadingDirection = AppSettingsStore.loadPrefs().direction
 
@@ -39,7 +43,9 @@ enum MangaImporter {
             let temp = volumeRoot.appendingPathComponent("extract", isDirectory: true)
             try ZipUnarchiver.unzip(archiveURL: sourceURL, to: temp)
             if let info = ComicInfoParser.parse(in: temp) {
-                if let t = info.title, !t.isEmpty { title = t }
+                if let t = info.title, !t.isEmpty {
+                    title = UserFacingText.clean(t)
+                }
                 if let d = info.direction { direction = d }
             }
             try collectImages(from: temp, into: pagesDir)
@@ -66,7 +72,7 @@ enum MangaImporter {
 
         return MangaVolume(
             id: id,
-            title: title,
+            title: UserFacingText.clean(title),
             pagesDirectory: pagesDir.path,
             pageFileNames: pages,
             coverFileName: fm.fileExists(atPath: volumeRoot.appendingPathComponent("cover.jpg").path) ? "cover.jpg" : nil,

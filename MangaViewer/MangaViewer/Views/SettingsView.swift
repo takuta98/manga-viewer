@@ -18,6 +18,9 @@ struct SettingsView: View {
                             Text(mode.label).tag(mode)
                         }
                     }
+                    Text(DisplayLayoutResolver.explainsToUser)
+                        .font(.footnote)
+                        .foregroundStyle(.secondary)
                     Picker("フィット", selection: $prefs.fitMode) {
                         ForEach(PageFitMode.allCases) { mode in
                             Text(mode.label).tag(mode)

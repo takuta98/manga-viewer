@@ -28,6 +28,8 @@ struct PageTurnHost: UIViewControllerRepresentable {
     @Binding var index: Int
     var isRTL: Bool
     var style: PageTurnStyle
+    /// `accessibilityReduceMotion` 時はカール禁止のスライド＋非アニメ遷移。
+    var animateTransitions: Bool = true
     var onTapCenter: () -> Void
     var makePage: (Int) -> AnyView
 
@@ -72,6 +74,7 @@ struct PageTurnHost: UIViewControllerRepresentable {
             pvc.setViewControllers([first], direction: .forward, animated: false)
             context.coordinator.currentIndex = index
         }
+        context.coordinator.setPageScrollEnabled(true)
         return pvc
     }
 
@@ -86,7 +89,6 @@ struct PageTurnHost: UIViewControllerRepresentable {
         guard coordinator.currentIndex != clamped,
               let vc = coordinator.controller(for: clamped),
               pvc.viewControllers?.first !== vc else {
-            // 表示中ページの内容だけ更新
             if let host = pvc.viewControllers?.first as? ZoomHostingController {
                 host.apply(rootView: makePage(coordinator.currentIndex))
             }
@@ -97,7 +99,7 @@ struct PageTurnHost: UIViewControllerRepresentable {
         pvc.setViewControllers(
             [vc],
             direction: movingForward ? .forward : .reverse,
-            animated: true
+            animated: animateTransitions
         ) { finished in
             if finished {
                 coordinator.currentIndex = clamped
@@ -113,13 +115,36 @@ struct PageTurnHost: UIViewControllerRepresentable {
         var onTapCenter: () -> Void = {}
         weak var pageViewController: UIPageViewController?
         weak var singleTap: UITapGestureRecognizer?
-        let haptic = UISelectionFeedbackGenerator()
+        /// 完了したページめくりにつき light impact を一度だけ。
+        let haptic = UIImpactFeedbackGenerator(style: .light)
         private var cache: [Int: ZoomHostingController] = [:]
 
         init(_ parent: PageTurnHost) {
             self.parent = parent
             self.isRTL = parent.isRTL
             self.currentIndex = parent.index
+        }
+
+        /// UIPageViewController 内部の UIScrollView を完全に止める／再開する。
+        func setPageScrollEnabled(_ enabled: Bool) {
+            guard let root = pageViewController?.view else { return }
+            func visit(_ view: UIView) {
+                if let scroll = view as? UIScrollView {
+                    if scroll.delegate is ZoomHostingController { return }
+                    scroll.isScrollEnabled = enabled
+                }
+                for child in view.subviews {
+                    visit(child)
+                }
+            }
+            visit(root)
+        }
+
+        private func bindZoomCallbacks(_ host: ZoomHostingController) {
+            host.onZoomChanged = { [weak self] zoomed in
+                self?.setPageScrollEnabled(!zoomed)
+            }
+            setPageScrollEnabled(!host.isZoomed)
         }
 
         @objc func handleTap(_ gesture: UITapGestureRecognizer) {
@@ -147,25 +172,28 @@ struct PageTurnHost: UIViewControllerRepresentable {
             pvc.setViewControllers(
                 [vc],
                 direction: movingForward ? .forward : .reverse,
-                animated: true
+                animated: parent.animateTransitions
             )
             currentIndex = next
             parent.index = next
-            haptic.selectionChanged()
         }
 
         func controller(for index: Int) -> UIViewController? {
             guard index >= 0, index < parent.pageCount else { return nil }
             if let cached = cache[index] {
                 cached.apply(rootView: parent.makePage(index))
+                bindZoomCallbacks(cached)
+                if let singleTap {
+                    cached.attachSingleTapDependency(singleTap)
+                }
                 return cached
             }
             let host = ZoomHostingController(rootView: parent.makePage(index))
+            bindZoomCallbacks(host)
             if let singleTap {
                 host.attachSingleTapDependency(singleTap)
             }
             cache[index] = host
-            // ざっくり LRU: 前後以外を間引く
             if cache.count > 12 {
                 let keep = Set((index - 2)...(index + 2))
                 for key in cache.keys where !keep.contains(key) && key != index {
@@ -206,13 +234,16 @@ struct PageTurnHost: UIViewControllerRepresentable {
             guard completed,
                   let visible = pageViewController.viewControllers?.first,
                   let idx = index(of: visible) else { return }
-            if currentIndex != idx {
-                haptic.selectionChanged()
+            let fromIdx = previousViewControllers.compactMap { index(of: $0) }.first
+            if fromIdx != idx {
+                haptic.impactOccurred()
             }
             currentIndex = idx
             parent.index = idx
-            // ズーム解除（ページ移動後）
-            (visible as? ZoomHostingController)?.resetZoom(animated: false)
+            if let zoom = visible as? ZoomHostingController {
+                zoom.resetZoom(animated: false)
+                setPageScrollEnabled(true)
+            }
         }
 
         private func index(of viewController: UIViewController) -> Int? {
@@ -226,6 +257,7 @@ final class ZoomHostingController: UIViewController, UIScrollViewDelegate {
     private let scrollView = UIScrollView()
     private let host: UIHostingController<AnyView>
     private(set) var isZoomed = false
+    var onZoomChanged: ((Bool) -> Void)?
 
     init(rootView: AnyView) {
         self.host = UIHostingController(rootView: rootView)
@@ -265,11 +297,16 @@ final class ZoomHostingController: UIViewController, UIScrollViewDelegate {
         doubleTap.numberOfTapsRequired = 2
         scrollView.addGestureRecognizer(doubleTap)
         self.doubleTap = doubleTap
+        if let pendingSingleTap {
+            pendingSingleTap.require(toFail: doubleTap)
+        }
     }
 
     private var doubleTap: UITapGestureRecognizer?
+    private weak var pendingSingleTap: UITapGestureRecognizer?
 
     func attachSingleTapDependency(_ singleTap: UITapGestureRecognizer) {
+        pendingSingleTap = singleTap
         if let doubleTap {
             singleTap.require(toFail: doubleTap)
         }
@@ -288,13 +325,28 @@ final class ZoomHostingController: UIViewController, UIScrollViewDelegate {
     }
 
     func scrollViewDidZoom(_ scrollView: UIScrollView) {
-        isZoomed = scrollView.zoomScale > 1.05
+        let zoomed = scrollView.zoomScale > 1.05
+        if zoomed != isZoomed {
+            isZoomed = zoomed
+            onZoomChanged?(zoomed)
+        }
         centerContent()
+    }
+
+    func scrollViewDidEndZooming(_ scrollView: UIScrollView, with view: UIView?, atScale scale: CGFloat) {
+        let zoomed = scale > 1.05
+        if zoomed != isZoomed {
+            isZoomed = zoomed
+            onZoomChanged?(zoomed)
+        }
     }
 
     func resetZoom(animated: Bool) {
         scrollView.setZoomScale(1, animated: animated)
-        isZoomed = false
+        if isZoomed {
+            isZoomed = false
+            onZoomChanged?(false)
+        }
     }
 
     @objc private func handleDoubleTap(_ gesture: UITapGestureRecognizer) {

@@ -64,14 +64,96 @@ final class LibraryStore: ObservableObject {
         volumes.filter { $0.folderId == folderId }.count
     }
 
+    /// 同一タイトルかつ同一ページ数の既存巻（完全重複）。なければ `nil`。
+    func detectDuplicate(title: String, pageCount: Int) -> MangaVolume? {
+        let cleaned = UserFacingText.clean(title)
+        return volumes.first {
+            $0.title.caseInsensitiveCompare(cleaned) == .orderedSame && $0.pageCount == pageCount
+        }
+    }
+
+    /// 取り込み方針。同名があるとき「既存を返す（スキップ）」か「（2）を付けて追加」。
+    enum DuplicateImportPolicy: Equatable {
+        /// タイトル+ページ数が一致なら既存を返す。タイトルのみ一致なら `（2）` 等を付けて追加。
+        case skipExactElseRename
+        /// 同名なら常に `（2）` 等を付けて追加（スキップしない）。
+        case rename
+        /// 同名ならページ数に関わらず既存を返す。
+        case skip
+    }
+
+    /// - Parameter duplicatePolicy: 同名時の扱い。リモートフォルダ一括は `.skipExactElseRename` を推奨。
     @discardableResult
-    func importURL(_ url: URL, folderId: String? = nil, titleOverride: String? = nil) throws -> MangaVolume {
+    func importURL(
+        _ url: URL,
+        folderId: String? = nil,
+        titleOverride: String? = nil,
+        duplicatePolicy: DuplicateImportPolicy = .skipExactElseRename
+    ) throws -> MangaVolume {
         var volume = try MangaImporter.importFile(from: url, titleOverride: titleOverride)
         volume.folderId = folderId
+
+        switch resolveDuplicate(for: volume, policy: duplicatePolicy) {
+        case .useExisting(let existing):
+            discardImportedFiles(volume)
+            return existing
+        case .importNew(let titled):
+            volume.title = titled
+        }
+
         volumes.removeAll { $0.id == volume.id }
         volumes.insert(volume, at: 0)
         save()
         return volume
+    }
+
+    private enum DuplicateResolution {
+        case useExisting(MangaVolume)
+        case importNew(String)
+    }
+
+    private func resolveDuplicate(for volume: MangaVolume, policy: DuplicateImportPolicy) -> DuplicateResolution {
+        let cleaned = UserFacingText.clean(volume.title)
+        let sameTitle = volumes.filter { $0.title.caseInsensitiveCompare(cleaned) == .orderedSame }
+        guard let firstSame = sameTitle.first else {
+            return .importNew(cleaned)
+        }
+
+        let exact = sameTitle.first { $0.pageCount == volume.pageCount }
+
+        switch policy {
+        case .skip:
+            return .useExisting(firstSame)
+        case .rename:
+            return .importNew(uniqueTitle(cleaned))
+        case .skipExactElseRename:
+            if let exact {
+                return .useExisting(exact)
+            }
+            return .importNew(uniqueTitle(cleaned))
+        }
+    }
+
+    /// 同名を避けて `タイトル` / `タイトル（2）` / `タイトル（3）` … を返す。
+    func uniqueTitle(_ base: String) -> String {
+        let cleaned = UserFacingText.clean(base)
+        if !volumes.contains(where: { $0.title.caseInsensitiveCompare(cleaned) == .orderedSame }) {
+            return cleaned
+        }
+        var n = 2
+        while true {
+            let candidate = "\(cleaned)（\(n)）"
+            if !volumes.contains(where: { $0.title.caseInsensitiveCompare(candidate) == .orderedSame }) {
+                return candidate
+            }
+            n += 1
+        }
+    }
+
+    private func discardImportedFiles(_ volume: MangaVolume) {
+        guard !volume.isBundledSample, !volume.pagesDirectory.isEmpty else { return }
+        let root = URL(fileURLWithPath: volume.pagesDirectory).deletingLastPathComponent()
+        try? fm.removeItem(at: root)
     }
 
     func delete(_ volume: MangaVolume) {
@@ -98,7 +180,7 @@ final class LibraryStore: ObservableObject {
 
     func rename(_ volume: MangaVolume, title: String) {
         guard let idx = volumes.firstIndex(where: { $0.id == volume.id }) else { return }
-        volumes[idx].title = title
+        volumes[idx].title = UserFacingText.clean(title)
         save()
     }
 
@@ -110,12 +192,12 @@ final class LibraryStore: ObservableObject {
 
     @discardableResult
     func createFolder(name: String) -> LibraryFolder {
-        let trimmed = name.trimmingCharacters(in: .whitespacesAndNewlines)
-        let finalName = trimmed.isEmpty ? "無題のフォルダ" : trimmed
-        if let existing = folders.first(where: { $0.name == finalName }) {
+        let finalName = UserFacingText.clean(name)
+        let display = finalName == "無題" ? "無題のフォルダ" : finalName
+        if let existing = folders.first(where: { $0.name == display }) {
             return existing
         }
-        let folder = LibraryFolder.make(name: finalName)
+        let folder = LibraryFolder.make(name: display)
         folders.append(folder)
         saveFolders()
         return folder
@@ -124,19 +206,19 @@ final class LibraryStore: ObservableObject {
     /// 同名があれば再利用し、なければ作る。
     @discardableResult
     func folderForImport(named name: String) -> LibraryFolder {
-        let trimmed = name.trimmingCharacters(in: .whitespacesAndNewlines)
-        let finalName = trimmed.isEmpty ? "取り込み" : trimmed
-        if let existing = folders.first(where: { $0.name.caseInsensitiveCompare(finalName) == .orderedSame }) {
+        let finalName = UserFacingText.clean(name)
+        let display = finalName == "無題" ? "取り込み" : finalName
+        if let existing = folders.first(where: { $0.name.caseInsensitiveCompare(display) == .orderedSame }) {
             return existing
         }
-        return createFolder(name: finalName)
+        return createFolder(name: display)
     }
 
     func renameFolder(_ folder: LibraryFolder, name: String) {
-        let trimmed = name.trimmingCharacters(in: .whitespacesAndNewlines)
-        guard !trimmed.isEmpty else { return }
+        let cleaned = UserFacingText.clean(name)
+        guard cleaned != "無題" else { return }
         guard let idx = folders.firstIndex(where: { $0.id == folder.id }) else { return }
-        folders[idx].name = trimmed
+        folders[idx].name = cleaned
         saveFolders()
     }
 
@@ -184,10 +266,28 @@ final class LibraryStore: ObservableObject {
         }
 
         let validFolderIDs = Set(folders.map(\.id))
+        var repaired = false
         for i in volumes.indices {
             if let fid = volumes[i].folderId, !validFolderIDs.contains(fid) {
                 volumes[i].folderId = nil
+                repaired = true
             }
+            let cleaned = UserFacingText.clean(volumes[i].title)
+            if cleaned != volumes[i].title {
+                volumes[i].title = cleaned
+                repaired = true
+            }
+        }
+        for i in folders.indices {
+            let cleaned = UserFacingText.clean(folders[i].name)
+            if cleaned != folders[i].name {
+                folders[i].name = cleaned
+                repaired = true
+            }
+        }
+        if repaired, !blockPersistence {
+            save()
+            saveFolders()
         }
     }
 

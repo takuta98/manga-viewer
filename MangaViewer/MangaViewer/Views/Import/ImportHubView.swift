@@ -59,7 +59,7 @@ struct ImportHubView: View {
                             } label: {
                                 VStack(alignment: .leading, spacing: 2) {
                                     Label(source.name, systemImage: source.kind.systemImage)
-                                    Text("\(source.kind.label) · \(source.host)")
+                                    Text(savedSourceCaption(source))
                                         .font(.caption)
                                         .foregroundStyle(.secondary)
                                 }
@@ -134,6 +134,9 @@ struct ImportHubView: View {
                         TextField("https://…/book.cbz", text: $urlText)
                             .textInputAutocapitalization(.never)
                             .keyboardType(.URL)
+                        Text("ダウンロードは裏で進み、シートを閉じても続行します。進捗は書庫の転送状況から確認できます。")
+                            .font(.footnote)
+                            .foregroundStyle(.secondary)
                     }
                     .navigationTitle("URL から取得")
                     .toolbar {
@@ -142,7 +145,7 @@ struct ImportHubView: View {
                         }
                         ToolbarItem(placement: .confirmationAction) {
                             Button("ダウンロード") {
-                                Task { await downloadURL() }
+                                startURLDownload()
                             }
                             .disabled(urlText.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty)
                         }
@@ -163,6 +166,22 @@ struct ImportHubView: View {
             .disabled(importingLocal)
         }
     }
+
+
+    private func savedSourceCaption(_ source: RemoteSource) -> String {
+        var parts = ["\(source.kind.label) · \(source.host)"]
+        if let at = source.lastSuccessAt {
+            parts.append("最終成功 \(Self.relativeSuccess.localizedString(for: at, relativeTo: Date()))")
+        }
+        return parts.joined(separator: " · ")
+    }
+
+    private static let relativeSuccess: RelativeDateTimeFormatter = {
+        let f = RelativeDateTimeFormatter()
+        f.unitsStyle = .short
+        f.locale = Locale(identifier: "ja_JP")
+        return f
+    }()
 
     private func handleFiles(_ result: Result<[URL], Error>) async {
         switch result {
@@ -186,26 +205,40 @@ struct ImportHubView: View {
         }
     }
 
-    private func downloadURL() async {
-        let name = URL(string: urlText)?.lastPathComponent ?? "download.cbz"
+    /// URL 取得を裏で開始し、シートを閉じて続行する。
+    private func startURLDownload() {
+        let rawURL = urlText.trimmingCharacters(in: .whitespacesAndNewlines)
+        let fileName = URL(string: rawURL)?.lastPathComponent ?? "download.cbz"
+        let name = UserFacingText.title(fromFileName: fileName)
+        let library = self.library
         let job = activity.begin(title: name, status: "ダウンロード中…")
-        do {
-            let tmp = FileManager.default.temporaryDirectory
-                .appendingPathComponent(UUID().uuidString + "-" + name)
-            try await HTTPDownloadService.download(urlString: urlText, to: tmp) { fraction in
-                Task { @MainActor in
-                    activity.update(job, status: "ダウンロード中…", fraction: fraction)
+
+        showURLSheet = false
+        dismiss()
+
+        let task = Task { @MainActor in
+            do {
+                try Task.checkCancellation()
+                let tmp = try ImportStaging.fileURL(named: fileName)
+                defer { ImportStaging.removeSession(containing: tmp) }
+                try await HTTPDownloadService.download(urlString: rawURL, to: tmp) { fraction in
+                    Task { @MainActor in
+                        if !activity.isCancelled(job) {
+                            activity.update(job, status: "ダウンロード中…", fraction: fraction)
+                        }
+                    }
                 }
+                if activity.isCancelled(job) || Task.isCancelled { throw CancellationError() }
+                activity.update(job, status: "書庫に展開中…")
+                _ = try library.importURL(tmp, titleOverride: name)
+                activity.succeed(job, banner: "取り込み完了: \(name)")
+            } catch is CancellationError {
+                activity.fail(job, message: "キャンセルしました")
+            } catch {
+                activity.fail(job, message: error.localizedDescription)
             }
-            activity.update(job, status: "書庫に展開中…", fraction: 0.9)
-            _ = try library.importURL(tmp)
-            activity.succeed(job, banner: "取り込み完了: \(name)")
-            showURLSheet = false
-            dismiss()
-        } catch {
-            activity.fail(job, message: error.localizedDescription)
-            errorText = error.localizedDescription
         }
+        activity.attachTask(job, task)
     }
 }
 

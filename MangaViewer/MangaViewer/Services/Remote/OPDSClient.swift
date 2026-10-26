@@ -7,7 +7,7 @@ enum OPDSClient {
         applyAuth(&request, source: source)
         let (data, response) = try await URLSession.shared.data(for: request)
         guard let http = response as? HTTPURLResponse, (200...299).contains(http.statusCode) else {
-            throw RemoteError.requestFailed("OPDS feed failed")
+            throw RemoteError.requestFailed("OPDS フィードの取得に失敗しました")
         }
         let xml = String(data: data, encoding: .utf8) ?? ""
         return parseAtom(xml)
@@ -19,7 +19,7 @@ enum OPDSClient {
         applyAuth(&request, source: source)
         let (temp, response) = try await URLSession.shared.download(for: request)
         guard let http = response as? HTTPURLResponse, (200...299).contains(http.statusCode) else {
-            throw RemoteError.requestFailed("OPDS download failed")
+            throw RemoteError.requestFailed("OPDS のダウンロードに失敗しました")
         }
         try? FileManager.default.removeItem(at: local)
         try FileManager.default.moveItem(at: temp, to: local)
