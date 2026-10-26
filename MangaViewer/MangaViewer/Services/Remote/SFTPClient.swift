@@ -6,14 +6,25 @@ import CryptoKit
 enum SFTPClient {
     static func list(source: RemoteSource, path: String) async throws -> [RemoteEntry] {
         let client = try await SSHSFTPConnection.connect(source: source)
-        defer { client.close() }
-        return try await client.list(path: path.isEmpty ? "." : path)
+        do {
+            let result = try await client.list(path: path.isEmpty ? "." : path)
+            await client.close()
+            return result
+        } catch {
+            await client.close()
+            throw error
+        }
     }
 
     static func download(source: RemoteSource, entry: RemoteEntry, to dest: URL) async throws {
         let client = try await SSHSFTPConnection.connect(source: source)
-        defer { client.close() }
-        try await client.download(path: entry.path, to: dest)
+        do {
+            try await client.download(path: entry.path, to: dest)
+            await client.close()
+        } catch {
+            await client.close()
+            throw error
+        }
     }
 }
 

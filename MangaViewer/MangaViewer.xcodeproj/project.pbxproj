@@ -230,8 +230,6 @@
 			children = (
 				A1FE8318C0C78DFEAD3BD09F /* SpreadIndexTests.swift */,
 				FF20F85AB388D38740A4A66F /* UserFacingTextTests.swift */,
-				A1FE8318C0C78DFEAD3BD09F /* SpreadIndexTests.swift */,
-				FF20F85AB388D38740A4A66F /* UserFacingTextTests.swift */,
 			);
 			path = MangaViewerTests;
 			sourceTree = "<group>";
@@ -366,8 +364,6 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				42775E350B545572D41D1CA3 /* SpreadIndexTests.swift in Sources */,
-				97EEEA72E17BDEBCDBCEE39E /* UserFacingTextTests.swift in Sources */,
 				42775E350B545572D41D1CA3 /* SpreadIndexTests.swift in Sources */,
 				97EEEA72E17BDEBCDBCEE39E /* UserFacingTextTests.swift in Sources */,
 			);

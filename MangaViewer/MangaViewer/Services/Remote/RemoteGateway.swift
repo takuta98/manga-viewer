@@ -16,7 +16,7 @@ enum RemoteImportUnit {
 
 enum RemoteGateway {
     static func list(source: RemoteSource, path: String) async throws -> [RemoteEntry] {
-        let s = RemoteSourceStore.shared.hydrated(source)
+        let s = await RemoteSourceStore.shared.hydrated(source)
         switch s.kind {
         case .smb: return try await SMBClient.list(source: s, path: path)
         case .webdav: return try await WebDAVClient.list(source: s, path: path)
@@ -29,7 +29,7 @@ enum RemoteGateway {
     }
 
     static func download(source: RemoteSource, entry: RemoteEntry, to url: URL) async throws {
-        let s = RemoteSourceStore.shared.hydrated(source)
+        let s = await RemoteSourceStore.shared.hydrated(source)
         switch s.kind {
         case .smb: try await SMBClient.download(source: s, entry: entry, to: url)
         case .webdav: try await WebDAVClient.download(source: s, entry: entry, to: url)

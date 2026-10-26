@@ -128,10 +128,11 @@ final class SMBSession {
         let share = source.shareOrPath.split(separator: "/").first.map(String.init) ?? source.shareOrPath
         guard !share.isEmpty else { throw RemoteError.message("共有フォルダ名を入力してください") }
         let unc = "\\\\\((source.host))\\\(share)"
-        let pathData = Array(unc.utf16).flatMap { [UInt8($0 & 0xff), UInt8($0 >> 8)] } + [0, 0]
+        var pathBytes: [UInt8] = Array(unc.utf16).flatMap { [UInt8($0 & 0xff), UInt8(($0 >> 8) & 0xff)] }
+        pathBytes.append(contentsOf: [0, 0])
         var body = Data()
-        body += u16(0x09); body += u16(0); body += u16(0x48); body += u16(UInt16(pathData.count))
-        body += Data(pathData)
+        body += u16(0x09); body += u16(0); body += u16(0x48); body += u16(UInt16(pathBytes.count))
+        body.append(contentsOf: pathBytes)
         let resp = try await transact(command: 0x0003, treeId: 0, sessionId: sessionId, body: body)
         if resp.count >= 44 {
             treeId = u32le(resp, 40)
@@ -143,7 +144,7 @@ final class SMBSession {
 
     private func create(path: String, directory: Bool) async throws -> Data {
         let name = path.isEmpty ? "" : path
-        let nameData = Array(name.utf16).flatMap { [UInt8($0 & 0xff), UInt8($0 >> 8)] }
+        let nameData: [UInt8] = Array(name.utf16).flatMap { [UInt8($0 & 0xff), UInt8(($0 >> 8) & 0xff)] }
         var body = Data()
         body += u16(0x39); body += u8(0); body += u8(0)
         body += u32(0); body += Data(count: 16)
@@ -155,7 +156,7 @@ final class SMBSession {
         body += u32(0); body += u32(0)
         body += u16(0x78); body += u16(UInt16(nameData.count))
         body += u32(0)
-        body += Data(nameData)
+        body.append(contentsOf: nameData)
         let resp = try await transact(command: 0x0005, treeId: treeId, sessionId: sessionId, body: body)
         guard resp.count >= 0x40 + 16 else { throw RemoteError.message("SMBファイルを開けませんでした") }
         // FileId at offset 64 in CREATE response body => header(64)+body offset 64
@@ -182,7 +183,7 @@ final class SMBSession {
     }
 
     private func queryDirectory(fileId: Data, path: String) async throws -> [RemoteEntry] {
-        let pattern = Array("*".utf16).flatMap { [UInt8($0 & 0xff), UInt8($0 >> 8)] }
+        let pattern: [UInt8] = Array("*".utf16).flatMap { [UInt8($0 & 0xff), UInt8(($0 >> 8) & 0xff)] }
         var body = Data()
         body += u16(0x21); body += u8(0); body += u8(0)
         body += u8(0x25) // FileIdBothDirectoryInformation
@@ -190,7 +191,7 @@ final class SMBSession {
         body += u32(0x10000)
         body += fileId
         body += u16(0x60); body += u16(UInt16(pattern.count))
-        body += Data(pattern)
+        body.append(contentsOf: pattern)
         let resp = try await transact(command: 0x000E, treeId: treeId, sessionId: sessionId, body: body)
         return parseDir(resp, parentPath: path.replacingOccurrences(of: "\\", with: "/"))
     }
