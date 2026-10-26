@@ -100,27 +100,38 @@ final class SMBSession {
     // MARK: - SMB2 primitives (simplified)
 
     private func negotiate() async throws {
+        // MS-SMB2 NEGOTIATE: StructureSize の直後は DialectCount → SecurityMode → Reserved → Capabilities → ClientGuid
         var body = Data()
-        body += u16(0x24); body += u16(1); body += u16(0); body += u16(0)
-        body += u32(0); body += u16(0); body += u16(0); body += u32(0)
-        body += Data(count: 16) // client GUID
-        body += u32(0); body += u16(0); body += u16(2)
-        body += u16(0x0202) // SMB 2.0.2
-        let _ = try await transact(command: 0x0000, treeId: 0, sessionId: 0, body: body)
+        body += u16(36)              // StructureSize
+        body += u16(2)               // DialectCount
+        body += u16(1)               // SecurityMode: negotiating signing
+        body += u16(0)               // Reserved
+        body += u32(0)               // Capabilities
+        body += Data(count: 16)      // ClientGuid
+        body += u32(0)               // NegotiateContextOffset
+        body += u16(0)               // NegotiateContextCount
+        body += u16(0)               // Reserved2
+        body += u16(0x0202)          // SMB 2.0.2
+        body += u16(0x0210)          // SMB 2.1
+        _ = try await transact(command: 0x0000, treeId: 0, sessionId: 0, body: body)
     }
 
     private func sessionSetup() async throws {
-        // Guest / user-pass NTLM is complex; send SESSION_SETUP with empty security buffer for guest-ish servers.
+        // 匿名 / ゲスト向けの空セキュリティバッファ。要認証 NAS は後続で失敗する。
         var body = Data()
-        body += u16(0x19); body += u8(0x01); body += u8(0); body += u32(0)
-        body += u32(0); body += u32(0); body += u32(0)
-        body += u16(0x58); body += u16(0)
+        body += u16(25)              // StructureSize
+        body += u8(0)                // Flags
+        body += u8(1)                // SecurityMode
+        body += u32(0)               // Capabilities
+        body += u32(0)               // Channel
+        body += u16(0x58)            // SecurityBufferOffset (88 = header 64 + body prefix 24)
+        body += u16(0)               // SecurityBufferLength
+        body += u64(0)               // PreviousSessionId
         let resp = try await transact(command: 0x0001, treeId: 0, sessionId: 0, body: body)
-        // sessionId from header bytes 32..<40 little endian
-        if resp.count >= 40 {
-            sessionId = u64le(resp, 32)
+        if resp.count >= 48 {
+            sessionId = u64le(resp, 40)
         }
-        if !source.username.isEmpty && sessionId == 0 {
+        if sessionId == 0 {
             throw RemoteError.message("SMBログオンに失敗しました。ユーザー名とパスワードを確認してください")
         }
     }
