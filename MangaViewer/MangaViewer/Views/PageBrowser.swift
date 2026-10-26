@@ -34,9 +34,11 @@ struct PageBrowser: UIViewControllerRepresentable {
         tap.delegate = context.coordinator
         controller.view.addGestureRecognizer(tap)
 
-        if let first = context.coordinator.page(at: index) {
-            controller.setViewControllers([first], direction: .forward, animated: false)
-        }
+        context.coordinator.apply(
+            index: index,
+            on: controller,
+            animated: false
+        )
         return controller
     }
 
@@ -46,19 +48,14 @@ struct PageBrowser: UIViewControllerRepresentable {
             context.coordinator.cache.removeAll(keepingCapacity: true)
             context.coordinator.cachedCount = pageCount
         }
-        guard let current = controller.viewControllers?.first as? PageHostController else {
-            if let first = context.coordinator.page(at: index) {
-                controller.setViewControllers([first], direction: .forward, animated: false)
-            }
-            return
-        }
-        guard current.pageIndex != index,
-              let next = context.coordinator.page(at: index) else { return }
-        let goingForward = rtl ? index < current.pageIndex : index > current.pageIndex
-        controller.setViewControllers(
-            [next],
-            direction: goingForward ? .forward : .reverse,
-            animated: !reduceMotion
+
+        // SwiftUI からの同期は必ず非アニメーション。
+        // scroll スタイルで animated:true の setViewControllers を呼ぶと
+        // "Failed to determine navigation direction for scroll" で落ちることがある。
+        context.coordinator.apply(
+            index: index,
+            on: controller,
+            animated: false
         )
     }
 
@@ -67,10 +64,39 @@ struct PageBrowser: UIViewControllerRepresentable {
         weak var pageController: UIPageViewController?
         var cache: [Int: PageHostController] = [:]
         var cachedCount = -1
+        private var isAnimating = false
+        /// 自分で index を書いた直後の mirror 更新を無視しないための表示中ページ。
+        private var displayedIndex: Int = -1
 
         init(_ parent: PageBrowser) {
             self.parent = parent
             self.cachedCount = parent.pageCount
+        }
+
+        func apply(index: Int, on controller: UIPageViewController, animated: Bool) {
+            guard !isAnimating else { return }
+            guard index >= 0, index < parent.pageCount else { return }
+            if displayedIndex == index,
+               let current = controller.viewControllers?.first as? PageHostController,
+               current.pageIndex == index {
+                // 同じページでも SwiftUI の再描画に合わせて中身だけ更新する
+                current.rootView = parent.makePage(index)
+                return
+            }
+            guard let next = page(at: index) else { return }
+
+            let from = displayedIndex >= 0 ? displayedIndex : (controller.viewControllers?.first as? PageHostController)?.pageIndex
+            let direction: UIPageViewController.NavigationDirection
+            if let from {
+                let goingForward = parent.rtl ? index < from : index > from
+                direction = goingForward ? .forward : .reverse
+            } else {
+                direction = .forward
+            }
+
+            // scroll では animated set が例外を投げやすいので、ここは常に false。
+            controller.setViewControllers([next], direction: direction, animated: false)
+            displayedIndex = index
         }
 
         @objc func handleTap(_ gesture: UITapGestureRecognizer) {
@@ -87,8 +113,12 @@ struct PageBrowser: UIViewControllerRepresentable {
         }
 
         private func move(forward: Bool) {
+            guard !isAnimating else { return }
             let next = forward ? parent.index + 1 : parent.index - 1
             guard next >= 0, next < parent.pageCount else { return }
+            if let controller = pageController {
+                apply(index: next, on: controller, animated: false)
+            }
             parent.index = next
             UIImpactFeedbackGenerator(style: .light).impactOccurred()
         }
@@ -124,14 +154,25 @@ struct PageBrowser: UIViewControllerRepresentable {
 
         func pageViewController(
             _ pageViewController: UIPageViewController,
+            willTransitionTo pendingViewControllers: [UIViewController]
+        ) {
+            isAnimating = true
+        }
+
+        func pageViewController(
+            _ pageViewController: UIPageViewController,
             didFinishAnimating finished: Bool,
             previousViewControllers: [UIViewController],
             transitionCompleted completed: Bool
         ) {
-            guard completed,
-                  let current = pageViewController.viewControllers?.first as? PageHostController else { return }
-            parent.index = current.pageIndex
-            UIImpactFeedbackGenerator(style: .light).impactOccurred()
+            isAnimating = false
+            guard finished else { return }
+            guard let current = pageViewController.viewControllers?.first as? PageHostController else { return }
+            displayedIndex = current.pageIndex
+            if completed, parent.index != current.pageIndex {
+                parent.index = current.pageIndex
+                UIImpactFeedbackGenerator(style: .light).impactOccurred()
+            }
         }
 
         func gestureRecognizer(
@@ -139,6 +180,13 @@ struct PageBrowser: UIViewControllerRepresentable {
             shouldRecognizeSimultaneouslyWith otherGestureRecognizer: UIGestureRecognizer
         ) -> Bool {
             true
+        }
+
+        func gestureRecognizer(
+            _ gestureRecognizer: UIGestureRecognizer,
+            shouldBeRequiredToFailBy otherGestureRecognizer: UIGestureRecognizer
+        ) -> Bool {
+            false
         }
     }
 }

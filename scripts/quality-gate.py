@@ -83,6 +83,12 @@ def main() -> int:
         fail("[読む] 前後ページ dataSource が無い")
     if "handleTap" not in browser:
         fail("[読む] 端タップめくりが無い")
+    if "animated: !reduceMotion" in browser or "animated: true" in browser:
+        fail("[読む] PageBrowser が animated setViewControllers している（scroll で落ちる）")
+    if "Failed to determine navigation direction" in browser:
+        fail("[読む] コメント以外の異常文字列")
+    if "animated: false" not in browser:
+        fail("[読む] setViewControllers を非アニメーションにしていない")
 
     reader = read(SRC / "Views" / "ReaderView.swift")
     if "PageBrowser(" not in reader:
