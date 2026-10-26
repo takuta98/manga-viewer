@@ -28,8 +28,8 @@
 		E179473B05EB66F024D52206 /* RemoteGateway.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0EDBD67B99E26DF52C4CE97D /* RemoteGateway.swift */; };
 		31403673A1F6A493A5B0A94B /* RemoteSourceStore.swift in Sources */ = {isa = PBXBuildFile; fileRef = DA4499E0FC5AB1B2CB713B5C /* RemoteSourceStore.swift */; };
 		F60BB1C09E730B6FADE7C148 /* S3Client.swift in Sources */ = {isa = PBXBuildFile; fileRef = E7F040F9EC4DE39C49C5F3AF /* S3Client.swift */; };
-		4CD52B05CB7F625029067B93 /* SFTPClient.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8CE9FEE9731E05DFBDAEA029 /* SFTPClient.swift */; };
-		D3D305E1E66F8B74BEADBA4C /* SMBClient.swift in Sources */ = {isa = PBXBuildFile; fileRef = 70DF1D4CF9E12E8FC859DFC2 /* SMBClient.swift */; };
+		4CD52B05CB7F625029067B93 /* SFTPClientService.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8CE9FEE9731E05DFBDAEA029 /* SFTPClientService.swift */; };
+		D3D305E1E66F8B74BEADBA4C /* SMBClientService.swift in Sources */ = {isa = PBXBuildFile; fileRef = 70DF1D4CF9E12E8FC859DFC2 /* SMBClientService.swift */; };
 		BCB90401E34B8B8B96E99CE8 /* WebDAVClient.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5457D898B19B0313F53F4196 /* WebDAVClient.swift */; };
 		C1B1C2F3179002726F600536 /* WiFiTransferServer.swift in Sources */ = {isa = PBXBuildFile; fileRef = 80E5ADB547659113C5492EB6 /* WiFiTransferServer.swift */; };
 		2BCB1AA1A9483F5FF03C709E /* TransferActivityCenter.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7A1E9D400DF562E308835AB4 /* TransferActivityCenter.swift */; };
@@ -52,6 +52,9 @@
 		42775E350B545572D41D1CA3 /* SpreadIndexTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = A1FE8318C0C78DFEAD3BD09F /* SpreadIndexTests.swift */; };
 		97EEEA72E17BDEBCDBCEE39E /* UserFacingTextTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = FF20F85AB388D38740A4A66F /* UserFacingTextTests.swift */; };
 		B09FA1D107EDD9357D618EDC /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = A10000000000000000000011 /* Assets.xcassets */; };
+		304A842F15474FEBB5D8A9C4 /* AMSMB2 in Frameworks */ = {isa = PBXBuildFile; productRef = 6BF2BC4368614CBE8D045E91 /* AMSMB2 */; };
+		A8F3C1D2E4B64A7F9C2E5D10 /* AMSMB2 in Embed Frameworks */ = {isa = PBXBuildFile; productRef = 6BF2BC4368614CBE8D045E91 /* AMSMB2 */; settings = {ATTRIBUTES = (CodeSignOnCopy, RemoveHeadersOnCopy); }; };
+		D4D291BF632A49B38E9010C0 /* Citadel in Frameworks */ = {isa = PBXBuildFile; productRef = D668BA979A7A4CE5AC753D35 /* Citadel */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
@@ -76,8 +79,8 @@
 		0EDBD67B99E26DF52C4CE97D /* RemoteGateway.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RemoteGateway.swift; sourceTree = "<group>"; };
 		DA4499E0FC5AB1B2CB713B5C /* RemoteSourceStore.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RemoteSourceStore.swift; sourceTree = "<group>"; };
 		E7F040F9EC4DE39C49C5F3AF /* S3Client.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = S3Client.swift; sourceTree = "<group>"; };
-		8CE9FEE9731E05DFBDAEA029 /* SFTPClient.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SFTPClient.swift; sourceTree = "<group>"; };
-		70DF1D4CF9E12E8FC859DFC2 /* SMBClient.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SMBClient.swift; sourceTree = "<group>"; };
+		8CE9FEE9731E05DFBDAEA029 /* SFTPClientService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SFTPClientService.swift; sourceTree = "<group>"; };
+		70DF1D4CF9E12E8FC859DFC2 /* SMBClientService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SMBClientService.swift; sourceTree = "<group>"; };
 		5457D898B19B0313F53F4196 /* WebDAVClient.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WebDAVClient.swift; sourceTree = "<group>"; };
 		80E5ADB547659113C5492EB6 /* WiFiTransferServer.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WiFiTransferServer.swift; sourceTree = "<group>"; };
 		7A1E9D400DF562E308835AB4 /* TransferActivityCenter.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TransferActivityCenter.swift; sourceTree = "<group>"; };
@@ -113,6 +116,8 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				304A842F15474FEBB5D8A9C4 /* AMSMB2 in Frameworks */,
+				D4D291BF632A49B38E9010C0 /* Citadel in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -202,8 +207,8 @@
 				0EDBD67B99E26DF52C4CE97D /* RemoteGateway.swift */,
 				DA4499E0FC5AB1B2CB713B5C /* RemoteSourceStore.swift */,
 				E7F040F9EC4DE39C49C5F3AF /* S3Client.swift */,
-				8CE9FEE9731E05DFBDAEA029 /* SFTPClient.swift */,
-				70DF1D4CF9E12E8FC859DFC2 /* SMBClient.swift */,
+				8CE9FEE9731E05DFBDAEA029 /* SFTPClientService.swift */,
+				70DF1D4CF9E12E8FC859DFC2 /* SMBClientService.swift */,
 				5457D898B19B0313F53F4196 /* WebDAVClient.swift */,
 				80E5ADB547659113C5492EB6 /* WiFiTransferServer.swift */,
 			);
@@ -258,12 +263,17 @@
 				A10000000000000000000006 /* Sources */,
 				A10000000000000000000008 /* Frameworks */,
 				A10000000000000000000009 /* Resources */,
+				B9E4D2C3F5A75B8E0D3F6E21 /* Embed Frameworks */,
 			);
 			buildRules = (
 			);
 			dependencies = (
 			);
 			name = MangaViewer;
+			packageProductDependencies = (
+				6BF2BC4368614CBE8D045E91 /* AMSMB2 */,
+				D668BA979A7A4CE5AC753D35 /* Citadel */,
+			);
 			productName = MangaViewer;
 			productReference = A10000000000000000000004 /* MangaViewer.app */;
 			productType = "com.apple.product-type.application";
@@ -303,6 +313,10 @@
 				Base,
 			);
 			mainGroup = A1000000000000000000000C;
+			packageReferences = (
+				905E8436333747018CEF5017 /* XCRemoteSwiftPackageReference "AMSMB2" */,
+				205A91D33B8C4E0CB2BABD69 /* XCRemoteSwiftPackageReference "Citadel" */,
+			);
 			productRefGroup = A1000000000000000000000D /* Products */;
 			projectDirPath = "";
 			projectRoot = "";
@@ -312,6 +326,21 @@
 			);
 		};
 /* End PBXProject section */
+
+
+/* Begin PBXCopyFilesBuildPhase section */
+		B9E4D2C3F5A75B8E0D3F6E21 /* Embed Frameworks */ = {
+			isa = PBXCopyFilesBuildPhase;
+			buildActionMask = 2147483647;
+			dstPath = "";
+			dstSubfolderSpec = 10;
+			files = (
+				A8F3C1D2E4B64A7F9C2E5D10 /* AMSMB2 in Embed Frameworks */,
+			);
+			name = "Embed Frameworks";
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXCopyFilesBuildPhase section */
 
 /* Begin PBXResourcesBuildPhase section */
 		A10000000000000000000009 /* Resources */ = {
@@ -350,8 +379,8 @@
 				E179473B05EB66F024D52206 /* RemoteGateway.swift in Sources */,
 				31403673A1F6A493A5B0A94B /* RemoteSourceStore.swift in Sources */,
 				F60BB1C09E730B6FADE7C148 /* S3Client.swift in Sources */,
-				4CD52B05CB7F625029067B93 /* SFTPClient.swift in Sources */,
-				D3D305E1E66F8B74BEADBA4C /* SMBClient.swift in Sources */,
+				4CD52B05CB7F625029067B93 /* SFTPClientService.swift in Sources */,
+				D3D305E1E66F8B74BEADBA4C /* SMBClientService.swift in Sources */,
 				BCB90401E34B8B8B96E99CE8 /* WebDAVClient.swift in Sources */,
 				C1B1C2F3179002726F600536 /* WiFiTransferServer.swift in Sources */,
 				2BCB1AA1A9483F5FF03C709E /* TransferActivityCenter.swift in Sources */,
@@ -517,5 +546,38 @@
 		};
 /* End XCConfigurationList section */
 	};
+
+/* Begin XCRemoteSwiftPackageReference section */
+		205A91D33B8C4E0CB2BABD69 /* XCRemoteSwiftPackageReference "Citadel" */ = {
+			isa = XCRemoteSwiftPackageReference;
+			repositoryURL = "https://github.com/orlandos-nl/Citadel";
+			requirement = {
+				kind = upToNextMajorVersion;
+				minimumVersion = 0.9.0;
+			};
+		};
+		905E8436333747018CEF5017 /* XCRemoteSwiftPackageReference "AMSMB2" */ = {
+			isa = XCRemoteSwiftPackageReference;
+			repositoryURL = "https://github.com/amosavian/AMSMB2";
+			requirement = {
+				kind = upToNextMajorVersion;
+				minimumVersion = 4.0.3;
+			};
+		};
+/* End XCRemoteSwiftPackageReference section */
+
+/* Begin XCSwiftPackageProductDependency section */
+		6BF2BC4368614CBE8D045E91 /* AMSMB2 */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = 905E8436333747018CEF5017 /* XCRemoteSwiftPackageReference "AMSMB2" */;
+			productName = AMSMB2;
+		};
+		D668BA979A7A4CE5AC753D35 /* Citadel */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = 205A91D33B8C4E0CB2BABD69 /* XCRemoteSwiftPackageReference "Citadel" */;
+			productName = Citadel;
+		};
+/* End XCSwiftPackageProductDependency section */
+
 	rootObject = A10000000000000000000003 /* Project object */;
 }

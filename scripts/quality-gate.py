@@ -10,10 +10,15 @@ def fail(m): failures.append(m)
 def swift_files(): return sorted(SRC.rglob("*.swift"))
 def read(p): return p.read_text(encoding="utf-8")
 
-def check_no_packages():
+
+def check_packages():
     pbx = read(ROOT/"MangaViewer"/"MangaViewer.xcodeproj"/"project.pbxproj")
-    if "XCRemoteSwiftPackageReference" in pbx or "AMSMB2" in pbx or "Citadel" in pbx:
-        fail("[パッケージ禁止] SPM / AMSMB2 / Citadel が残っている")
+    if "AMSMB2" not in pbx: fail("[SMB] AMSMB2 パッケージが無い")
+    if "Citadel" not in pbx: fail("[SFTP] Citadel パッケージが無い")
+    if not (SRC/"Services"/"Remote"/"SMBClientService.swift").exists():
+        fail("[SMB] SMBClientService.swift が無い")
+    if not (SRC/"Services"/"Remote"/"SFTPClientService.swift").exists():
+        fail("[SFTP] SFTPClientService.swift が無い")
 
 def check_staging():
     for rel in ["Views/Import/RemoteBrowserView.swift", "Views/Import/ImportHubView.swift"]:
@@ -63,7 +68,7 @@ def check_titles():
         if clean(i)!=w: fail(f"[系統A] title '{i}' -> '{clean(i)}'")
 
 def main():
-    check_no_packages(); check_staging(); check_password(); check_layout(); check_transfer(); check_titles()
+    check_packages(); check_staging(); check_password(); check_layout(); check_transfer(); check_titles()
     if failures:
         print("QUALITY GATE FAILED")
         for f in failures: print(" -", f)

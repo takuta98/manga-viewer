@@ -2,9 +2,21 @@ import Foundation
 
 enum RemoteError: LocalizedError {
     case message(String)
+    case invalidURL
+    case requestFailed(String)
+    case unsupported
+    case notConfigured
+
     var errorDescription: String? {
         switch self {
-        case .message(let s): return s
+        case .message(let s), .requestFailed(let s):
+            return s
+        case .invalidURL:
+            return "URLが不正です"
+        case .unsupported:
+            return "この形式は未対応です"
+        case .notConfigured:
+            return "接続情報が不足しています"
         }
     }
 }
@@ -18,9 +30,9 @@ enum RemoteGateway {
     static func list(source: RemoteSource, path: String) async throws -> [RemoteEntry] {
         let s = await RemoteSourceStore.shared.hydrated(source)
         switch s.kind {
-        case .smb: return try await SMBClient.list(source: s, path: path)
+        case .smb: return try await SMBClientService.list(source: s, path: path)
         case .webdav: return try await WebDAVClient.list(source: s, path: path)
-        case .sftp: return try await SFTPClient.list(source: s, path: path)
+        case .sftp: return try await SFTPClientService.list(source: s, path: path)
         case .ftp: return try await FTPClient.list(source: s, path: path)
         case .opds: return try await OPDSClient.list(source: s, path: path)
         case .s3: return try await S3Client.list(source: s, path: path)
@@ -31,9 +43,9 @@ enum RemoteGateway {
     static func download(source: RemoteSource, entry: RemoteEntry, to url: URL) async throws {
         let s = await RemoteSourceStore.shared.hydrated(source)
         switch s.kind {
-        case .smb: try await SMBClient.download(source: s, entry: entry, to: url)
+        case .smb: try await SMBClientService.download(source: s, path: entry.path, to: url)
         case .webdav: try await WebDAVClient.download(source: s, entry: entry, to: url)
-        case .sftp: try await SFTPClient.download(source: s, entry: entry, to: url)
+        case .sftp: try await SFTPClientService.download(source: s, path: entry.path, to: url)
         case .ftp: try await FTPClient.download(source: s, entry: entry, to: url)
         case .opds: try await OPDSClient.download(source: s, entry: entry, to: url)
         case .s3: try await S3Client.download(source: s, entry: entry, to: url)
