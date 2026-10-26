@@ -34,8 +34,8 @@ enum SMBClientService {
         }
         try await SMBShareSession.shared.withConnected(endpoint: endpoint, share: target.share) { manager in
             // 大きな CBZ をメモリに載せないよう、ディスクへ直接ストリームする。
+            // AMSMB2 の OutputStream(url:append:false) は既存ファイルだと nil になるため、作らずに渡す。
             try? FileManager.default.removeItem(at: local)
-            FileManager.default.createFile(atPath: local.path, contents: nil)
             do {
                 try await manager.downloadItem(atPath: target.directory, to: local, progress: nil)
             } catch {
