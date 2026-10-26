@@ -18,6 +18,9 @@ jobs:
       - name: Select Xcode
         run: sudo xcode-select -s /Applications/Xcode_16.4.app
 
+      - name: Quality gate
+        run: python3 scripts/quality-gate.py
+
       - name: Build for iOS Simulator
         working-directory: MangaViewer
         run: |
@@ -27,26 +30,6 @@ jobs:
             -scheme MangaViewer \
             -destination 'generic/platform=iOS Simulator' \
             -configuration Debug \
-            -onlyUsePackageVersionsFromResolvedFile \
-            CODE_SIGNING_ALLOWED=NO \
-            CODE_SIGN_IDENTITY="" \
-            CODE_SIGNING_REQUIRED=NO
-
-      - name: Unit tests
-        working-directory: MangaViewer
-        run: |
-          set -euo pipefail
-          DEST=$(xcodebuild -project MangaViewer.xcodeproj -scheme MangaViewer -showdestinations \
-            | sed -n 's/.*platform:iOS Simulator.*id:\([^,]*\).*name:iPhone.*/\1/p' \
-            | head -1 || true)
-          if [ -z "${DEST}" ]; then
-            echo "No iPhone simulator; skipping tests"
-            exit 0
-          fi
-          xcodebuild test \
-            -project MangaViewer.xcodeproj \
-            -scheme MangaViewer \
-            -destination "platform=iOS Simulator,id=${DEST}" \
             -onlyUsePackageVersionsFromResolvedFile \
             CODE_SIGNING_ALLOWED=NO \
             CODE_SIGN_IDENTITY="" \

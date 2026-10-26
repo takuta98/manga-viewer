@@ -55,8 +55,6 @@
 		304A842F15474FEBB5D8A9C4 /* AMSMB2 in Frameworks */ = {isa = PBXBuildFile; productRef = 6BF2BC4368614CBE8D045E91 /* AMSMB2 */; };
 		A8F3C1D2E4B64A7F9C2E5D10 /* AMSMB2 in Embed Frameworks */ = {isa = PBXBuildFile; productRef = 6BF2BC4368614CBE8D045E91 /* AMSMB2 */; settings = {ATTRIBUTES = (CodeSignOnCopy, RemoveHeadersOnCopy); }; };
 		D4D291BF632A49B38E9010C0 /* Citadel in Frameworks */ = {isa = PBXBuildFile; productRef = D668BA979A7A4CE5AC753D35 /* Citadel */; };
-		E1A2B3C4D5E6F708192A3B4C /* AMSMB2 in Frameworks */ = {isa = PBXBuildFile; productRef = 6BF2BC4368614CBE8D045E91 /* AMSMB2 */; };
-		E2A2B3C4D5E6F708192A3B4D /* Citadel in Frameworks */ = {isa = PBXBuildFile; productRef = D668BA979A7A4CE5AC753D35 /* Citadel */; };
 /* End PBXBuildFile section */
 
 
@@ -138,8 +136,6 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				E1A2B3C4D5E6F708192A3B4C /* AMSMB2 in Frameworks */,
-				E2A2B3C4D5E6F708192A3B4D /* Citadel in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -313,10 +309,6 @@
 				FE25095B412A4E86BD5202A0 /* PBXTargetDependency */,
 			);
 			name = MangaViewerTests;
-			packageProductDependencies = (
-				6BF2BC4368614CBE8D045E91 /* AMSMB2 */,
-				D668BA979A7A4CE5AC753D35 /* Citadel */,
-			);
 			productName = MangaViewerTests;
 			productReference = A10000000000000000000005 /* MangaViewerTests.xctest */;
 			productType = "com.apple.product-type.bundle.unit-test";
