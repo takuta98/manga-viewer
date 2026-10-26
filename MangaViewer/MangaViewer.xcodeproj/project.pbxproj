@@ -362,10 +362,13 @@
 				EB90AA91CEA745E6A36015F7 /* Catalog.swift in Sources */,
 				27ECDA2C6BC54195BE2B74E5 /* ProgressStore.swift in Sources */,
 				8AC13816DEB14BBF9A6E842F /* LibraryStore.swift in Sources */,
+				B22F12E3D4C55B7F0F8E9212 /* LibraryFolder.swift in Sources */,
 				4E50C9EF3EDB42D8AF8388A1 /* MangaImporter.swift in Sources */,
 				69316BB0E200408989017B50 /* ZipUnarchiver.swift in Sources */,
 				158D08242F054EAA83F6C9E9 /* ComicInfoParser.swift in Sources */,
 				C1BD8C7928324B099542D006 /* RemoteSourceStore.swift in Sources */,
+				B88F78D9C0B11A3F6F4E5878 /* KeychainStore.swift in Sources */,
+				D44F34A5F6E77D9B2B0A1434 /* TransferActivityCenter.swift in Sources */,
 				2F535896C42448FD8403DFF5 /* RemoteGateway.swift in Sources */,
 				DCCC49DCA3EB489C9BCE7E89 /* WebDAVClient.swift in Sources */,
 				03D377B8CC9B4BC59B6067A2 /* FTPClient.swift in Sources */,
@@ -384,7 +387,10 @@
 				142AF0BB87C6489BBB08AA83 /* ImportHubView.swift in Sources */,
 				85181BD0FF83491AB68C319B /* AddSourceView.swift in Sources */,
 				400A88EB27FD49E18ED64C6B /* RemoteBrowserView.swift in Sources */,
-				AD3A2B4781F54602B561F8DB /* WiFiTransferView.swift in Sources */, A49C5DA47F724107B16F51B6 /* PageTurnHost.swift in Sources */);
+				AD3A2B4781F54602B561F8DB /* WiFiTransferView.swift in Sources */,
+				A49C5DA47F724107B16F51B6 /* PageTurnHost.swift in Sources */,
+				F66F56C7B8A99F1D4D2C3656 /* ActivityOverlayView.swift in Sources */,
+			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
 		F1DC5A6C61744527B991540A /* Sources */ = {
