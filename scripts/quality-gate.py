@@ -89,6 +89,8 @@ def main() -> int:
         fail("[読む] ReaderView が PageBrowser を使っていない")
     if "allowsHitTesting(false)" not in reader:
         fail("[読む] Chrome 中央のヒット無効化が無い")
+    if "containerSize = geo.size" in reader or "let _ = { containerSize" in reader:
+        fail("[読む] GeometryReader 内で @State を書き換えている（起動／表示で落ちる）")
     if "DuoLayout.resolve" not in reader:
         fail("[Duo] ReaderView が DuoLayout を使っていない")
     if "DuoFrameView" not in reader:

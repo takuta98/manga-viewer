@@ -13,7 +13,6 @@ struct ReaderView: View {
     @State private var spreadIndex = 0
     @State private var showChrome = false
     @State private var showSettings = false
-    @State private var containerSize: CGSize = .zero
 
     private let progress = ReadingProgress.shared
 
@@ -23,30 +22,21 @@ struct ReaderView: View {
         _direction = State(initialValue: volume.direction)
     }
 
-    private var layout: PageLayoutMode {
-        DuoLayout.resolve(containerSize: containerSize, preference: prefs.layoutMode)
-    }
-
-    private var totalSpreads: Int {
-        SpreadIndex.totalSpreads(
-            pageCount: volume.pageCount,
-            coverAlone: prefs.coverAlone,
-            layout: layout
-        )
-    }
-
-    private var currentPageIndex: Int {
-        SpreadIndex.pageIndices(
-            spreadIndex: spreadIndex,
-            pageCount: volume.pageCount,
-            coverAlone: prefs.coverAlone,
-            layout: layout
-        ).0 ?? 0
-    }
-
     var body: some View {
         GeometryReader { geo in
-            let _ = { containerSize = geo.size }()
+            let layout = DuoLayout.resolve(containerSize: geo.size, preference: prefs.layoutMode)
+            let spreads = SpreadIndex.totalSpreads(
+                pageCount: volume.pageCount,
+                coverAlone: prefs.coverAlone,
+                layout: layout
+            )
+            let page = SpreadIndex.pageIndices(
+                spreadIndex: clamped(spreadIndex, spreads: spreads),
+                pageCount: volume.pageCount,
+                coverAlone: prefs.coverAlone,
+                layout: layout
+            ).0 ?? 0
+
             ZStack {
                 Color.black.ignoresSafeArea()
 
@@ -54,20 +44,21 @@ struct ReaderView: View {
                     ContentUnavailableView("ページがありません", systemImage: "doc.questionmark")
                         .foregroundStyle(.white)
                 } else if layout == .duo {
-                    duoContent
+                    duoPages(layout: layout)
                         .opacity(prefs.brightness)
-                    duoEdgeTaps(width: geo.size.width)
+                    duoEdgeTaps(width: geo.size.width, spreads: spreads)
                 } else {
                     PageBrowser(
                         pageCount: volume.pageCount,
                         index: Binding(
-                            get: { currentPageIndex },
-                            set: {
+                            get: { page },
+                            set: { newPage in
                                 spreadIndex = SpreadIndex.spreadIndex(
-                                    forPage: $0,
+                                    forPage: newPage,
                                     coverAlone: prefs.coverAlone,
                                     layout: .single
                                 )
+                                progress.setPageIndex(newPage, for: volume.id)
                             }
                         ),
                         style: prefs.turnStyle,
@@ -90,8 +81,19 @@ struct ReaderView: View {
                 }
 
                 if showChrome {
-                    chrome(safeTop: geo.safeAreaInsets.top, safeBottom: geo.safeAreaInsets.bottom)
+                    chrome(
+                        safeTop: geo.safeAreaInsets.top,
+                        safeBottom: geo.safeAreaInsets.bottom,
+                        page: page,
+                        layout: layout,
+                        spreads: spreads
+                    )
                 }
+            }
+            .onChange(of: geo.size) { _, newSize in
+                rematerializeSpread(
+                    for: DuoLayout.resolve(containerSize: newSize, preference: prefs.layoutMode)
+                )
             }
         }
         .statusBarHidden(!showChrome)
@@ -100,17 +102,22 @@ struct ReaderView: View {
         .onDisappear {
             UIApplication.shared.isIdleTimerDisabled = false
         }
-        .onChange(of: spreadIndex) { _, _ in
-            progress.setPageIndex(currentPageIndex, for: volume.id)
+        .onChange(of: spreadIndex) { _, value in
+            let layout = prefs.layoutMode == .duo ? PageLayoutMode.duo : .single
+            // 進捗はページ番号で保存する
+            let page = SpreadIndex.pageIndices(
+                spreadIndex: value,
+                pageCount: volume.pageCount,
+                coverAlone: prefs.coverAlone,
+                layout: layout == .duo ? .duo : .single
+            ).0 ?? value
+            progress.setPageIndex(page, for: volume.id)
         }
-        .onChange(of: containerSize) { _, _ in
-            clampSpread()
-        }
-        .onChange(of: prefs.layoutMode) { _, _ in
-            clampSpread()
+        .onChange(of: prefs.layoutMode) { _, mode in
+            rematerializeSpread(for: mode == .duo ? .duo : .single)
         }
         .onChange(of: prefs.coverAlone) { _, _ in
-            clampSpread()
+            rematerializeSpread(for: prefs.layoutMode)
         }
         .onChange(of: direction) { _, value in
             library.updateDirection(volume, direction: value)
@@ -124,12 +131,12 @@ struct ReaderView: View {
         }
     }
 
-    private var duoContent: some View {
+    private func duoPages(layout: PageLayoutMode) -> some View {
         let pages = SpreadIndex.pageIndices(
             spreadIndex: spreadIndex,
             pageCount: volume.pageCount,
             coverAlone: prefs.coverAlone,
-            layout: .duo
+            layout: layout
         )
         return DuoFrameView {
             HStack(spacing: 0) {
@@ -157,11 +164,11 @@ struct ReaderView: View {
         }
     }
 
-    private func duoEdgeTaps(width: CGFloat) -> some View {
+    private func duoEdgeTaps(width: CGFloat, spreads: Int) -> some View {
         HStack(spacing: 0) {
             Color.clear
                 .contentShape(Rectangle())
-                .onTapGesture { turn(forward: direction == .rtl) }
+                .onTapGesture { turn(forward: direction == .rtl, spreads: spreads) }
                 .frame(width: width * 0.28)
             Color.clear
                 .contentShape(Rectangle())
@@ -170,14 +177,15 @@ struct ReaderView: View {
                 }
             Color.clear
                 .contentShape(Rectangle())
-                .onTapGesture { turn(forward: direction != .rtl) }
+                .onTapGesture { turn(forward: direction != .rtl, spreads: spreads) }
                 .frame(width: width * 0.28)
         }
     }
 
-    private func turn(forward: Bool) {
+    private func turn(forward: Bool, spreads: Int) {
+        let maxIndex = max(spreads - 1, 0)
         if forward {
-            spreadIndex = min(spreadIndex + 1, max(totalSpreads - 1, 0))
+            spreadIndex = min(spreadIndex + 1, maxIndex)
         } else {
             spreadIndex = max(spreadIndex - 1, 0)
         }
@@ -186,30 +194,37 @@ struct ReaderView: View {
 
     private func restoreProgress() {
         prefs = AppSettingsStore.load()
-        let savedPage = progress.pageIndex(for: volume.id)
-        spreadIndex = SpreadIndex.spreadIndex(
-            forPage: savedPage,
-            coverAlone: prefs.coverAlone,
-            layout: layout
-        )
-        clampSpread()
+        rematerializeSpread(for: prefs.layoutMode)
         UIApplication.shared.isIdleTimerDisabled = prefs.keepScreenOn
         showChrome = false
     }
 
-    private func clampSpread() {
-        // 回転で single ↔ Duo が切り替わるとき、ページ番号を基準に見開き位置へ戻す。
+    private func rematerializeSpread(for layout: PageLayoutMode) {
         let page = progress.pageIndex(for: volume.id)
-        spreadIndex = SpreadIndex.spreadIndex(
-            forPage: page,
+        let spreads = SpreadIndex.totalSpreads(
+            pageCount: volume.pageCount,
             coverAlone: prefs.coverAlone,
             layout: layout
         )
-        spreadIndex = min(spreadIndex, max(totalSpreads - 1, 0))
+        spreadIndex = clamped(
+            SpreadIndex.spreadIndex(forPage: page, coverAlone: prefs.coverAlone, layout: layout),
+            spreads: spreads
+        )
     }
 
-    private func chrome(safeTop: CGFloat, safeBottom: CGFloat) -> some View {
-        VStack(spacing: 0) {
+    private func clamped(_ index: Int, spreads: Int) -> Int {
+        min(max(index, 0), max(spreads - 1, 0))
+    }
+
+    private func chrome(
+        safeTop: CGFloat,
+        safeBottom: CGFloat,
+        page: Int,
+        layout: PageLayoutMode,
+        spreads: Int
+    ) -> some View {
+        let maxSpread = max(spreads - 1, 0)
+        return VStack(spacing: 0) {
             HStack(spacing: 12) {
                 Button { dismiss() } label: {
                     Image(systemName: "chevron.down").frame(width: 36, height: 36)
@@ -220,7 +235,7 @@ struct ReaderView: View {
                     Text(volume.title)
                         .font(.footnote.weight(.semibold))
                         .lineLimit(1)
-                    Text("\(currentPageIndex + 1) / \(volume.pageCount) · \(layout == .duo ? "Duo" : "単ページ")")
+                    Text("\(page + 1) / \(volume.pageCount) · \(layout == .duo ? "Duo" : "単ページ")")
                         .font(.caption.monospacedDigit())
                 }
                 Spacer(minLength: 0)
@@ -243,10 +258,10 @@ struct ReaderView: View {
 
             Slider(
                 value: Binding(
-                    get: { Double(spreadIndex) },
+                    get: { Double(clamped(spreadIndex, spreads: spreads)) },
                     set: { spreadIndex = Int($0.rounded()) }
                 ),
-                in: 0...Double(max(totalSpreads - 1, 0)),
+                in: 0...Double(maxSpread),
                 step: 1
             )
             .padding(.horizontal, 20)
