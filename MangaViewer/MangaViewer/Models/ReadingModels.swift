@@ -42,7 +42,7 @@ enum PageLayoutMode: String, CaseIterable, Identifiable, Codable {
 
 struct ReaderPreferences: Codable, Equatable {
     var direction: ReadingDirection = .rtl
-    var turnStyle: PageTurnStyle = .slide
+    var turnStyle: PageTurnStyle = .curl
     var fitMode: PageFitMode = .fitScreen
     /// Duo を許可する。縦では常に単ページ、横に広いときだけ見開き。
     var layoutMode: PageLayoutMode = .duo
