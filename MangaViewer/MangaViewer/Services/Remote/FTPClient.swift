@@ -1,56 +1,64 @@
 import Foundation
+import FilesProvider
 
 enum FTPClient {
     static func list(source: RemoteSource, path: String) async throws -> [RemoteEntry] {
-        let url = try makeURL(source, path: path, isDir: true)
-        var req = URLRequest(url: url)
-        applyAuth(&req, source)
-        let (data, response) = try await URLSession.shared.data(for: req)
-        if let http = response as? HTTPURLResponse, !(200...299).contains(http.statusCode) {
-            throw RemoteError.message("FTPの一覧取得に失敗しました")
+        let provider = try makeProvider(source)
+        let dir = path.isEmpty ? (source.shareOrPath.isEmpty ? "/" : source.shareOrPath) : path
+        let files = try await withCheckedThrowingContinuation { (cont: CheckedContinuation<[FileObject], Error>) in
+            provider.contentsOfDirectory(path: dir) { contents, error in
+                if let error {
+                    cont.resume(throwing: RemoteError.requestFailed(error.localizedDescription))
+                } else {
+                    cont.resume(returning: contents)
+                }
+            }
         }
-        let text = String(data: data, encoding: .utf8) ?? ""
-        return text.split(whereSeparator: \.isNewline).compactMap { line -> RemoteEntry? in
-            let name = String(line).trimmingCharacters(in: .whitespacesAndNewlines)
-            guard !name.isEmpty, name != "." , name != ".." else { return nil }
-            let isDir = name.hasSuffix("/")
-            let clean = name.trimmingCharacters(in: CharacterSet(charactersIn: "/"))
-            let full = path.isEmpty ? clean : path + "/" + clean
-            return RemoteEntry(name: clean, path: full, isDirectory: isDir, size: nil)
+        return files.compactMap { file -> RemoteEntry? in
+            let name = file.name
+            if name == "." || name == ".." || name.isEmpty { return nil }
+            let base = dir.trimmingCharacters(in: CharacterSet(charactersIn: "/"))
+            let child = base.isEmpty ? name : "\(base)/\(name)"
+            return RemoteEntry(name: name, path: child, isDirectory: file.isDirectory, size: file.size)
         }
+        .sorted { $0.name.localizedStandardCompare($1.name) == .orderedAscending }
     }
 
     static func download(source: RemoteSource, entry: RemoteEntry, to dest: URL) async throws {
-        let url = try makeURL(source, path: entry.path, isDir: false)
-        var req = URLRequest(url: url)
-        applyAuth(&req, source)
-        let (tmp, response) = try await URLSession.shared.download(for: req)
-        if let http = response as? HTTPURLResponse, !(200...299).contains(http.statusCode) {
-            throw RemoteError.message("FTPのダウンロードに失敗しました")
-        }
+        let provider = try makeProvider(source)
         try? FileManager.default.removeItem(at: dest)
-        try FileManager.default.moveItem(at: tmp, to: dest)
+        try await withCheckedThrowingContinuation { (cont: CheckedContinuation<Void, Error>) in
+            _ = provider.copyItem(path: entry.path, toLocalURL: dest) { error in
+                if let error {
+                    cont.resume(throwing: RemoteError.requestFailed(error.localizedDescription))
+                } else {
+                    cont.resume()
+                }
+            }
+        }
     }
 
-    private static func makeURL(_ source: RemoteSource, path: String, isDir: Bool) throws -> URL {
-        var c = URLComponents()
-        c.scheme = source.useTLS ? "ftps" : "ftp"
-        c.host = source.host
-        c.port = source.port
+    private static func makeProvider(_ source: RemoteSource) throws -> FTPFileProvider {
+        guard let url = baseURL(source) else { throw RemoteError.invalidURL }
+        let credential: URLCredential? = source.username.isEmpty
+            ? nil
+            : URLCredential(user: source.username, password: source.password, persistence: .forSession)
+        guard let provider = FTPFileProvider(baseURL: url, mode: .default, credential: credential) else {
+            throw RemoteError.requestFailed("FTP クライアントを初期化できません")
+        }
+        return provider
+    }
+
+    private static func baseURL(_ source: RemoteSource) -> URL? {
+        var host = source.host.trimmingCharacters(in: .whitespacesAndNewlines)
+        host = host.replacingOccurrences(of: "ftps://", with: "", options: .caseInsensitive)
+        host = host.replacingOccurrences(of: "ftp://", with: "", options: .caseInsensitive)
+        guard !host.isEmpty else { return nil }
+        let scheme = source.useTLS ? "ftps" : "ftp"
+        let port = source.port > 0 ? source.port : (source.useTLS ? 990 : 21)
+        var s = "\(scheme)://\(host):\(port)/"
         let root = source.shareOrPath.trimmingCharacters(in: CharacterSet(charactersIn: "/"))
-        let rel = path.trimmingCharacters(in: CharacterSet(charactersIn: "/"))
-        var p = "/"
-        if !root.isEmpty { p += root + "/" }
-        if !rel.isEmpty { p += rel }
-        if isDir && !p.hasSuffix("/") { p += "/" }
-        c.path = p
-        guard let url = c.url else { throw RemoteError.message("FTPのURLが不正です") }
-        return url
-    }
-
-    private static func applyAuth(_ req: inout URLRequest, _ source: RemoteSource) {
-        guard !source.username.isEmpty else { return }
-        let raw = "\(source.username):\(source.password)"
-        req.setValue("Basic \(Data(raw.utf8).base64EncodedString())", forHTTPHeaderField: "Authorization")
+        if !root.isEmpty { s = "\(scheme)://\(host):\(port)/\(root)/" }
+        return URL(string: s)
     }
 }

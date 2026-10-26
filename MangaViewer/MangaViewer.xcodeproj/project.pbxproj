@@ -55,6 +55,8 @@
 		304A842F15474FEBB5D8A9C4 /* AMSMB2 in Frameworks */ = {isa = PBXBuildFile; productRef = 6BF2BC4368614CBE8D045E91 /* AMSMB2 */; };
 		A8F3C1D2E4B64A7F9C2E5D10 /* AMSMB2 in Embed Frameworks */ = {isa = PBXBuildFile; productRef = 6BF2BC4368614CBE8D045E91 /* AMSMB2 */; settings = {ATTRIBUTES = (CodeSignOnCopy, RemoveHeadersOnCopy); }; };
 		D4D291BF632A49B38E9010C0 /* Citadel in Frameworks */ = {isa = PBXBuildFile; productRef = D668BA979A7A4CE5AC753D35 /* Citadel */; };
+		F11E5005A11E5005A11E5005 /* FilesProvider in Frameworks */ = {isa = PBXBuildFile; productRef = F11E5003A11E5003A11E5003 /* FilesProvider */; };
+		F11E5006A11E5006A11E5006 /* FeedKit in Frameworks */ = {isa = PBXBuildFile; productRef = F11E5004A11E5004A11E5004 /* FeedKit */; };
 /* End PBXBuildFile section */
 
 
@@ -129,6 +131,8 @@
 			files = (
 				304A842F15474FEBB5D8A9C4 /* AMSMB2 in Frameworks */,
 				D4D291BF632A49B38E9010C0 /* Citadel in Frameworks */,
+				F11E5005A11E5005A11E5005 /* FilesProvider in Frameworks */,
+				F11E5006A11E5006A11E5006 /* FeedKit in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -291,6 +295,8 @@
 			packageProductDependencies = (
 				6BF2BC4368614CBE8D045E91 /* AMSMB2 */,
 				D668BA979A7A4CE5AC753D35 /* Citadel */,
+				F11E5003A11E5003A11E5003 /* FilesProvider */,
+				F11E5004A11E5004A11E5004 /* FeedKit */,
 			);
 			productName = MangaViewer;
 			productReference = A10000000000000000000004 /* MangaViewer.app */;
@@ -336,6 +342,8 @@
 			packageReferences = (
 				905E8436333747018CEF5017 /* XCRemoteSwiftPackageReference "AMSMB2" */,
 				205A91D33B8C4E0CB2BABD69 /* XCRemoteSwiftPackageReference "Citadel" */,
+				F11E5001A11E5001A11E5001 /* XCRemoteSwiftPackageReference "FileProvider" */,
+				F11E5002A11E5002A11E5002 /* XCRemoteSwiftPackageReference "FeedKit" */,
 			);
 			productRefGroup = A1000000000000000000000D /* Products */;
 			projectDirPath = "";
@@ -597,6 +605,22 @@
 				minimumVersion = 4.0.3;
 			};
 		};
+		F11E5001A11E5001A11E5001 /* XCRemoteSwiftPackageReference "FileProvider" */ = {
+			isa = XCRemoteSwiftPackageReference;
+			repositoryURL = "https://github.com/amosavian/FileProvider";
+			requirement = {
+				kind = upToNextMajorVersion;
+				minimumVersion = 0.26.0;
+			};
+		};
+		F11E5002A11E5002A11E5002 /* XCRemoteSwiftPackageReference "FeedKit" */ = {
+			isa = XCRemoteSwiftPackageReference;
+			repositoryURL = "https://github.com/nmdias/FeedKit";
+			requirement = {
+				kind = upToNextMajorVersion;
+				minimumVersion = 10.0.0;
+			};
+		};
 /* End XCRemoteSwiftPackageReference section */
 
 /* Begin XCSwiftPackageProductDependency section */
@@ -609,6 +633,16 @@
 			isa = XCSwiftPackageProductDependency;
 			package = 205A91D33B8C4E0CB2BABD69 /* XCRemoteSwiftPackageReference "Citadel" */;
 			productName = Citadel;
+		};
+		F11E5003A11E5003A11E5003 /* FilesProvider */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = F11E5001A11E5001A11E5001 /* XCRemoteSwiftPackageReference "FileProvider" */;
+			productName = FilesProvider;
+		};
+		F11E5004A11E5004A11E5004 /* FeedKit */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = F11E5002A11E5002A11E5002 /* XCRemoteSwiftPackageReference "FeedKit" */;
+			productName = FeedKit;
 		};
 /* End XCSwiftPackageProductDependency section */
 	};

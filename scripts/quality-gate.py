@@ -15,6 +15,8 @@ def check_packages():
     pbx = read(ROOT/"MangaViewer"/"MangaViewer.xcodeproj"/"project.pbxproj")
     if "AMSMB2" not in pbx: fail("[SMB] AMSMB2 パッケージが無い")
     if "Citadel" not in pbx: fail("[SFTP] Citadel パッケージが無い")
+    if "FilesProvider" not in pbx: fail("[WebDAV/FTP] FilesProvider パッケージが無い")
+    if "FeedKit" not in pbx: fail("[OPDS] FeedKit パッケージが無い")
     if not (SRC/"Services"/"Remote"/"SMBClientService.swift").exists():
         fail("[SMB] SMBClientService.swift が無い")
     if not (SRC/"Services"/"Remote"/"SFTPClientService.swift").exists():

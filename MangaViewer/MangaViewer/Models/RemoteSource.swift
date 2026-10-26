@@ -116,4 +116,5 @@ struct RemoteEntry: Identifiable, Hashable {
     var path: String
     var isDirectory: Bool
     var size: Int64?
+    var downloadURL: URL? = nil
 }

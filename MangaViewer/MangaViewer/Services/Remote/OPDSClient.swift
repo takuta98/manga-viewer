@@ -1,67 +1,98 @@
 import Foundation
+import FeedKit
 
 enum OPDSClient {
     static func list(source: RemoteSource, path: String) async throws -> [RemoteEntry] {
-        let url = try feedURL(source, path: path)
-        var req = URLRequest(url: url)
-        applyAuth(&req, source)
-        let (data, response) = try await URLSession.shared.data(for: req)
-        if let http = response as? HTTPURLResponse, !(200...299).contains(http.statusCode) {
-            throw RemoteError.message("OPDSの取得に失敗しました")
+        let url = try feedURL(source: source, path: path)
+        var request = URLRequest(url: url)
+        applyAuth(&request, source: source)
+        let (data, response) = try await URLSession.shared.data(for: request)
+        guard let http = response as? HTTPURLResponse, (200...299).contains(http.statusCode) else {
+            throw RemoteError.requestFailed("OPDS フィードの取得に失敗しました")
         }
-        return parse(data)
-    }
-
-    static func download(source: RemoteSource, entry: RemoteEntry, to dest: URL) async throws {
-        guard let url = URL(string: entry.path) else { throw RemoteError.message("OPDSのリンクが不正です") }
-        var req = URLRequest(url: url)
-        applyAuth(&req, source)
-        let (tmp, response) = try await URLSession.shared.download(for: req)
-        if let http = response as? HTTPURLResponse, !(200...299).contains(http.statusCode) {
-            throw RemoteError.message("OPDSのダウンロードに失敗しました")
+        let feed = try Feed(data: data)
+        guard case .atom(let atom) = feed else {
+            throw RemoteError.requestFailed("OPDS（Atom）フィードではありません")
         }
-        try? FileManager.default.removeItem(at: dest)
-        try FileManager.default.moveItem(at: tmp, to: dest)
+        return (atom.entries ?? []).compactMap { entry -> RemoteEntry? in
+            let title = entry.title?.trimmingCharacters(in: .whitespacesAndNewlines)
+            guard let title, !title.isEmpty else { return nil }
+            let links = entry.links ?? []
+            let acquisition = links.first { link in
+                let rel = link.attributes?.rel?.lowercased() ?? ""
+                let type = link.attributes?.type?.lowercased() ?? ""
+                return rel.contains("acquisition") || type.contains("zip") || type.contains("cbz") || type.contains("epub")
+            }
+            let navigation = links.first {
+                let rel = $0.attributes?.rel ?? ""
+                return rel.contains("subsection") || rel == "alternate"
+            }
+            let href = acquisition?.attributes?.href ?? navigation?.attributes?.href ?? links.first?.attributes?.href
+            guard let href, let absolute = absoluteURL(href, relativeTo: url) else { return nil }
+            let isDir = acquisition == nil
+            return RemoteEntry(
+                name: title,
+                path: absolute.absoluteString,
+                isDirectory: isDir,
+                size: acquisition?.attributes?.length,
+                downloadURL: isDir ? nil : absolute
+            )
+        }
     }
 
-    private static func feedURL(_ source: RemoteSource, path: String) throws -> URL {
-        if path.hasPrefix("http") { return URL(string: path)! }
-        let scheme = source.useTLS ? "https" : "http"
-        var s = "\(scheme)://\(source.host)"
-        if source.port > 0 { s += ":\(source.port)" }
-        let root = source.shareOrPath.isEmpty ? "/" : source.shareOrPath
-        s += root.hasPrefix("/") ? root : "/\(root)"
-        if !path.isEmpty { s = path }
-        guard let url = URL(string: s) else { throw RemoteError.message("OPDSのURLが不正です") }
-        return url
+    static func download(source: RemoteSource, entry: RemoteEntry, to local: URL) async throws {
+        guard let url = entry.downloadURL ?? URL(string: entry.path) else {
+            throw RemoteError.notConfigured
+        }
+        var request = URLRequest(url: url)
+        applyAuth(&request, source: source)
+        let (temp, response) = try await URLSession.shared.download(for: request)
+        guard let http = response as? HTTPURLResponse, (200...299).contains(http.statusCode) else {
+            throw RemoteError.requestFailed("OPDS のダウンロードに失敗しました")
+        }
+        try? FileManager.default.removeItem(at: local)
+        try FileManager.default.moveItem(at: temp, to: local)
     }
 
-    private static func applyAuth(_ req: inout URLRequest, _ source: RemoteSource) {
+    private static func feedURL(source: RemoteSource, path: String) throws -> URL {
+        if path.hasPrefix("http://") || path.hasPrefix("https://") {
+            guard let u = URL(string: path) else { throw RemoteError.invalidURL }
+            return u
+        }
+        var host = source.host.trimmingCharacters(in: .whitespacesAndNewlines)
+        if !host.contains("://") {
+            host = (source.useTLS ? "https://" : "http://") + host
+        }
+        if path.isEmpty {
+            if !source.shareOrPath.isEmpty {
+                if source.shareOrPath.hasPrefix("http") {
+                    guard let u = URL(string: source.shareOrPath) else { throw RemoteError.invalidURL }
+                    return u
+                }
+                let base = host.trimmingCharacters(in: CharacterSet(charactersIn: "/"))
+                let part = source.shareOrPath.hasPrefix("/") ? source.shareOrPath : "/" + source.shareOrPath
+                guard let u = URL(string: base + part) else { throw RemoteError.invalidURL }
+                return u
+            }
+            guard let u = URL(string: host) else { throw RemoteError.invalidURL }
+            return u
+        }
+        let base = host.trimmingCharacters(in: CharacterSet(charactersIn: "/"))
+        let part = path.hasPrefix("/") ? path : "/" + path
+        guard let u = URL(string: base + part) else { throw RemoteError.invalidURL }
+        return u
+    }
+
+    private static func absoluteURL(_ href: String, relativeTo base: URL) -> URL? {
+        if href.hasPrefix("http://") || href.hasPrefix("https://") {
+            return URL(string: href)
+        }
+        return URL(string: href, relativeTo: base)?.absoluteURL
+    }
+
+    private static func applyAuth(_ request: inout URLRequest, source: RemoteSource) {
         guard !source.username.isEmpty else { return }
         let raw = "\(source.username):\(source.password)"
-        req.setValue("Basic \(Data(raw.utf8).base64EncodedString())", forHTTPHeaderField: "Authorization")
-    }
-
-    private static func parse(_ data: Data) -> [RemoteEntry] {
-        guard let text = String(data: data, encoding: .utf8) else { return [] }
-        var entries: [RemoteEntry] = []
-        for chunk in text.components(separatedBy: "<entry>").dropFirst() {
-            let title = slice(chunk, "<title>", "</title>") ?? "無題"
-            let isNav = chunk.contains("rel=\"subsection\"") || chunk.contains("type=\"application/atom+xml")
-            if let href = attr(chunk, "href=\"", "\"") {
-                entries.append(RemoteEntry(name: title, path: href, isDirectory: isNav, size: nil))
-            }
-        }
-        return entries
-    }
-
-    private static func slice(_ s: String, _ a: String, _ b: String) -> String? {
-        guard let r = s.range(of: a), let e = s.range(of: b, range: r.upperBound..<s.endIndex) else { return nil }
-        return String(s[r.upperBound..<e.lowerBound])
-    }
-    private static func attr(_ s: String, _ a: String, _ b: String) -> String? {
-        guard let r = s.range(of: a) else { return nil }
-        guard let e = s.range(of: b, range: r.upperBound..<s.endIndex) else { return nil }
-        return String(s[r.upperBound..<e.lowerBound])
+        request.setValue("Basic \(Data(raw.utf8).base64EncodedString())", forHTTPHeaderField: "Authorization")
     }
 }

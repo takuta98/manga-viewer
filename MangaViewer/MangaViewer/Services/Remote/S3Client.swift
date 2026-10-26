@@ -1,99 +1,171 @@
 import Foundation
 import CryptoKit
 
+/// S3-compatible LIST/GET (AWS SigV4) for MinIO / Wasabi / AWS.
 enum S3Client {
     static func list(source: RemoteSource, path: String) async throws -> [RemoteEntry] {
-        let prefix = path.trimmingCharacters(in: CharacterSet(charactersIn: "/"))
-        var comp = URLComponents(string: endpoint(source))!
-        comp.queryItems = [
+        let bucket = source.bucket.isEmpty ? source.shareOrPath : source.bucket
+        guard !bucket.isEmpty else { throw RemoteError.notConfigured }
+        let prefix = path.isEmpty ? "" : (path.hasSuffix("/") ? path : path + "/")
+        var comps = try endpointComponents(source)
+        comps.path = "/"
+        comps.queryItems = [
             URLQueryItem(name: "list-type", value: "2"),
-            URLQueryItem(name: "prefix", value: prefix.isEmpty ? "" : prefix + "/"),
-            URLQueryItem(name: "delimiter", value: "/"),
+            URLQueryItem(name: "prefix", value: prefix),
+            URLQueryItem(name: "delimiter", value: "/")
         ]
-        var req = URLRequest(url: comp.url!)
-        req.httpMethod = "GET"
-        try sign(&req, source: source, payloadHash: emptyHash)
-        let (data, response) = try await URLSession.shared.data(for: req)
-        if let http = response as? HTTPURLResponse, !(200...299).contains(http.statusCode) {
-            throw RemoteError.message("S3の一覧取得に失敗しました")
+        guard let url = comps.url else { throw RemoteError.invalidURL }
+        var request = URLRequest(url: url)
+        request.httpMethod = "GET"
+        try sign(&request, source: source, bucket: bucket, canonicalURI: "/")
+        // Path-style: host/bucket
+        if !(comps.host?.contains(bucket) ?? false) {
+            comps.path = "/\(bucket)"
+            request.url = comps.url
+            try sign(&request, source: source, bucket: bucket, canonicalURI: "/\(bucket)")
         }
-        return parseList(data, prefix: prefix)
-    }
-
-    static func download(source: RemoteSource, entry: RemoteEntry, to dest: URL) async throws {
-        let key = entry.path.trimmingCharacters(in: CharacterSet(charactersIn: "/"))
-        let url = URL(string: endpoint(source) + "/" + key.addingPercentEncoding(withAllowedCharacters: .urlPathAllowed)!)!
-        var req = URLRequest(url: url)
-        req.httpMethod = "GET"
-        try sign(&req, source: source, payloadHash: emptyHash)
-        let (tmp, response) = try await URLSession.shared.download(for: req)
-        if let http = response as? HTTPURLResponse, !(200...299).contains(http.statusCode) {
-            throw RemoteError.message("S3のダウンロードに失敗しました")
+        let (data, response) = try await URLSession.shared.data(for: request)
+        guard let http = response as? HTTPURLResponse, (200...299).contains(http.statusCode) else {
+            let body = String(data: data, encoding: .utf8) ?? ""
+            throw RemoteError.requestFailed("S3 LIST failed: \(body.prefix(200))")
         }
-        try? FileManager.default.removeItem(at: dest)
-        try FileManager.default.moveItem(at: tmp, to: dest)
+        return parseList(xml: String(data: data, encoding: .utf8) ?? "", prefix: prefix)
     }
 
-    private static var emptyHash: String {
-        SHA256.hash(data: Data()).map { String(format: "%02x", $0) }.joined()
-    }
-
-    private static func endpoint(_ source: RemoteSource) -> String {
-        let scheme = source.useTLS ? "https" : "http"
-        if source.host.contains(".") {
-            return "\(scheme)://\(source.host)/\(source.bucket)"
+    static func download(source: RemoteSource, entry: RemoteEntry, to local: URL) async throws {
+        let path = entry.path
+        let bucket = source.bucket.isEmpty ? source.shareOrPath : source.bucket
+        var comps = try endpointComponents(source)
+        comps.path = "/\(bucket)/\(path)"
+        comps.query = nil
+        guard let url = comps.url else { throw RemoteError.invalidURL }
+        var request = URLRequest(url: url)
+        request.httpMethod = "GET"
+        try sign(&request, source: source, bucket: bucket, canonicalURI: "/\(bucket)/\(path)")
+        let (temp, response) = try await URLSession.shared.download(for: request)
+        guard let http = response as? HTTPURLResponse, (200...299).contains(http.statusCode) else {
+            throw RemoteError.requestFailed("S3 GET failed")
         }
-        return "\(scheme)://\(source.bucket).s3.\(source.region).amazonaws.com"
+        try? FileManager.default.removeItem(at: local)
+        try FileManager.default.moveItem(at: temp, to: local)
     }
 
-    private static func parseList(_ data: Data, prefix: String) -> [RemoteEntry] {
-        guard let text = String(data: data, encoding: .utf8) else { return [] }
+    private static func endpointComponents(_ source: RemoteSource) throws -> URLComponents {
+        var host = source.host.trimmingCharacters(in: .whitespacesAndNewlines)
+        if !host.contains("://") {
+            host = (source.useTLS ? "https://" : "http://") + host
+        }
+        guard var comps = URLComponents(string: host) else { throw RemoteError.invalidURL }
+        if source.port > 0 { comps.port = source.port }
+        return comps
+    }
+
+    private static func parseList(xml: String, prefix: String) -> [RemoteEntry] {
         var entries: [RemoteEntry] = []
-        for p in text.components(separatedBy: "<Prefix>").dropFirst() {
-            guard let end = p.range(of: "</Prefix>") else { continue }
-            let full = String(p[..<end.lowerBound])
-            let name = full.trimmingCharacters(in: CharacterSet(charactersIn: "/")).components(separatedBy: "/").last ?? full
-            if name.isEmpty { continue }
-            entries.append(RemoteEntry(name: name, path: full.trimmingCharacters(in: CharacterSet(charactersIn: "/")), isDirectory: true, size: nil))
+        // Common prefixes (folders)
+        for folder in tags(xml, "Prefix") {
+            if folder == prefix || folder.isEmpty { continue }
+            let name = folder.trimmingCharacters(in: CharacterSet(charactersIn: "/"))
+                .split(separator: "/").last.map(String.init) ?? folder
+            entries.append(RemoteEntry(name: name, path: folder, isDirectory: true, size: nil, downloadURL: nil))
         }
-        for p in text.components(separatedBy: "<Key>").dropFirst() {
-            guard let end = p.range(of: "</Key>") else { continue }
-            let key = String(p[..<end.lowerBound])
+        // Contents
+        let chunks = xml.components(separatedBy: "<Contents>").dropFirst()
+        for chunk in chunks {
+            guard let key = tag(chunk, "Key"), key != prefix else { continue }
             if key.hasSuffix("/") { continue }
-            let name = (key as NSString).lastPathComponent
-            entries.append(RemoteEntry(name: name, path: key, isDirectory: false, size: nil))
+            let name = key.split(separator: "/").last.map(String.init) ?? key
+            let size = tag(chunk, "Size").flatMap { Int64($0) }
+            entries.append(RemoteEntry(name: name, path: key, isDirectory: false, size: size, downloadURL: nil))
         }
-        return entries
+        return entries.sorted { $0.name.localizedStandardCompare($1.name) == .orderedAscending }
     }
 
-    private static func sign(_ req: inout URLRequest, source: RemoteSource, payloadHash: String) throws {
-        let method = req.httpMethod ?? "GET"
-        guard let url = req.url else { throw RemoteError.message("S3のURLが不正です") }
-        let amzDate = ISO8601DateFormatter().string(from: Date()).replacingOccurrences(of: "-", with: "").replacingOccurrences(of: ":", with: "")
-        let short = String(amzDate.prefix(8))
-        req.setValue(amzDate, forHTTPHeaderField: "x-amz-date")
-        req.setValue(payloadHash, forHTTPHeaderField: "x-amz-content-sha256")
-        req.setValue(url.host, forHTTPHeaderField: "host")
-        let canonicalHeaders = "host:\(url.host!)\nx-amz-content-sha256:\(payloadHash)\nx-amz-date:\(amzDate)\n"
+    private static func tags(_ xml: String, _ name: String) -> [String] {
+        var result: [String] = []
+        var search = xml[...]
+        let open = "<\(name)>"
+        let close = "</\(name)>"
+        while let s = search.range(of: open) {
+            search = search[s.upperBound...]
+            guard let e = search.range(of: close) else { break }
+            result.append(String(search[..<e.lowerBound]))
+            search = search[e.upperBound...]
+        }
+        return result
+    }
+
+    private static func tag(_ text: String, _ name: String) -> String? {
+        tags(text, name).first
+    }
+
+    private static func sign(_ request: inout URLRequest, source: RemoteSource, bucket: String, canonicalURI: String) throws {
+        let access = source.username
+        let secret = source.password
+        guard !access.isEmpty, !secret.isEmpty else { throw RemoteError.notConfigured }
+        let region = source.region.isEmpty ? "us-east-1" : source.region
+        let now = Date()
+        let amzDate = Self.amzDate(now)
+        let dateStamp = String(amzDate.prefix(8))
+        request.setValue(amzDate, forHTTPHeaderField: "x-amz-date")
+        request.setValue("UNSIGNED-PAYLOAD", forHTTPHeaderField: "x-amz-content-sha256")
+        guard let url = request.url, let host = url.host else { throw RemoteError.invalidURL }
+        request.setValue(host, forHTTPHeaderField: "host")
+
+        let method = request.httpMethod ?? "GET"
+        let query = url.query ?? ""
+        let canonicalQuery = query.split(separator: "&").map(String.init).sorted().joined(separator: "&")
+        let canonicalHeaders = "host:\(host)\nx-amz-content-sha256:UNSIGNED-PAYLOAD\nx-amz-date:\(amzDate)\n"
         let signedHeaders = "host;x-amz-content-sha256;x-amz-date"
-        let canonical = "\(method)\n\(url.path)\n\(url.query ?? "")\n\(canonicalHeaders)\n\(signedHeaders)\n\(payloadHash)"
-        let canonicalHash = SHA256.hash(data: Data(canonical.utf8)).map { String(format: "%02x", $0) }.joined()
-        let scope = "\(short)/\(source.region)/s3/aws4_request"
-        let stringToSign = "AWS4-HMAC-SHA256\n\(amzDate)\n\(scope)\n\(canonicalHash)"
-        let kDate = hmac("AWS4\(source.password)", short)
-        let kRegion = hmac(kDate, source.region)
-        let kService = hmac(kRegion, "s3")
-        let kSigning = hmac(kService, "aws4_request")
-        let signature = HMAC<SHA256>.authenticationCode(for: Data(stringToSign.utf8), using: SymmetricKey(data: kSigning))
-            .map { String(format: "%02x", $0) }.joined()
-        let auth = "AWS4-HMAC-SHA256 Credential=\(source.username)/\(scope), SignedHeaders=\(signedHeaders), Signature=\(signature)"
-        req.setValue(auth, forHTTPHeaderField: "Authorization")
+        let canonicalRequest = [
+            method,
+            canonicalURI,
+            canonicalQuery,
+            canonicalHeaders,
+            signedHeaders,
+            "UNSIGNED-PAYLOAD"
+        ].joined(separator: "\n")
+
+        let credentialScope = "\(dateStamp)/\(region)/s3/aws4_request"
+        let stringToSign = [
+            "AWS4-HMAC-SHA256",
+            amzDate,
+            credentialScope,
+            sha256Hex(Data(canonicalRequest.utf8))
+        ].joined(separator: "\n")
+
+        let signingKey = awsSignKey(secret: secret, dateStamp: dateStamp, region: region, service: "s3")
+        let signature = hmacHex(key: signingKey, data: Data(stringToSign.utf8))
+        let auth = "AWS4-HMAC-SHA256 Credential=\(access)/\(credentialScope), SignedHeaders=\(signedHeaders), Signature=\(signature)"
+        request.setValue(auth, forHTTPHeaderField: "Authorization")
+        _ = bucket
     }
 
-    private static func hmac(_ key: String, _ data: String) -> Data {
-        hmac(Data(key.utf8), data)
+    private static func amzDate(_ date: Date) -> String {
+        let f = DateFormatter()
+        f.locale = Locale(identifier: "en_US_POSIX")
+        f.timeZone = TimeZone(secondsFromGMT: 0)
+        f.dateFormat = "yyyyMMdd'T'HHmmss'Z'"
+        return f.string(from: date)
     }
-    private static func hmac(_ key: Data, _ data: String) -> Data {
-        Data(HMAC<SHA256>.authenticationCode(for: Data(data.utf8), using: SymmetricKey(data: key)))
+
+    private static func sha256Hex(_ data: Data) -> String {
+        SHA256.hash(data: data).map { String(format: "%02x", $0) }.joined()
+    }
+
+    private static func hmac(key: Data, data: Data) -> Data {
+        let keySym = SymmetricKey(data: key)
+        return Data(HMAC<SHA256>.authenticationCode(for: data, using: keySym))
+    }
+
+    private static func hmacHex(key: Data, data: Data) -> String {
+        hmac(key: key, data: data).map { String(format: "%02x", $0) }.joined()
+    }
+
+    private static func awsSignKey(secret: String, dateStamp: String, region: String, service: String) -> Data {
+        let kDate = hmac(key: Data("AWS4\(secret)".utf8), data: Data(dateStamp.utf8))
+        let kRegion = hmac(key: kDate, data: Data(region.utf8))
+        let kService = hmac(key: kRegion, data: Data(service.utf8))
+        return hmac(key: kService, data: Data("aws4_request".utf8))
     }
 }
