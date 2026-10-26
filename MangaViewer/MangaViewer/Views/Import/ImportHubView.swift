@@ -14,17 +14,17 @@ struct ImportHubView: View {
     var body: some View {
         NavigationStack {
             List {
-                Section("この端末") {
-                    Button("ファイル App から選ぶ") { showFiles = true }
-                    Button("Wi‑Fi 転送") { showWiFi = true }
+                Section(AppCopy.thisDevice) {
+                    Button(AppCopy.fromFiles) { showFiles = true }
+                    Button(AppCopy.fromWiFi) { showWiFi = true }
                 }
-                Section("接続") {
+                Section(AppCopy.newConnection) {
                     ForEach(RemoteSourceKind.allCases) { kind in
-                        Button("\(kind.label) を追加") { addingKind = kind }
+                        Button(AppCopy.addKind(kind.label)) { addingKind = kind }
                     }
                 }
                 if !sources.sources.isEmpty {
-                    Section("保存済み") {
+                    Section(AppCopy.savedConnections) {
                         ForEach(sources.sources) { source in
                             Button {
                                 browseSource = sources.hydrated(source)
@@ -36,16 +36,26 @@ struct ImportHubView: View {
                                 }
                             }
                             .swipeActions {
-                                Button(role: .destructive) { sources.delete(source) } label: { Label("削除", systemImage: "trash") }
+                                Button(role: .destructive) { sources.delete(source) } label: {
+                                    Label(AppCopy.delete, systemImage: "trash")
+                                }
                             }
                         }
                     }
                 }
             }
-            .navigationTitle("取り込む")
-            .toolbar { ToolbarItem(placement: .cancellationAction) { Button("閉じる") { dismiss() } } }
-            .overlay(alignment: .top) { ActivityOverlayView().allowsHitTesting(false) }
-            .fileImporter(isPresented: $showFiles, allowedContentTypes: [UTType.zip, .image, .folder], allowsMultipleSelection: true) { result in
+            .navigationTitle(AppCopy.getWorks)
+            .toolbar {
+                ToolbarItem(placement: .cancellationAction) {
+                    Button(AppCopy.close) { dismiss() }
+                }
+            }
+            .overlay(alignment: .top) { ActivityOverlayView() }
+            .fileImporter(
+                isPresented: $showFiles,
+                allowedContentTypes: [UTType.zip, .image, .folder],
+                allowsMultipleSelection: true
+            ) { result in
                 if case .success(let urls) = result {
                     for url in urls { startLocalImport(url) }
                 }
@@ -74,13 +84,11 @@ struct ImportHubView: View {
                 defer { if accessed { url.stopAccessingSecurityScopedResource() } }
                 let staged = try ImportStaging.fileURL(named: url.lastPathComponent)
                 defer { ImportStaging.removeSession(containing: staged) }
-                if url.startAccessingSecurityScopedResource() || true {
-                    try? FileManager.default.copyItem(at: url, to: staged)
-                }
-                let src = FileManager.default.fileExists(atPath: staged.path) ? staged : url
+                try? FileManager.default.removeItem(at: staged)
+                try FileManager.default.copyItem(at: url, to: staged)
                 let title = UserFacingText.title(fromFileName: url.lastPathComponent)
-                _ = try library.importURL(src, folderId: library.currentFolderId, titleOverride: title)
-                activity.succeed(job, banner: "取り込み完了: \(title)")
+                _ = try library.importURL(staged, folderId: library.currentFolderId, titleOverride: title)
+                activity.succeed(job)
             } catch {
                 activity.fail(job, message: error.localizedDescription)
             }

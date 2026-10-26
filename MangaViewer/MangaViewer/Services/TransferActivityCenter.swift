@@ -12,18 +12,24 @@ final class TransferActivityCenter: ObservableObject {
         var title: String
         var status: String
         var fraction: Double?
+        var sourceKey: String?
         var isFailed: Bool
         var isFinished: Bool
         var isCancelled: Bool
     }
 
     @Published private(set) var jobs: [Job] = []
-    @Published var banner: String?
+    @Published var toast: String?
     private var cancelFlags: [UUID: Bool] = [:]
     private var taskHandles: [UUID: Task<Void, Never>] = [:]
+    private var toastToken = UUID()
 
     var activeJobs: [Job] { jobs.filter { !$0.isFinished } }
     var activeCount: Int { activeJobs.count }
+
+    func isActive(sourceKey: String) -> Bool {
+        activeJobs.contains { $0.sourceKey == sourceKey }
+    }
 
     static func requestNotificationPermissionOnce() {
         Task {
@@ -35,10 +41,35 @@ final class TransferActivityCenter: ObservableObject {
     }
 
     @discardableResult
-    func begin(title: String, status: String = "準備中…") -> UUID {
+    func begin(
+        title: String,
+        status: String = AppCopy.downloadingItem,
+        sourceKey: String? = nil,
+        announce: Bool = true
+    ) -> UUID {
         let id = UUID()
         cancelFlags[id] = false
-        jobs.insert(Job(id: id, title: title, status: status, fraction: nil, isFailed: false, isFinished: false, isCancelled: false), at: 0)
+        jobs.insert(
+            Job(
+                id: id,
+                title: title,
+                status: status,
+                fraction: nil,
+                sourceKey: sourceKey,
+                isFailed: false,
+                isFinished: false,
+                isCancelled: false
+            ),
+            at: 0
+        )
+        if announce {
+            if activeCount == 1 {
+                showToast("\(AppCopy.downloadStarted)\n\(title)", duration: 1.6)
+            } else {
+                showToast(AppCopy.downloadStarted, duration: 1.6)
+            }
+            UIImpactFeedbackGenerator(style: .light).impactOccurred()
+        }
         return id
     }
 
@@ -50,7 +81,7 @@ final class TransferActivityCenter: ObservableObject {
         taskHandles[id]?.cancel()
         guard let idx = jobs.firstIndex(where: { $0.id == id }) else { return }
         if !jobs[idx].isFinished {
-            jobs[idx].status = "キャンセル中…"
+            jobs[idx].status = AppCopy.cancelling
             jobs[idx].isCancelled = true
         }
     }
@@ -63,19 +94,22 @@ final class TransferActivityCenter: ObservableObject {
         }
     }
 
-    func succeed(_ id: UUID, banner message: String) {
+    func succeed(_ id: UUID, message: String? = nil) {
         guard let idx = jobs.firstIndex(where: { $0.id == id }) else { return }
-        jobs[idx].status = "完了"
+        let title = jobs[idx].title
+        jobs[idx].status = AppCopy.done
         jobs[idx].fraction = 1
         jobs[idx].isFinished = true
         taskHandles[id] = nil
-        banner = message
+        let body = message ?? "\(AppCopy.downloadFinished)\n\(title)"
+        showToast(body, duration: 2.2)
         UINotificationFeedbackGenerator().notificationOccurred(.success)
         let content = UNMutableNotificationContent()
-        content.title = "取り込み完了"
-        content.body = message
-        let req = UNNotificationRequest(identifier: UUID().uuidString, content: content, trigger: nil)
-        UNUserNotificationCenter.current().add(req)
+        content.title = AppCopy.downloadFinished
+        content.body = title
+        UNUserNotificationCenter.current().add(
+            UNNotificationRequest(identifier: UUID().uuidString, content: content, trigger: nil)
+        )
     }
 
     func fail(_ id: UUID, message: String) {
@@ -84,10 +118,18 @@ final class TransferActivityCenter: ObservableObject {
         jobs[idx].isFailed = true
         jobs[idx].isFinished = true
         taskHandles[id] = nil
-        banner = message
+        showToast("\(AppCopy.downloadFailed)\n\(message)", duration: 2.2)
     }
 
-    func clearFinished() {
-        jobs.removeAll { $0.isFinished }
+    func clearFinished() { jobs.removeAll { $0.isFinished } }
+
+    func showToast(_ message: String, duration: Double = 2.0) {
+        let token = UUID()
+        toastToken = token
+        toast = message
+        Task { @MainActor in
+            try? await Task.sleep(nanoseconds: UInt64(duration * 1_000_000_000))
+            if toastToken == token { toast = nil }
+        }
     }
 }

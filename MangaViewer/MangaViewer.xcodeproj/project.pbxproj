@@ -57,6 +57,8 @@
 		D4D291BF632A49B38E9010C0 /* Citadel in Frameworks */ = {isa = PBXBuildFile; productRef = D668BA979A7A4CE5AC753D35 /* Citadel */; };
 		F11E5005A11E5005A11E5005 /* FilesProvider in Frameworks */ = {isa = PBXBuildFile; productRef = F11E5003A11E5003A11E5003 /* FilesProvider */; };
 		F11E5006A11E5006A11E5006 /* FeedKit in Frameworks */ = {isa = PBXBuildFile; productRef = F11E5004A11E5004A11E5004 /* FeedKit */; };
+		EE6E8B881D284C43AD463932 /* AppCopy.swift in Sources */ = {isa = PBXBuildFile; fileRef = 718A3DBFC386408EB52E0961 /* AppCopy.swift */; };
+		0D9FD8D7D6F44FB3BAB88264 /* CoverThumbView.swift in Sources */ = {isa = PBXBuildFile; fileRef = F92F557BAE8D41A7A5224ACF /* CoverThumbView.swift */; };
 /* End PBXBuildFile section */
 
 
@@ -98,8 +100,10 @@
 		80E5ADB547659113C5492EB6 /* WiFiTransferServer.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WiFiTransferServer.swift; sourceTree = "<group>"; };
 		7A1E9D400DF562E308835AB4 /* TransferActivityCenter.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TransferActivityCenter.swift; sourceTree = "<group>"; };
 		1AA18DF908E57245F4F2F578 /* UserFacingText.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = UserFacingText.swift; sourceTree = "<group>"; };
+		718A3DBFC386408EB52E0961 /* AppCopy.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppCopy.swift; sourceTree = "<group>"; };
 		2834A13C9FBBAE39DC45931B /* ZipUnarchiver.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ZipUnarchiver.swift; sourceTree = "<group>"; };
 		AF10F596763C217CBA592806 /* ActivityOverlayView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ActivityOverlayView.swift; sourceTree = "<group>"; };
+		F92F557BAE8D41A7A5224ACF /* CoverThumbView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CoverThumbView.swift; sourceTree = "<group>"; };
 		D69C1CE42AFEF801EB4A3098 /* DuoFrameView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DuoFrameView.swift; sourceTree = "<group>"; };
 		6B1B26293C3BBABA35D7DFEB /* AddSourceView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AddSourceView.swift; sourceTree = "<group>"; };
 		2CC9853C5A2A1971DCD51856 /* ImportHubView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ImportHubView.swift; sourceTree = "<group>"; };
@@ -214,6 +218,7 @@
 				E7ABD1F8D983013D78AD4E54 /* ProgressStore.swift */,
 				B0F8C3C7B2FC8191EF9C9D50 /* Remote */,
 				7A1E9D400DF562E308835AB4 /* TransferActivityCenter.swift */,
+				718A3DBFC386408EB52E0961 /* AppCopy.swift */,
 				1AA18DF908E57245F4F2F578 /* UserFacingText.swift */,
 				2834A13C9FBBAE39DC45931B /* ZipUnarchiver.swift */,
 			);
@@ -241,6 +246,7 @@
 			isa = PBXGroup;
 			children = (
 				AF10F596763C217CBA592806 /* ActivityOverlayView.swift */,
+				F92F557BAE8D41A7A5224ACF /* CoverThumbView.swift */,
 				D69C1CE42AFEF801EB4A3098 /* DuoFrameView.swift */,
 				183C6715C542CFE9BB4728A6 /* Import */,
 				3026E8ED606B8D5D96DC0D34 /* LibraryView.swift */,
@@ -413,8 +419,10 @@
 				C1B1C2F3179002726F600536 /* WiFiTransferServer.swift in Sources */,
 				2BCB1AA1A9483F5FF03C709E /* TransferActivityCenter.swift in Sources */,
 				C180DE70CE46C519C0398577 /* UserFacingText.swift in Sources */,
+				EE6E8B881D284C43AD463932 /* AppCopy.swift in Sources */,
 				C0FEF4D9FA6F26207F378DBD /* ZipUnarchiver.swift in Sources */,
 				DC5B1524BAFCFEF265A4031D /* ActivityOverlayView.swift in Sources */,
+				0D9FD8D7D6F44FB3BAB88264 /* CoverThumbView.swift in Sources */,
 				E1EA11ABD32DAAA68A3A687C /* DuoFrameView.swift in Sources */,
 				272612C877FF3EDBF697BF2F /* AddSourceView.swift in Sources */,
 				933A0189B384A8CA0B4F673B /* ImportHubView.swift in Sources */,

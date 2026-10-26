@@ -8,18 +8,20 @@ struct WiFiTransferView: View {
     var body: some View {
         NavigationStack {
             VStack(spacing: 16) {
-                Text("同じ Wi‑Fi の別端末のブラウザで次のアドレスを開いてください。")
+                Text(AppCopy.wifiInstruction)
                     .font(.subheadline).foregroundStyle(.secondary)
                     .multilineTextAlignment(.center)
                 Text(server.addressText)
                     .font(.title3.monospaced()).textSelection(.enabled)
-                Text("外部ライブラリは使わず、このアプリ内の簡易HTTPサーバで受信します。")
-                    .font(.footnote).foregroundStyle(.tertiary)
                 Spacer()
             }
             .padding()
-            .navigationTitle("Wi‑Fi 転送")
-            .toolbar { ToolbarItem(placement: .cancellationAction) { Button("閉じる") { dismiss() } } }
+            .navigationTitle(AppCopy.wifiTitle)
+            .toolbar {
+                ToolbarItem(placement: .cancellationAction) {
+                    Button(AppCopy.close) { dismiss() }
+                }
+            }
             .onAppear { server.start() }
             .onDisappear { server.stop() }
         }

@@ -128,7 +128,7 @@ final class LibraryStore: ObservableObject {
             catalogLoadError = nil
         } catch {
             blockPersistence = true
-            catalogLoadError = "書庫データの読み込みに失敗しました。既存データは上書きしていません。"
+            catalogLoadError = "本棚データの読み込みに失敗しました。既存データは上書きしていません。"
         }
     }
 
@@ -139,7 +139,7 @@ final class LibraryStore: ObservableObject {
             let data = try JSONEncoder().encode(payload)
             try data.write(to: Catalog.libraryJSON, options: .atomic)
         } catch {
-            catalogLoadError = "書庫の保存に失敗しました。"
+            catalogLoadError = "本棚の保存に失敗しました。"
         }
     }
 }

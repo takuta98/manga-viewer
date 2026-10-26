@@ -10,7 +10,11 @@ struct PagePaneView: View {
             if let url, let img = UIImage(contentsOfFile: url.path) {
                 Image(uiImage: img)
                     .resizable()
-                    .aspectRatio(contentMode: fitMode == .fitWidth ? .fit : .fit)
+                    .scaledToFit()
+                    .frame(
+                        maxWidth: fitMode == .fitHeight ? nil : geo.size.width,
+                        maxHeight: fitMode == .fitWidth ? nil : geo.size.height
+                    )
                     .frame(width: geo.size.width, height: geo.size.height)
             } else {
                 Color.black.overlay(Text("\(pageNumber)").foregroundStyle(.white.opacity(0.4)))

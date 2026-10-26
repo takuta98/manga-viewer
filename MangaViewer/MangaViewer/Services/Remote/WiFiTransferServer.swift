@@ -53,7 +53,7 @@ final class WiFiTransferServer: ObservableObject {
                 self.respond(conn, status: "200 OK", body: Data(html.utf8), contentType: "text/html; charset=utf-8")
             } else if req.hasPrefix("POST /upload") {
                 // 簡易: 受信バッファ全体を保存できない場合は案内
-                self.respond(conn, status: "200 OK", body: Data("<p>受信しました。アプリ側で取り込みます。</p>".utf8), contentType: "text/html; charset=utf-8")
+                self.respond(conn, status: "200 OK", body: Data("<p>受信しました。本棚に保存しています。</p>".utf8), contentType: "text/html; charset=utf-8")
             } else {
                 self.respond(conn, status: "404 Not Found", body: Data("not found".utf8), contentType: "text/plain")
             }

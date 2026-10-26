@@ -10,6 +10,8 @@ struct RemoteBrowserView: View {
     @State private var loading = false
     @State private var listError: String?
     @State private var errorText: String?
+    @State private var query = ""
+    @State private var showTransfers = false
 
     init(library: LibraryStore, source: RemoteSource) {
         self.library = library
@@ -22,64 +24,136 @@ struct RemoteBrowserView: View {
     }
 
     private var currentPath: String { pathStack.last ?? "" }
+    private var folderSourceKey: String { "folder:\(currentPath)" }
+    private var folderBusy: Bool { activity.isActive(sourceKey: folderSourceKey) }
+
+    private var visible: [RemoteEntry] {
+        let q = query.trimmingCharacters(in: .whitespacesAndNewlines)
+        guard !q.isEmpty else { return entries }
+        return entries.filter { $0.name.localizedStandardContains(q) }
+    }
 
     var body: some View {
         NavigationStack {
             Group {
                 if let listError {
-                    ContentUnavailableView("一覧を取得できません", systemImage: "wifi.exclamationmark", description: Text(listError))
-                        .overlay(alignment: .bottom) {
-                            Button("再試行") { Task { await reload() } }.buttonStyle(.borderedProminent).padding()
-                        }
+                    ContentUnavailableView(
+                        AppCopy.browseFailed,
+                        systemImage: "wifi.exclamationmark",
+                        description: Text(listError)
+                    )
+                    .overlay(alignment: .bottom) {
+                        Button(AppCopy.retry) { Task { await reload() } }
+                            .buttonStyle(.borderedProminent)
+                            .padding()
+                    }
+                } else if loading {
+                    ProgressView(AppCopy.loading)
+                        .frame(maxWidth: .infinity, maxHeight: .infinity)
+                } else if visible.isEmpty {
+                    ContentUnavailableView(
+                        query.isEmpty ? AppCopy.emptyFolder : AppCopy.browseSearchEmpty,
+                        systemImage: query.isEmpty ? "folder" : "magnifyingglass"
+                    )
                 } else {
                     List {
-                        if loading { ProgressView("読み込み中…") }
-                        ForEach(entries) { entry in
-                            if entry.isDirectory {
-                                Button {
-                                    pathStack.append(entry.path)
-                                } label: {
-                                    Label(entry.name, systemImage: "folder")
-                                }
-                            } else {
-                                Button {
-                                    startFileImport(entry)
-                                } label: {
-                                    HStack {
-                                        Label(entry.name, systemImage: "doc")
-                                        Spacer()
-                                        if let size = entry.size {
-                                            Text(ByteCountFormatter.string(fromByteCount: size, countStyle: .file))
-                                                .font(.caption).foregroundStyle(.secondary)
-                                        }
-                                    }
-                                }
-                                .disabled(!ComicFileProbe.isSupportedForImport(entry.name))
-                            }
+                        ForEach(visible) { entry in
+                            remoteRow(entry)
                         }
                     }
+                    .listStyle(.plain)
                 }
             }
-            .navigationTitle(currentPath.isEmpty ? source.name : (currentPath as NSString).lastPathComponent)
-            .toolbar {
-                ToolbarItem(placement: .cancellationAction) { Button("閉じる") { dismiss() } }
-                ToolbarItem(placement: .topBarLeading) {
-                    if pathStack.count > 1 {
-                        Button("戻る") { _ = pathStack.popLast(); Task { await reload() } }
-                    }
-                }
-                ToolbarItem(placement: .topBarTrailing) {
-                    if !currentPath.isEmpty {
-                        Button("このフォルダを取込") { startFolderImport() }
-                    }
-                }
+            .navigationTitle(
+                currentPath.isEmpty
+                    ? source.name
+                    : (currentPath as NSString).lastPathComponent
+            )
+            .navigationBarTitleDisplayMode(.inline)
+            .searchable(text: $query, prompt: AppCopy.browseSearchPrompt)
+            .toolbar { toolbarContent }
+            .overlay(alignment: .top) { ActivityOverlayView() }
+            .safeAreaInset(edge: .bottom) {
+                DownloadStatusChip { showTransfers = true }
             }
-            .overlay(alignment: .top) { ActivityOverlayView().allowsHitTesting(false) }
-            .task(id: currentPath) { await reload() }
+            .sheet(isPresented: $showTransfers) { TransferStatusView() }
+            .task(id: currentPath) {
+                query = ""
+                await reload()
+            }
             .onChange(of: currentPath) { _, newPath in persistBrowsePath(newPath) }
-            .alert("エラー", isPresented: Binding(get: { errorText != nil }, set: { if !$0 { errorText = nil } })) {
-                Button("OK", role: .cancel) { errorText = nil }
-            } message: { Text(errorText ?? "") }
+            .alert(
+                AppCopy.errorTitle,
+                isPresented: Binding(
+                    get: { errorText != nil },
+                    set: { if !$0 { errorText = nil } }
+                )
+            ) {
+                Button(AppCopy.ok, role: .cancel) { errorText = nil }
+            } message: {
+                Text(errorText ?? "")
+            }
+        }
+    }
+
+    @ToolbarContentBuilder
+    private var toolbarContent: some ToolbarContent {
+        ToolbarItem(placement: .topBarLeading) {
+            if pathStack.count > 1 {
+                Button(AppCopy.back) {
+                    _ = pathStack.popLast()
+                }
+            } else {
+                Button(AppCopy.close) { dismiss() }
+            }
+        }
+        ToolbarItem(placement: .topBarTrailing) {
+            if !currentPath.isEmpty {
+                Button(folderBusy ? AppCopy.downloadingFolder : AppCopy.downloadThisFolder) {
+                    startFolderImport()
+                }
+                .disabled(folderBusy)
+            }
+        }
+    }
+
+    @ViewBuilder
+    private func remoteRow(_ entry: RemoteEntry) -> some View {
+        let busy = activity.isActive(sourceKey: entry.path)
+        if entry.isDirectory {
+            Button {
+                pathStack.append(entry.path)
+            } label: {
+                HStack {
+                    Label(entry.name, systemImage: "folder")
+                    Spacer()
+                    if busy {
+                        ProgressView().controlSize(.small)
+                    }
+                }
+            }
+        } else {
+            Button {
+                startFileImport(entry)
+            } label: {
+                HStack {
+                    Label(entry.name, systemImage: "doc")
+                    Spacer()
+                    if busy {
+                        HStack(spacing: 6) {
+                            ProgressView().controlSize(.small)
+                            Text(AppCopy.queued)
+                                .font(.caption2)
+                                .foregroundStyle(.secondary)
+                        }
+                    } else if let size = entry.size {
+                        Text(ByteCountFormatter.string(fromByteCount: size, countStyle: .file))
+                            .font(.caption)
+                            .foregroundStyle(.secondary)
+                    }
+                }
+            }
+            .disabled(busy || !ComicFileProbe.isSupportedForImport(entry.name))
         }
     }
 
@@ -110,19 +184,25 @@ struct RemoteBrowserView: View {
     }
 
     private func startFileImport(_ entry: RemoteEntry) {
-        let job = activity.begin(title: entry.name, status: "ダウンロード中…")
+        guard !activity.isActive(sourceKey: entry.path) else { return }
+        let job = activity.begin(
+            title: entry.name,
+            status: AppCopy.downloadingItem,
+            sourceKey: entry.path
+        )
         let task = Task { @MainActor in
             do {
+                if activity.isCancelled(job) { throw CancellationError() }
                 let tmp = try ImportStaging.fileURL(named: entry.name)
                 defer { ImportStaging.removeSession(containing: tmp) }
                 try await RemoteGateway.download(source: source, entry: entry, to: tmp)
-                activity.update(job, status: "書庫に展開中…")
+                if activity.isCancelled(job) { throw CancellationError() }
+                activity.update(job, status: AppCopy.unpacking)
                 let title = UserFacingText.title(fromFileName: entry.name)
                 _ = try library.importURL(tmp, folderId: library.currentFolderId, titleOverride: title)
-                activity.succeed(job, banner: "取り込み完了: \(title)")
-                dismiss()
+                activity.succeed(job)
             } catch is CancellationError {
-                activity.fail(job, message: "キャンセルしました")
+                activity.fail(job, message: AppCopy.cancelled)
             } catch {
                 activity.fail(job, message: error.localizedDescription)
             }
@@ -131,17 +211,28 @@ struct RemoteBrowserView: View {
     }
 
     private func startFolderImport() {
+        guard !folderBusy else { return }
         let title = currentPath.isEmpty ? source.name : (currentPath as NSString).lastPathComponent
-        let job = activity.begin(title: title, status: "フォルダを収集中…")
         let path = currentPath
+        let job = activity.begin(
+            title: title,
+            status: AppCopy.collecting,
+            sourceKey: folderSourceKey
+        )
         let task = Task { @MainActor in
             do {
                 let units = try await RemoteGateway.collectImportUnits(source: source, folderPath: path)
+                if activity.isCancelled(job) { throw CancellationError() }
                 let folder = library.folderForImport(named: title)
                 var i = 0
                 for unit in units {
                     i += 1
-                    activity.update(job, status: "取込中 \(i)/\(units.count)…", fraction: Double(i - 1) / Double(max(units.count, 1)))
+                    if activity.isCancelled(job) { throw CancellationError() }
+                    activity.update(
+                        job,
+                        status: "\(AppCopy.downloading) \(i)/\(units.count)…",
+                        fraction: Double(i - 1) / Double(max(units.count, 1))
+                    )
                     switch unit {
                     case .archive(let entry):
                         let tmp = try ImportStaging.fileURL(named: entry.name)
@@ -154,17 +245,22 @@ struct RemoteBrowserView: View {
                             .appendingPathComponent(folderTitle, isDirectory: true)
                         try FileManager.default.createDirectory(at: dir, withIntermediateDirectories: true)
                         for f in files {
+                            if activity.isCancelled(job) { throw CancellationError() }
                             let dest = dir.appendingPathComponent(f.name)
                             try await RemoteGateway.download(source: source, entry: f, to: dest)
                         }
-                        _ = try library.importURL(dir, folderId: folder.id, titleOverride: UserFacingText.title(fromFileName: folderTitle))
+                        _ = try library.importURL(
+                            dir,
+                            folderId: folder.id,
+                            titleOverride: UserFacingText.title(fromFileName: folderTitle)
+                        )
                         try? FileManager.default.removeItem(at: dir)
                     }
                 }
-                activity.succeed(job, banner: "フォルダ取り込み完了: \(title)")
-                dismiss()
+                activity.update(job, status: AppCopy.unpacking, fraction: 1)
+                activity.succeed(job)
             } catch is CancellationError {
-                activity.fail(job, message: "キャンセルしました")
+                activity.fail(job, message: AppCopy.cancelled)
             } catch {
                 activity.fail(job, message: error.localizedDescription)
             }
