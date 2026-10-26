@@ -1,3 +1,0 @@
-// このファイルを Local.xcconfig にコピーして Team ID を書く。
-// Local.xcconfig は gitignore 済み。Xcode の Signing で Team を選ばないこと（pbxproj が汚れる）。
-DEVELOPMENT_TEAM = YOUR_TEAM_ID
