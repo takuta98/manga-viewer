@@ -39,4 +39,26 @@ enum RemoteGateway {
             throw RemoteError.unsupported
         }
     }
+
+    /// フォルダ以下の取込可能なファイルを再帰収集する。
+    static func collectImportableFiles(source: RemoteSource, path: String) async throws -> [RemoteEntry] {
+        var result: [RemoteEntry] = []
+        try await collectImportableFiles(source: source, path: path, into: &result)
+        return result.sorted { $0.path.localizedStandardCompare($1.path) == .orderedAscending }
+    }
+
+    private static func collectImportableFiles(
+        source: RemoteSource,
+        path: String,
+        into result: inout [RemoteEntry]
+    ) async throws {
+        let entries = try await list(source: source, path: path)
+        for entry in entries {
+            if entry.isDirectory {
+                try await collectImportableFiles(source: source, path: entry.path, into: &result)
+            } else if ComicFileProbe.isSupportedForImport(entry.name) {
+                result.append(entry)
+            }
+        }
+    }
 }

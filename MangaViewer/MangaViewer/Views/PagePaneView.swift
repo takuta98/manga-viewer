@@ -6,16 +6,26 @@ struct PagePaneView: View {
     let pageNumber: Int?
     var fitMode: PageFitMode = .fitScreen
 
+    @State private var image: UIImage?
+    @State private var failed = false
+
     var body: some View {
         GeometryReader { geo in
             ZStack {
                 Color.black
-                if let url, let uiImage = SampleImage.uiImage(url: url) {
-                    Image(uiImage: uiImage)
+                if let image {
+                    Image(uiImage: image)
                         .resizable()
-                        .aspectRatio(contentMode: .fit)
+                        .aspectRatio(contentMode: contentMode)
                         .frame(width: geo.size.width, height: geo.size.height)
-                        .accessibilityLabel(pageNumber.map { "Page \($0)" } ?? "Page")
+                        .accessibilityLabel(pageNumber.map { "ページ \($0)" } ?? "ページ")
+                } else if failed {
+                    VStack(spacing: 8) {
+                        Image(systemName: "exclamationmark.triangle")
+                        Text("読み込めません")
+                            .font(.caption)
+                    }
+                    .foregroundStyle(.white.opacity(0.7))
                 } else {
                     ProgressView()
                         .tint(.white)
@@ -25,6 +35,55 @@ struct PagePaneView: View {
             .clipped()
         }
         .ignoresSafeArea()
+        .task(id: url?.path) {
+            await load()
+        }
+    }
+
+    private var contentMode: ContentMode {
+        switch fitMode {
+        case .fitWidth, .fitScreen: return .fit
+        case .fitHeight: return .fit
+        }
+    }
+
+    private func load() async {
+        failed = false
+        image = nil
+        guard let url else {
+            failed = true
+            return
+        }
+        if let cached = PageImageCache.shared.image(for: url) {
+            image = cached
+            return
+        }
+        let loaded = await Task.detached(priority: .userInitiated) {
+            SampleImage.uiImage(url: url)
+        }.value
+        if let loaded {
+            PageImageCache.shared.store(loaded, for: url)
+            image = loaded
+        } else {
+            failed = true
+        }
+    }
+}
+
+final class PageImageCache {
+    static let shared = PageImageCache()
+    private let cache = NSCache<NSString, UIImage>()
+
+    private init() {
+        cache.countLimit = 48
+    }
+
+    func image(for url: URL) -> UIImage? {
+        cache.object(forKey: url.path as NSString)
+    }
+
+    func store(_ image: UIImage, for url: URL) {
+        cache.setObject(image, forKey: url.path as NSString)
     }
 }
 

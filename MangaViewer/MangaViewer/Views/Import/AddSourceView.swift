@@ -9,11 +9,20 @@ struct AddSourceView: View {
     @State private var testing = false
     @State private var testMessage: String?
     @State private var testSucceeded = false
+    private let isEditing: Bool
 
     init(kind: RemoteSourceKind, onSave: @escaping (RemoteSource) -> Void) {
         self.kind = kind
         self.onSave = onSave
+        self.isEditing = false
         _source = State(initialValue: .blank(kind))
+    }
+
+    init(source: RemoteSource, onSave: @escaping (RemoteSource) -> Void) {
+        self.kind = source.kind
+        self.onSave = onSave
+        self.isEditing = true
+        _source = State(initialValue: source)
     }
 
     var body: some View {
@@ -76,7 +85,7 @@ struct AddSourceView: View {
                         .foregroundStyle(.secondary)
                 }
             }
-            .navigationTitle(kind.label)
+            .navigationTitle(isEditing ? "接続を編集" : kind.label)
             .toolbar {
                 ToolbarItem(placement: .cancellationAction) {
                     Button("キャンセル") { dismiss() }
@@ -84,8 +93,7 @@ struct AddSourceView: View {
                 ToolbarItem(placement: .confirmationAction) {
                     Button("保存") {
                         if kind == .smb {
-                            source.shareOrPath = ""
-                            source.port = 445
+                            source.port = source.port ?? 445
                         }
                         onSave(source)
                         dismiss()
@@ -104,7 +112,7 @@ struct AddSourceView: View {
         do {
             var probe = source
             probe.shareOrPath = ""
-            probe.port = 445
+            probe.port = probe.port ?? 445
             try await SMBClientService.testConnection(source: probe)
             testSucceeded = true
             testMessage = "接続できました。保存したあと、フォルダを選べます。"

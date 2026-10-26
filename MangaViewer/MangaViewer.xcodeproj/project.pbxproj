@@ -47,6 +47,9 @@
 		EB90AA91CEA745E6A36015F7 /* Catalog.swift in Sources */ = {isa = PBXBuildFile; fileRef = 77E189F479AD45DDB111C28D /* Catalog.swift */; };
 		ECEEA8184F8740A087F4DFB2 /* PagePaneView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 13DB73B3A0C04FC483FAEBC7 /* PagePaneView.swift */; };
 		A49C5DA47F724107B16F51B6 /* PageTurnHost.swift in Sources */ = {isa = PBXBuildFile; fileRef = DA9D44640C3A42A6B12E4389 /* PageTurnHost.swift */; };
+		B22F12E3D4C55B7F0F8E9212 /* LibraryFolder.swift in Sources */ = {isa = PBXBuildFile; fileRef = A11F01D2C3B44A6E9E7D8101 /* LibraryFolder.swift */; };
+		D44F34A5F6E77D9B2B0A1434 /* TransferActivityCenter.swift in Sources */ = {isa = PBXBuildFile; fileRef = C33F23F4E5D66C8A1A9F0323 /* TransferActivityCenter.swift */; };
+		F66F56C7B8A99F1D4D2C3656 /* ActivityOverlayView.swift in Sources */ = {isa = PBXBuildFile; fileRef = E55F45B6A7F88E0C3C1B2545 /* ActivityOverlayView.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -100,6 +103,9 @@
 		F1B99B891E0A480AA17D0C97 /* AddSourceView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AddSourceView.swift; sourceTree = "<group>"; };
 		FEE2E0E65368424083797A8F /* MangaViewer.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = MangaViewer.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		DA9D44640C3A42A6B12E4389 /* PageTurnHost.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PageTurnHost.swift; sourceTree = "<group>"; };
+		A11F01D2C3B44A6E9E7D8101 /* LibraryFolder.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LibraryFolder.swift; sourceTree = "<group>"; };
+		C33F23F4E5D66C8A1A9F0323 /* TransferActivityCenter.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TransferActivityCenter.swift; sourceTree = "<group>"; };
+		E55F45B6A7F88E0C3C1B2545 /* ActivityOverlayView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ActivityOverlayView.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -151,7 +157,8 @@
 				AE0870754DE1438D872D81C0 /* MangaVolume.swift */,
 				F136B87073BA4FFAAD233E3A /* SpreadIndex.swift */,
 				949E8D38A1D24100B47964C4 /* ReaderSettings.swift */,
-				F0C52056C7E440BF842E3FCE /* RemoteSource.swift */);
+				F0C52056C7E440BF842E3FCE /* RemoteSource.swift */,
+				A11F01D2C3B44A6E9E7D8101 /* LibraryFolder.swift */);
 			path = Models;
 			sourceTree = "<group>";
 		};
@@ -174,6 +181,7 @@
 			children = (
 				77E189F479AD45DDB111C28D /* Catalog.swift */,
 				15C0918C9714460AABEFD2B2 /* ProgressStore.swift */,
+				C33F23F4E5D66C8A1A9F0323 /* TransferActivityCenter.swift */,
 				1670113F259F4947BBD077F0 /* LibraryStore.swift */,
 				19864E8627D74DE39B2F47E1 /* MangaImporter.swift */,
 				0D5FC453C0334ACD8FDB4583 /* ZipUnarchiver.swift */,
@@ -218,7 +226,9 @@
 				4B0F09A33B21459CB630311D /* ReaderView.swift */,
 				3BE1DD0F916D4E768B1360CB /* SettingsView.swift */,
 				BDDBD9B37D8C4DE9847E102A /* ThumbnailGridView.swift */,
-				97D593CF93DA45BA9A3FE097 /* Import */, DA9D44640C3A42A6B12E4389 /* PageTurnHost.swift */);
+				97D593CF93DA45BA9A3FE097 /* Import */,
+				DA9D44640C3A42A6B12E4389 /* PageTurnHost.swift */,
+				E55F45B6A7F88E0C3C1B2545 /* ActivityOverlayView.swift */);
 			path = Views;
 			sourceTree = "<group>";
 		};

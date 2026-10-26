@@ -58,7 +58,7 @@ struct ReaderPreferences: Codable, Equatable {
     var brightness: Double = 1.0
     var keepScreenOn: Bool = true
     var cropMargins: Bool = false
-    var turnStyle: PageTurnStyle = .slide
+    var turnStyle: PageTurnStyle = .curl
 }
 
 enum AppSettingsStore {

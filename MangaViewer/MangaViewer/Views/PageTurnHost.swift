@@ -1,29 +1,28 @@
-import ObjectiveC
 import SwiftUI
 import UIKit
 
 enum PageTurnStyle: String, CaseIterable, Identifiable, Codable {
-    case slide
     case curl
+    case slide
 
     var id: String { rawValue }
 
     var label: String {
         switch self {
+        case .curl: return "めくり（カール）"
         case .slide: return "スライド"
-        case .curl: return "めくり"
         }
     }
 
     var uiTransition: UIPageViewController.TransitionStyle {
         switch self {
-        case .slide: return .scroll
         case .curl: return .pageCurl
+        case .slide: return .scroll
         }
     }
 }
 
-/// Full-screen paging with swipe and animated turns.
+/// スワイプ／タップでページ送り。ズームは UIScrollView 側に任せ、ジェスチャ競合を避ける。
 struct PageTurnHost: UIViewControllerRepresentable {
     var pageCount: Int
     @Binding var index: Int
@@ -37,20 +36,31 @@ struct PageTurnHost: UIViewControllerRepresentable {
     }
 
     func makeUIViewController(context: Context) -> UIPageViewController {
+        let options: [UIPageViewController.OptionsKey: Any]?
+        if style == .curl {
+            options = [.spineLocation: UIPageViewController.SpineLocation.min.rawValue]
+        } else {
+            options = nil
+        }
         let pvc = UIPageViewController(
             transitionStyle: style.uiTransition,
             navigationOrientation: .horizontal,
-            options: nil
+            options: options
         )
         pvc.dataSource = context.coordinator
         pvc.delegate = context.coordinator
         pvc.view.backgroundColor = .black
+        if style == .curl {
+            pvc.isDoubleSided = false
+        }
 
         let tap = UITapGestureRecognizer(target: context.coordinator, action: #selector(Coordinator.handleTap(_:)))
         tap.cancelsTouchesInView = false
         pvc.view.addGestureRecognizer(tap)
+
         context.coordinator.pageViewController = pvc
         context.coordinator.onTapCenter = onTapCenter
+        context.coordinator.haptic.prepare()
 
         if let first = context.coordinator.controller(for: index) {
             pvc.setViewControllers([first], direction: .forward, animated: false)
@@ -65,22 +75,28 @@ struct PageTurnHost: UIViewControllerRepresentable {
         coordinator.isRTL = isRTL
         coordinator.onTapCenter = onTapCenter
 
-        // Rebuild if transition style changed.
-        if pvc.transitionStyle != style.uiTransition {
-            // UIPageViewController style is immutable; caller should .id(style) the representable.
-        }
-
         guard pageCount > 0 else { return }
         let clamped = min(max(index, 0), pageCount - 1)
         guard coordinator.currentIndex != clamped,
-              let vc = coordinator.controller(for: clamped) else { return }
+              let vc = coordinator.controller(for: clamped),
+              pvc.viewControllers?.first !== vc else {
+            // 表示中ページの内容だけ更新
+            if let host = pvc.viewControllers?.first as? ZoomHostingController {
+                host.apply(rootView: makePage(coordinator.currentIndex))
+            }
+            return
+        }
 
-        let movingForward: Bool = isRTL ? (clamped < coordinator.currentIndex) : (clamped > coordinator.currentIndex)
+        let movingForward = isRTL ? (clamped < coordinator.currentIndex) : (clamped > coordinator.currentIndex)
         pvc.setViewControllers(
             [vc],
             direction: movingForward ? .forward : .reverse,
             animated: true
-        )
+        ) { finished in
+            if finished {
+                coordinator.currentIndex = clamped
+            }
+        }
         coordinator.currentIndex = clamped
     }
 
@@ -90,7 +106,8 @@ struct PageTurnHost: UIViewControllerRepresentable {
         var currentIndex: Int = 0
         var onTapCenter: () -> Void = {}
         weak var pageViewController: UIPageViewController?
-        private var cache: [Int: IdentifiedHost] = [:]
+        let haptic = UISelectionFeedbackGenerator()
+        private var cache: [Int: ZoomHostingController] = [:]
 
         init(_ parent: PageTurnHost) {
             self.parent = parent
@@ -100,40 +117,44 @@ struct PageTurnHost: UIViewControllerRepresentable {
 
         @objc func handleTap(_ gesture: UITapGestureRecognizer) {
             guard let view = gesture.view else { return }
+            if let zoom = pageViewController?.viewControllers?.first as? ZoomHostingController,
+               zoom.isZoomed {
+                return
+            }
             let x = gesture.location(in: view).x
             let w = max(view.bounds.width, 1)
-            if x < w * 0.25 {
-                setIndex(currentIndex + (isRTL ? 1 : -1), animated: true)
-            } else if x > w * 0.75 {
-                setIndex(currentIndex + (isRTL ? -1 : 1), animated: true)
+            if x < w * 0.28 {
+                turn(by: isRTL ? 1 : -1)
+            } else if x > w * 0.72 {
+                turn(by: isRTL ? -1 : 1)
             } else {
                 onTapCenter()
             }
         }
 
-        private func setIndex(_ next: Int, animated: Bool) {
+        private func turn(by delta: Int) {
+            let next = currentIndex + delta
             guard next >= 0, next < parent.pageCount else { return }
             guard let pvc = pageViewController, let vc = controller(for: next) else { return }
-            let movingForward: Bool = isRTL ? (next < currentIndex) : (next > currentIndex)
+            let movingForward = isRTL ? (next < currentIndex) : (next > currentIndex)
             pvc.setViewControllers(
                 [vc],
                 direction: movingForward ? .forward : .reverse,
-                animated: animated
+                animated: true
             )
             currentIndex = next
             parent.index = next
+            haptic.selectionChanged()
         }
 
         func controller(for index: Int) -> UIViewController? {
             guard index >= 0, index < parent.pageCount else { return nil }
             if let cached = cache[index] {
-                cached.host.rootView = parent.makePage(index)
-                return cached.host
+                cached.apply(rootView: parent.makePage(index))
+                return cached
             }
-            let host = UIHostingController(rootView: parent.makePage(index))
-            host.view.backgroundColor = .black
-            host.view.clipsToBounds = true
-            cache[index] = IdentifiedHost(index: index, host: host)
+            let host = ZoomHostingController(rootView: parent.makePage(index))
+            cache[index] = host
             return host
         }
 
@@ -141,18 +162,22 @@ struct PageTurnHost: UIViewControllerRepresentable {
             _ pageViewController: UIPageViewController,
             viewControllerBefore viewController: UIViewController
         ) -> UIViewController? {
+            if let zoom = viewController as? ZoomHostingController, zoom.isZoomed {
+                return nil
+            }
             guard let idx = index(of: viewController) else { return nil }
-            let step = isRTL ? 1 : -1
-            return controller(for: idx + step)
+            return controller(for: idx + (isRTL ? 1 : -1))
         }
 
         func pageViewController(
             _ pageViewController: UIPageViewController,
             viewControllerAfter viewController: UIViewController
         ) -> UIViewController? {
+            if let zoom = viewController as? ZoomHostingController, zoom.isZoomed {
+                return nil
+            }
             guard let idx = index(of: viewController) else { return nil }
-            let step = isRTL ? -1 : 1
-            return controller(for: idx + step)
+            return controller(for: idx + (isRTL ? -1 : 1))
         }
 
         func pageViewController(
@@ -164,21 +189,108 @@ struct PageTurnHost: UIViewControllerRepresentable {
             guard completed,
                   let visible = pageViewController.viewControllers?.first,
                   let idx = index(of: visible) else { return }
+            if currentIndex != idx {
+                haptic.selectionChanged()
+            }
             currentIndex = idx
             parent.index = idx
+            // ズーム解除（ページ移動後）
+            (visible as? ZoomHostingController)?.resetZoom(animated: false)
         }
 
         private func index(of viewController: UIViewController) -> Int? {
-            cache.first(where: { $0.value.host === viewController })?.key
+            cache.first(where: { $0.value === viewController })?.key
+        }
+    }
+}
+
+/// ピンチズーム付きホスト。拡大中はページ送りを止める。
+final class ZoomHostingController: UIViewController, UIScrollViewDelegate {
+    private let scrollView = UIScrollView()
+    private let host: UIHostingController<AnyView>
+    private(set) var isZoomed = false
+
+    init(rootView: AnyView) {
+        self.host = UIHostingController(rootView: rootView)
+        super.init(nibName: nil, bundle: nil)
+    }
+
+    @available(*, unavailable)
+    required init?(coder: NSCoder) { fatalError() }
+
+    func apply(rootView: AnyView) {
+        host.rootView = rootView
+    }
+
+    override func viewDidLoad() {
+        super.viewDidLoad()
+        view.backgroundColor = .black
+        scrollView.backgroundColor = .black
+        scrollView.delegate = self
+        scrollView.minimumZoomScale = 1
+        scrollView.maximumZoomScale = 4
+        scrollView.bouncesZoom = true
+        scrollView.showsHorizontalScrollIndicator = false
+        scrollView.showsVerticalScrollIndicator = false
+        scrollView.contentInsetAdjustmentBehavior = .never
+        scrollView.frame = view.bounds
+        scrollView.autoresizingMask = [.flexibleWidth, .flexibleHeight]
+        view.addSubview(scrollView)
+
+        addChild(host)
+        host.view.backgroundColor = .black
+        host.view.frame = scrollView.bounds
+        host.view.autoresizingMask = [.flexibleWidth, .flexibleHeight]
+        scrollView.addSubview(host.view)
+        host.didMove(toParent: self)
+
+        let doubleTap = UITapGestureRecognizer(target: self, action: #selector(handleDoubleTap(_:)))
+        doubleTap.numberOfTapsRequired = 2
+        scrollView.addGestureRecognizer(doubleTap)
+    }
+
+    override func viewDidLayoutSubviews() {
+        super.viewDidLayoutSubviews()
+        if scrollView.zoomScale <= 1.01 {
+            host.view.frame = scrollView.bounds
+            scrollView.contentSize = scrollView.bounds.size
         }
     }
 
-    private final class IdentifiedHost {
-        let index: Int
-        let host: UIHostingController<AnyView>
-        init(index: Int, host: UIHostingController<AnyView>) {
-            self.index = index
-            self.host = host
+    func viewForZooming(in scrollView: UIScrollView) -> UIView? {
+        host.view
+    }
+
+    func scrollViewDidZoom(_ scrollView: UIScrollView) {
+        isZoomed = scrollView.zoomScale > 1.05
+        centerContent()
+    }
+
+    func resetZoom(animated: Bool) {
+        scrollView.setZoomScale(1, animated: animated)
+        isZoomed = false
+    }
+
+    @objc private func handleDoubleTap(_ gesture: UITapGestureRecognizer) {
+        if scrollView.zoomScale > 1.05 {
+            scrollView.setZoomScale(1, animated: true)
+        } else {
+            let point = gesture.location(in: host.view)
+            let zoom: CGFloat = 2.5
+            let size = CGSize(
+                width: scrollView.bounds.width / zoom,
+                height: scrollView.bounds.height / zoom
+            )
+            let origin = CGPoint(x: point.x - size.width / 2, y: point.y - size.height / 2)
+            scrollView.zoom(to: CGRect(origin: origin, size: size), animated: true)
         }
+    }
+
+    private func centerContent() {
+        let bounds = scrollView.bounds.size
+        let content = host.view.frame.size
+        let offsetX = max((bounds.width - content.width) * 0.5, 0)
+        let offsetY = max((bounds.height - content.height) * 0.5, 0)
+        scrollView.contentInset = UIEdgeInsets(top: offsetY, left: offsetX, bottom: offsetY, right: offsetX)
     }
 }

@@ -43,10 +43,14 @@ struct WiFiTransferView: View {
             }
             .onAppear {
                 server.onFileReceived = { url in
+                    let activity = TransferActivityCenter.shared
+                    let job = activity.begin(title: url.lastPathComponent, status: "取り込み中…")
                     do {
-                        try library.importURL(url)
+                        _ = try library.importURL(url)
+                        activity.succeed(job, banner: "取り込み完了: \(url.lastPathComponent)")
                         message = "取り込みました: \(url.lastPathComponent)"
                     } catch {
+                        activity.fail(job, message: error.localizedDescription)
                         message = error.localizedDescription
                     }
                 }

@@ -70,7 +70,8 @@ enum MangaImporter {
             direction: direction,
             isBundledSample: false,
             importedAt: Date(),
-            lastOpenedAt: nil
+            lastOpenedAt: nil,
+            folderId: nil
         )
     }
 

@@ -11,6 +11,8 @@ struct MangaVolume: Identifiable, Hashable, Codable {
     var isBundledSample: Bool
     var importedAt: Date
     var lastOpenedAt: Date?
+    /// 書庫フォルダ。未分類は `nil`。
+    var folderId: String?
 
     var pageCount: Int { pageFileNames.count }
 

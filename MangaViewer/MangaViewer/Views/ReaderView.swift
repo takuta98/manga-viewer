@@ -11,8 +11,6 @@ struct ReaderView: View {
     @State private var chromeVisible = false
     @State private var showThumbnails = false
     @State private var showReaderSettings = false
-    @State private var scale: CGFloat = 1
-    @State private var offset: CGSize = .zero
 
     private let progress = ProgressStore.shared
 
@@ -78,7 +76,6 @@ struct ReaderView: View {
         }
         .onChange(of: spreadIndex) { _, newValue in
             progress.setSpreadIndex(newValue, for: volume.id)
-            resetZoom()
         }
         .onChange(of: prefs) { _, newValue in
             AppSettingsStore.savePrefs(newValue)
@@ -115,17 +112,10 @@ struct ReaderView: View {
                 }
             },
             makePage: { index in
-                AnyView(spreadView(for: index).scaleEffect(scale).offset(offset))
+                AnyView(spreadView(for: index))
             }
         )
         .id("\(prefs.turnStyle.rawValue)-\(effectiveDirection.rawValue)-\(effectiveLayout.rawValue)-\(prefs.coverAlone)")
-        .gesture(zoomGesture)
-        .simultaneousGesture(panGesture)
-        .onTapGesture(count: 2) {
-            withAnimation(.easeInOut(duration: 0.2)) {
-                if scale > 1.05 { resetZoom() } else { scale = 2.4 }
-            }
-        }
     }
 
     private func spreadView(for index: Int) -> some View {
@@ -200,10 +190,15 @@ struct ReaderView: View {
                         .font(.title3.weight(.semibold))
                         .frame(width: 36, height: 36)
                 }
-                Spacer()
-                Text("\(currentPageIndex + 1) / \(volume.pageCount)")
-                    .font(.system(.subheadline, design: .monospaced))
-                Spacer()
+                VStack(spacing: 2) {
+                    Text(volume.title)
+                        .font(.footnote.weight(.semibold))
+                        .lineLimit(1)
+                    Text("\(currentPageIndex + 1) / \(volume.pageCount)")
+                        .font(.system(.caption, design: .monospaced))
+                        .foregroundStyle(.white.opacity(0.8))
+                }
+                Spacer(minLength: 0)
                 Button {
                     progress.toggleBookmark(pageIndex: currentPageIndex, for: volume.id)
                 } label: {
@@ -225,7 +220,7 @@ struct ReaderView: View {
             .padding(.top, 54)
             .padding(.bottom, 12)
             .background(
-                LinearGradient(colors: [.black.opacity(0.75), .clear], startPoint: .top, endPoint: .bottom)
+                LinearGradient(colors: [.black.opacity(0.8), .clear], startPoint: .top, endPoint: .bottom)
             )
 
             Spacer()
@@ -243,7 +238,7 @@ struct ReaderView: View {
                     \.layoutDirection,
                     effectiveDirection == .rtl ? .rightToLeft : .leftToRight
                 )
-                Text(effectiveDirection.shortLabel)
+                Text("\(prefs.turnStyle.label) · \(effectiveDirection.shortLabel)")
                     .font(.caption.monospaced())
                     .foregroundStyle(.white.opacity(0.8))
             }
@@ -251,7 +246,7 @@ struct ReaderView: View {
             .padding(.bottom, 34)
             .padding(.top, 12)
             .background(
-                LinearGradient(colors: [.clear, .black.opacity(0.8)], startPoint: .top, endPoint: .bottom)
+                LinearGradient(colors: [.clear, .black.opacity(0.85)], startPoint: .top, endPoint: .bottom)
             )
         }
         .ignoresSafeArea()
@@ -298,32 +293,6 @@ struct ReaderView: View {
             }
         }
         .presentationDetents([.medium, .large])
-    }
-
-    private var zoomGesture: some Gesture {
-        MagnificationGesture()
-            .onChanged { value in
-                scale = max(1, min(value, 4))
-            }
-            .onEnded { _ in
-                if scale < 1.05 { resetZoom() }
-            }
-    }
-
-    private var panGesture: some Gesture {
-        DragGesture()
-            .onChanged { value in
-                guard scale > 1.05 else { return }
-                offset = value.translation
-            }
-            .onEnded { _ in
-                if scale <= 1.05 { resetZoom() }
-            }
-    }
-
-    private func resetZoom() {
-        scale = 1
-        offset = .zero
     }
 
     private func jumpToPage(_ page: Int) {
