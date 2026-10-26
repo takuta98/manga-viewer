@@ -14,8 +14,12 @@ struct RemoteBrowserView: View {
     init(library: LibraryStore, source: RemoteSource) {
         self.library = library
         self.source = source
-        if source.kind == .smb, let endpoint = try? SMBClientService.Endpoint.resolve(source) {
-            _pathStack = State(initialValue: [endpoint.pathInsideShare])
+        if source.kind == .smb {
+            if let endpoint = try? SMBClientService.Endpoint.resolve(source), !endpoint.share.isEmpty {
+                _pathStack = State(initialValue: [endpoint.pathInsideShare])
+            } else {
+                _pathStack = State(initialValue: [""])
+            }
         } else {
             _pathStack = State(initialValue: [""])
         }
@@ -23,11 +27,23 @@ struct RemoteBrowserView: View {
 
     private var currentPath: String { pathStack.last ?? "" }
 
+    private var showingSharePicker: Bool {
+        source.kind == .smb
+            && (try? SMBClientService.Endpoint.resolve(source))?.share.isEmpty == true
+            && pathStack.count == 1
+            && currentPath.isEmpty
+    }
+
     var body: some View {
         NavigationStack {
             List {
                 if loading {
                     ProgressView("読み込み中…")
+                }
+                if showingSharePicker && !entries.isEmpty {
+                    Text("フォルダを選んでください")
+                        .font(.footnote)
+                        .foregroundStyle(.secondary)
                 }
                 ForEach(entries) { entry in
                     if entry.isDirectory {
@@ -60,7 +76,7 @@ struct RemoteBrowserView: View {
                     }
                 }
             }
-            .navigationTitle(source.name)
+            .navigationTitle(showingSharePicker ? "フォルダ選択" : source.name)
             .navigationBarTitleDisplayMode(.inline)
             .toolbar {
                 ToolbarItem(placement: .cancellationAction) {
@@ -68,7 +84,7 @@ struct RemoteBrowserView: View {
                 }
                 ToolbarItem(placement: .topBarLeading) {
                     if pathStack.count > 1 {
-                        Button("上位へ") { _ = pathStack.popLast(); Task { await reload() } }
+                        Button("戻る") { _ = pathStack.popLast(); Task { await reload() } }
                     }
                 }
             }

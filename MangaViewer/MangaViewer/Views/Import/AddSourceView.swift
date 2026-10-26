@@ -23,7 +23,7 @@ struct AddSourceView: View {
                 TextField(hostPlaceholder, text: $source.host)
                     .textInputAutocapitalization(.never)
                     .keyboardType(.URL)
-                if kind != .httpURL {
+                if kind != .httpURL && kind != .smb {
                     Stepper(value: Binding(
                         get: { source.port ?? RemoteSource.defaultPort(kind) ?? 0 },
                         set: { source.port = $0 }
@@ -31,15 +31,7 @@ struct AddSourceView: View {
                         Text("ポート: \(source.port ?? 0)")
                     }
                 }
-                if kind == .smb {
-                    TextField("共有名（必須・例: manga）", text: $source.shareOrPath)
-                        .textInputAutocapitalization(.never)
-                    TextField("ドメイン / ワークグループ（任意）", text: Binding(
-                        get: { source.domain ?? "" },
-                        set: { source.domain = $0 }
-                    ))
-                    .textInputAutocapitalization(.never)
-                } else if kind == .webdav || kind == .opds || kind == .ftp || kind == .sftp {
+                if kind == .webdav || kind == .opds || kind == .ftp || kind == .sftp {
                     TextField("パス / フィード", text: $source.shareOrPath)
                         .textInputAutocapitalization(.never)
                 } else if kind == .s3 {
@@ -91,6 +83,10 @@ struct AddSourceView: View {
                 }
                 ToolbarItem(placement: .confirmationAction) {
                     Button("保存") {
+                        if kind == .smb {
+                            source.shareOrPath = ""
+                            source.port = 445
+                        }
                         onSave(source)
                         dismiss()
                     }
@@ -106,9 +102,12 @@ struct AddSourceView: View {
         testSucceeded = false
         defer { testing = false }
         do {
-            try await SMBClientService.testConnection(source: source)
+            var probe = source
+            probe.shareOrPath = ""
+            probe.port = 445
+            try await SMBClientService.testConnection(source: probe)
             testSucceeded = true
-            testMessage = "接続できました"
+            testMessage = "接続できました。保存したあと、フォルダを選べます。"
         } catch {
             testSucceeded = false
             testMessage = error.localizedDescription
@@ -117,7 +116,7 @@ struct AddSourceView: View {
 
     private var hostPlaceholder: String {
         switch kind {
-        case .smb: return "192.168.1.10 または nas.local"
+        case .smb: return "IPアドレス（例: 192.168.1.10）"
         case .webdav: return "https://nas.example/webdav"
         case .ftp: return "ftp.example.com"
         case .sftp: return "nas.example.com"
@@ -130,7 +129,7 @@ struct AddSourceView: View {
     private var helpText: String {
         switch kind {
         case .smb:
-            return "ホストに IP、共有名に NAS の共有フォルダ名を入れます。ホスト欄に smb://192.168.1.10/manga と書いても構いません。初回は「ローカルネットワーク」許可が必要です。参考: Comink / KedaReader / Andrea。"
+            return "IP・ユーザー名・パスワードを入れて保存してください。フォルダは接続したあと一覧から選びます。初回は「ローカルネットワーク」の許可が必要です。"
         case .webdav:
             return "NAS の WebDAV や Nextcloud。Basic 認証対応。"
         case .opds:
