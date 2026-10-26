@@ -545,7 +545,6 @@
 			defaultConfigurationName = Release;
 		};
 /* End XCConfigurationList section */
-	};
 
 /* Begin XCRemoteSwiftPackageReference section */
 		205A91D33B8C4E0CB2BABD69 /* XCRemoteSwiftPackageReference "Citadel" */ = {
@@ -578,6 +577,6 @@
 			productName = Citadel;
 		};
 /* End XCSwiftPackageProductDependency section */
-
+	};
 	rootObject = A10000000000000000000003 /* Project object */;
 }
