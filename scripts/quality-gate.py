@@ -83,10 +83,15 @@ def main() -> int:
         fail("[読む] 前後ページ dataSource が無い")
     if "handleTap" not in browser:
         fail("[読む] 端タップめくりが無い")
-    if "animated: !reduceMotion" in browser or "animated: true" in browser:
-        fail("[読む] PageBrowser が animated setViewControllers している（scroll で落ちる）")
+    if "isInteractivelyAnimating" not in browser:
+        fail("[読む] めくり中の SwiftUI 同期抑止が無い")
+    if "canAnimate" not in browser:
+        fail("[読む] 端タップのめくりアニメが無い")
     if "animated: false" not in browser:
-        fail("[読む] setViewControllers を非アニメーションにしていない")
+        fail("[読む] SwiftUI 同期の非アニメーション経路が無い")
+    models = read(SRC / "Models" / "ReadingModels.swift")
+    if "turnStyle: PageTurnStyle = .curl" not in models:
+        fail("[読む] 既定のページ送りがめくり（curl）ではない")
 
     reader = read(SRC / "Views" / "ReaderView.swift")
     if "PageBrowser(" not in reader:
