@@ -1,0 +1,26 @@
+# Xcode
+DerivedData/
+build/
+*.xcuserstate
+*.xcuserdata/
+*.moved-aside
+*.hmap
+*.ipa
+*.dSYM.zip
+*.dSYM
+timeline.xctimeline
+playground.xcworkspace
+
+# macOS
+.DS_Store
+
+# Swift Package
+.swiftpm/
+Packages/
+Package.resolved
+
+# Agent / local
+node_modules/
+dist/
+.env
+*.log

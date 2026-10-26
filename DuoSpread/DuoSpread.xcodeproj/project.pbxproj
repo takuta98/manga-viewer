@@ -1,0 +1,430 @@
+// !$*UTF8*$!
+{
+	archiveVersion = 1;
+	classes = {
+	};
+	objectVersion = 56;
+	objects = {
+
+/* Begin PBXBuildFile section */
+		00999F82E3A943C3B9F8D259 /* DuoSpreadApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9B5F4E3C5D964C55B41C4504 /* DuoSpreadApp.swift */; };
+		C4A3DD90479E446685CA1A11 /* ContentView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 46B14B2C2DAD4F4593493086 /* ContentView.swift */; };
+		2FBF965F46FB41F5ADCB8161 /* DuoPose.swift in Sources */ = {isa = PBXBuildFile; fileRef = 67B50F2B5F1E44629C60DCA3 /* DuoPose.swift */; };
+		42F091AD3D7244F2B50C55F8 /* MangaVolume.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3E23AF8560D24A0B9571F6D3 /* MangaVolume.swift */; };
+		6D699129310743E4805887C8 /* SpreadIndex.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2E68BBC496A2412B94555C19 /* SpreadIndex.swift */; };
+		92F08E7EFAF74B8CACD4EA5C /* Catalog.swift in Sources */ = {isa = PBXBuildFile; fileRef = 010D18DE64864131BC5CEAFA /* Catalog.swift */; };
+		FDD4E669A9414D0A960833CF /* ProgressStore.swift in Sources */ = {isa = PBXBuildFile; fileRef = 418195BDFC024BBABC850BE3 /* ProgressStore.swift */; };
+		0CD86776D5684B99AC1C8C3C /* PagePaneView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 03F5B8B741E0405FA279C4B3 /* PagePaneView.swift */; };
+		C3C09B7CCAC64F7E98A4D2ED /* DuoFrameView.swift in Sources */ = {isa = PBXBuildFile; fileRef = B85960C15F174E2C8876E736 /* DuoFrameView.swift */; };
+		32019BB28EAE44BE8F393F94 /* LibraryView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7D0C3F6812EF4BC29CD68952 /* LibraryView.swift */; };
+		609026EC90DD4C78A1092910 /* ReaderView.swift in Sources */ = {isa = PBXBuildFile; fileRef = C0428F9509DC4A3998BE2F71 /* ReaderView.swift */; };
+		30AB0C52CF09481A9D8B81E5 /* SpreadIndexTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = EA472F3FEB46453183A062B3 /* SpreadIndexTests.swift */; };
+		781AEFE1E78840D9B11339D3 /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 102041040879440A9D12C328 /* Assets.xcassets */; };
+		1F8789E2579C44A58FAEA3AE /* SampleManga in Resources */ = {isa = PBXBuildFile; fileRef = AD61272660C74BD9B7E410F7 /* SampleManga */; };
+/* End PBXBuildFile section */
+
+/* Begin PBXContainerItemProxy section */
+		0E8790303C2E4D8DAD0C7269 /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = B342D17B439F438DBB277D66 /* Project object */;
+			proxyType = 1;
+			remoteGlobalIDString = 39D86C10ADB04B8BB934519B;
+			remoteInfo = DuoSpread;
+		};
+/* End PBXContainerItemProxy section */
+
+/* Begin PBXFileReference section */
+		1F2F464FB4F94E8299BA6FA0 /* DuoSpread.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = DuoSpread.app; sourceTree = BUILT_PRODUCTS_DIR; };
+		A6C4E9F59EB941A49250D4CF /* DuoSpreadTests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = DuoSpreadTests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
+		9B5F4E3C5D964C55B41C4504 /* DuoSpreadApp.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DuoSpreadApp.swift; sourceTree = "<group>"; };
+		46B14B2C2DAD4F4593493086 /* ContentView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ContentView.swift; sourceTree = "<group>"; };
+		67B50F2B5F1E44629C60DCA3 /* DuoPose.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DuoPose.swift; sourceTree = "<group>"; };
+		3E23AF8560D24A0B9571F6D3 /* MangaVolume.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MangaVolume.swift; sourceTree = "<group>"; };
+		2E68BBC496A2412B94555C19 /* SpreadIndex.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SpreadIndex.swift; sourceTree = "<group>"; };
+		010D18DE64864131BC5CEAFA /* Catalog.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Catalog.swift; sourceTree = "<group>"; };
+		418195BDFC024BBABC850BE3 /* ProgressStore.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ProgressStore.swift; sourceTree = "<group>"; };
+		03F5B8B741E0405FA279C4B3 /* PagePaneView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PagePaneView.swift; sourceTree = "<group>"; };
+		B85960C15F174E2C8876E736 /* DuoFrameView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DuoFrameView.swift; sourceTree = "<group>"; };
+		7D0C3F6812EF4BC29CD68952 /* LibraryView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LibraryView.swift; sourceTree = "<group>"; };
+		C0428F9509DC4A3998BE2F71 /* ReaderView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ReaderView.swift; sourceTree = "<group>"; };
+		EA472F3FEB46453183A062B3 /* SpreadIndexTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SpreadIndexTests.swift; sourceTree = "<group>"; };
+		102041040879440A9D12C328 /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
+		AD61272660C74BD9B7E410F7 /* SampleManga */ = {isa = PBXFileReference; lastKnownFileType = folder; name = SampleManga; path = Resources/SampleManga; sourceTree = "<group>"; };
+/* End PBXFileReference section */
+
+/* Begin PBXFrameworksBuildPhase section */
+		E7E04252FD4C4AB683A90BE9 /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		0D9922DBD6E0464B845B9D99 /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXFrameworksBuildPhase section */
+
+/* Begin PBXGroup section */
+		674DC3C7BB9E4F51A2060EE1 = {
+			isa = PBXGroup;
+			children = (
+				757DCFF0BBDE4DCAAFFFDF39 /* DuoSpread */,
+				7FCEB894ADFA4F04A741BD76 /* DuoSpreadTests */,
+				9A84A66F02C84005820755C4 /* Products */,
+			);
+			sourceTree = "<group>";
+		};
+		9A84A66F02C84005820755C4 /* Products */ = {
+			isa = PBXGroup;
+			children = (
+				1F2F464FB4F94E8299BA6FA0 /* DuoSpread.app */,
+				A6C4E9F59EB941A49250D4CF /* DuoSpreadTests.xctest */,
+			);
+			name = Products;
+			sourceTree = "<group>";
+		};
+		757DCFF0BBDE4DCAAFFFDF39 /* DuoSpread */ = {
+			isa = PBXGroup;
+			children = (
+				9B5F4E3C5D964C55B41C4504 /* DuoSpreadApp.swift */,
+				46B14B2C2DAD4F4593493086 /* ContentView.swift */,
+				D989FD04FC7D4D3E83361996 /* Models */,
+				757653D6F86B4BA6AAE43922 /* Services */,
+				D9DDE95822064A08A0D50B8D /* Views */,
+				102041040879440A9D12C328 /* Assets.xcassets */,
+				AD61272660C74BD9B7E410F7 /* SampleManga */,
+			);
+			path = DuoSpread;
+			sourceTree = "<group>";
+		};
+		D989FD04FC7D4D3E83361996 /* Models */ = {
+			isa = PBXGroup;
+			children = (
+				67B50F2B5F1E44629C60DCA3 /* DuoPose.swift */,
+				3E23AF8560D24A0B9571F6D3 /* MangaVolume.swift */,
+				2E68BBC496A2412B94555C19 /* SpreadIndex.swift */,
+			);
+			path = Models;
+			sourceTree = "<group>";
+		};
+		757653D6F86B4BA6AAE43922 /* Services */ = {
+			isa = PBXGroup;
+			children = (
+				010D18DE64864131BC5CEAFA /* Catalog.swift */,
+				418195BDFC024BBABC850BE3 /* ProgressStore.swift */,
+			);
+			path = Services;
+			sourceTree = "<group>";
+		};
+		D9DDE95822064A08A0D50B8D /* Views */ = {
+			isa = PBXGroup;
+			children = (
+				03F5B8B741E0405FA279C4B3 /* PagePaneView.swift */,
+				B85960C15F174E2C8876E736 /* DuoFrameView.swift */,
+				7D0C3F6812EF4BC29CD68952 /* LibraryView.swift */,
+				C0428F9509DC4A3998BE2F71 /* ReaderView.swift */,
+			);
+			path = Views;
+			sourceTree = "<group>";
+		};
+		7FCEB894ADFA4F04A741BD76 /* DuoSpreadTests */ = {
+			isa = PBXGroup;
+			children = (
+				EA472F3FEB46453183A062B3 /* SpreadIndexTests.swift */,
+			);
+			path = DuoSpreadTests;
+			sourceTree = "<group>";
+		};
+/* End PBXGroup section */
+
+/* Begin PBXNativeTarget section */
+		39D86C10ADB04B8BB934519B /* DuoSpread */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = 8C5AB26B372B45A29E6852D7 /* Build configuration list for PBXNativeTarget "DuoSpread" */;
+			buildPhases = (
+				CFE7379865FD489AAD813B87 /* Sources */,
+				E7E04252FD4C4AB683A90BE9 /* Frameworks */,
+				BC0CA572C7574A0F875CD3D4 /* Resources */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+			);
+			name = DuoSpread;
+			productName = DuoSpread;
+			productReference = 1F2F464FB4F94E8299BA6FA0 /* DuoSpread.app */;
+			productType = "com.apple.product-type.application";
+		};
+		58BD0C3B8B83478C8E327CC6 /* DuoSpreadTests */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = 44E4103A7745445795CA8D5A /* Build configuration list for PBXNativeTarget "DuoSpreadTests" */;
+			buildPhases = (
+				C9DC5647932D4EA292BC9AC3 /* Sources */,
+				0D9922DBD6E0464B845B9D99 /* Frameworks */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+				16385AAA31864EA1B56C3863 /* PBXTargetDependency */,
+			);
+			name = DuoSpreadTests;
+			productName = DuoSpreadTests;
+			productReference = A6C4E9F59EB941A49250D4CF /* DuoSpreadTests.xctest */;
+			productType = "com.apple.product-type.bundle.unit-test";
+		};
+/* End PBXNativeTarget section */
+
+/* Begin PBXProject section */
+		B342D17B439F438DBB277D66 /* Project object */ = {
+			isa = PBXProject;
+			attributes = {
+				BuildIndependentTargetsInParallel = 1;
+				LastSwiftUpdateCheck = 1600;
+				LastUpgradeCheck = 1600;
+				TargetAttributes = {
+					39D86C10ADB04B8BB934519B = {
+						CreatedOnToolsVersion = 16.0;
+					};
+					58BD0C3B8B83478C8E327CC6 = {
+						CreatedOnToolsVersion = 16.0;
+						TestTargetID = 39D86C10ADB04B8BB934519B;
+					};
+				};
+			};
+			buildConfigurationList = 28C677B5D9614117976AB644 /* Build configuration list for PBXProject "DuoSpread" */;
+			compatibilityVersion = "Xcode 14.0";
+			developmentRegion = ja;
+			hasScannedForEncodings = 0;
+			knownRegions = (
+				en,
+				ja,
+				Base,
+			);
+			mainGroup = 674DC3C7BB9E4F51A2060EE1;
+			productRefGroup = 9A84A66F02C84005820755C4 /* Products */;
+			projectDirPath = "";
+			projectRoot = "";
+			targets = (
+				39D86C10ADB04B8BB934519B /* DuoSpread */,
+				58BD0C3B8B83478C8E327CC6 /* DuoSpreadTests */,
+			);
+		};
+/* End PBXProject section */
+
+/* Begin PBXResourcesBuildPhase section */
+		BC0CA572C7574A0F875CD3D4 /* Resources */ = {
+			isa = PBXResourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				781AEFE1E78840D9B11339D3 /* Assets.xcassets in Resources */,
+				1F8789E2579C44A58FAEA3AE /* SampleManga in Resources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXResourcesBuildPhase section */
+
+/* Begin PBXSourcesBuildPhase section */
+		CFE7379865FD489AAD813B87 /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				00999F82E3A943C3B9F8D259 /* DuoSpreadApp.swift in Sources */,
+				C4A3DD90479E446685CA1A11 /* ContentView.swift in Sources */,
+				2FBF965F46FB41F5ADCB8161 /* DuoPose.swift in Sources */,
+				42F091AD3D7244F2B50C55F8 /* MangaVolume.swift in Sources */,
+				6D699129310743E4805887C8 /* SpreadIndex.swift in Sources */,
+				92F08E7EFAF74B8CACD4EA5C /* Catalog.swift in Sources */,
+				FDD4E669A9414D0A960833CF /* ProgressStore.swift in Sources */,
+				0CD86776D5684B99AC1C8C3C /* PagePaneView.swift in Sources */,
+				C3C09B7CCAC64F7E98A4D2ED /* DuoFrameView.swift in Sources */,
+				32019BB28EAE44BE8F393F94 /* LibraryView.swift in Sources */,
+				609026EC90DD4C78A1092910 /* ReaderView.swift in Sources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		C9DC5647932D4EA292BC9AC3 /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				30AB0C52CF09481A9D8B81E5 /* SpreadIndexTests.swift in Sources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXSourcesBuildPhase section */
+
+/* Begin PBXTargetDependency section */
+		16385AAA31864EA1B56C3863 /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			target = 39D86C10ADB04B8BB934519B /* DuoSpread */;
+			targetProxy = 0E8790303C2E4D8DAD0C7269 /* PBXContainerItemProxy */;
+		};
+/* End PBXTargetDependency section */
+
+/* Begin XCBuildConfiguration section */
+		93DEBAEF597141008736E3B2 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ALWAYS_SEARCH_USER_PATHS = NO;
+				CLANG_ENABLE_MODULES = YES;
+				CLANG_ENABLE_OBJC_ARC = YES;
+				COPY_PHASE_STRIP = NO;
+				DEBUG_INFORMATION_FORMAT = dwarf;
+				ENABLE_STRICT_OBJC_MSGSEND = YES;
+				GCC_DYNAMIC_NO_PIC = NO;
+				GCC_OPTIMIZATION_LEVEL = 0;
+				IPHONEOS_DEPLOYMENT_TARGET = 17.0;
+				ONLY_ACTIVE_ARCH = YES;
+				SDKROOT = iphoneos;
+				SWIFT_ACTIVE_COMPILATION_CONDITIONS = DEBUG;
+				SWIFT_OPTIMIZATION_LEVEL = "-Onone";
+			};
+			name = Debug;
+		};
+		14415B18263745A8A7BC382F /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ALWAYS_SEARCH_USER_PATHS = NO;
+				CLANG_ENABLE_MODULES = YES;
+				CLANG_ENABLE_OBJC_ARC = YES;
+				COPY_PHASE_STRIP = NO;
+				DEBUG_INFORMATION_FORMAT = dwarf;
+				ENABLE_STRICT_OBJC_MSGSEND = YES;
+				GCC_DYNAMIC_NO_PIC = YES;
+				GCC_OPTIMIZATION_LEVEL = s;
+				IPHONEOS_DEPLOYMENT_TARGET = 17.0;
+				ONLY_ACTIVE_ARCH = NO;
+				SDKROOT = iphoneos;
+				SWIFT_COMPILATION_MODE = wholemodule;
+				SWIFT_OPTIMIZATION_LEVEL = "-O";
+			};
+			name = Release;
+		};
+		D6A692892BA644D49EDF454E /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
+				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 1;
+				DEVELOPMENT_TEAM = "";
+				ENABLE_PREVIEWS = YES;
+				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_KEY_CFBundleDisplayName = DuoSpread;
+				INFOPLIST_KEY_UIApplicationSceneManifest_Generation = YES;
+				INFOPLIST_KEY_UILaunchScreen_Generation = YES;
+				INFOPLIST_KEY_UISupportedInterfaceOrientations = "UIInterfaceOrientationPortrait UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight";
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+				);
+				MARKETING_VERSION = 0.1.0;
+				PRODUCT_BUNDLE_IDENTIFIER = app.duospread.DuoSpread;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SUPPORTED_PLATFORMS = "iphoneos iphonesimulator";
+				SUPPORTS_MACCATALYST = NO;
+				SWIFT_EMIT_LOC_STRINGS = YES;
+				SWIFT_VERSION = 5.0;
+				TARGETED_DEVICE_FAMILY = "1,2";
+			};
+			name = Debug;
+		};
+		82194D56984E4C749E6BE766 /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
+				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 1;
+				DEVELOPMENT_TEAM = "";
+				ENABLE_PREVIEWS = YES;
+				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_KEY_CFBundleDisplayName = DuoSpread;
+				INFOPLIST_KEY_UIApplicationSceneManifest_Generation = YES;
+				INFOPLIST_KEY_UILaunchScreen_Generation = YES;
+				INFOPLIST_KEY_UISupportedInterfaceOrientations = "UIInterfaceOrientationPortrait UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight";
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+				);
+				MARKETING_VERSION = 0.1.0;
+				PRODUCT_BUNDLE_IDENTIFIER = app.duospread.DuoSpread;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SUPPORTED_PLATFORMS = "iphoneos iphonesimulator";
+				SUPPORTS_MACCATALYST = NO;
+				SWIFT_EMIT_LOC_STRINGS = YES;
+				SWIFT_VERSION = 5.0;
+				TARGETED_DEVICE_FAMILY = "1,2";
+			};
+			name = Release;
+		};
+		F6296D476FB5499886730362 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				BUNDLE_LOADER = "$(TEST_HOST)";
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 1;
+				GENERATE_INFOPLIST_FILE = YES;
+				MARKETING_VERSION = 0.1.0;
+				PRODUCT_BUNDLE_IDENTIFIER = app.duospread.DuoSpreadTests;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SWIFT_VERSION = 5.0;
+				TARGETED_DEVICE_FAMILY = "1,2";
+				TEST_HOST = "$(BUILT_PRODUCTS_DIR)/DuoSpread.app/$(BUNDLE_EXECUTABLE_FOLDER_PATH)/DuoSpread";
+			};
+			name = Debug;
+		};
+		5C4B44D704D24D01BC61D92E /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				BUNDLE_LOADER = "$(TEST_HOST)";
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 1;
+				GENERATE_INFOPLIST_FILE = YES;
+				MARKETING_VERSION = 0.1.0;
+				PRODUCT_BUNDLE_IDENTIFIER = app.duospread.DuoSpreadTests;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SWIFT_VERSION = 5.0;
+				TARGETED_DEVICE_FAMILY = "1,2";
+				TEST_HOST = "$(BUILT_PRODUCTS_DIR)/DuoSpread.app/$(BUNDLE_EXECUTABLE_FOLDER_PATH)/DuoSpread";
+			};
+			name = Release;
+		};
+/* End XCBuildConfiguration section */
+
+/* Begin XCConfigurationList section */
+		28C677B5D9614117976AB644 /* Build configuration list for PBXProject "DuoSpread" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				93DEBAEF597141008736E3B2 /* Debug */,
+				14415B18263745A8A7BC382F /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+		8C5AB26B372B45A29E6852D7 /* Build configuration list for PBXNativeTarget "DuoSpread" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				D6A692892BA644D49EDF454E /* Debug */,
+				82194D56984E4C749E6BE766 /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+		44E4103A7745445795CA8D5A /* Build configuration list for PBXNativeTarget "DuoSpreadTests" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				F6296D476FB5499886730362 /* Debug */,
+				5C4B44D704D24D01BC61D92E /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+/* End XCConfigurationList section */
+	};
+	rootObject = B342D17B439F438DBB277D66 /* Project object */;
+}
