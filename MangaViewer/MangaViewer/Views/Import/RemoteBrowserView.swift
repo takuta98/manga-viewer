@@ -5,11 +5,21 @@ struct RemoteBrowserView: View {
     let source: RemoteSource
 
     @Environment(\.dismiss) private var dismiss
-    @State private var pathStack: [String] = [""]
+    @State private var pathStack: [String]
     @State private var entries: [RemoteEntry] = []
     @State private var loading = false
     @State private var errorText: String?
     @State private var importingName: String?
+
+    init(library: LibraryStore, source: RemoteSource) {
+        self.library = library
+        self.source = source
+        if source.kind == .smb, let endpoint = try? SMBClientService.Endpoint.resolve(source) {
+            _pathStack = State(initialValue: [endpoint.pathInsideShare])
+        } else {
+            _pathStack = State(initialValue: [""])
+        }
+    }
 
     private var currentPath: String { pathStack.last ?? "" }
 

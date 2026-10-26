@@ -53,6 +53,8 @@ struct RemoteSource: Identifiable, Codable, Hashable {
     var username: String
     /// Stored in Keychain in production; UserDefaults for MVP (device-local).
     var password: String
+    /// SMB のドメイン / ワークグループ（空なら省略）。既存 JSON 互換のため Optional。
+    var domain: String?
     var region: String?
     var bucket: String?
     var useTLS: Bool
@@ -68,6 +70,7 @@ struct RemoteSource: Identifiable, Codable, Hashable {
             shareOrPath: "",
             username: "",
             password: "",
+            domain: "",
             region: "us-east-1",
             bucket: "",
             useTLS: kind != .ftp && kind != .smb,

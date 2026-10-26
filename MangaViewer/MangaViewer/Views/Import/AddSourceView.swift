@@ -6,6 +6,9 @@ struct AddSourceView: View {
 
     @Environment(\.dismiss) private var dismiss
     @State private var source: RemoteSource
+    @State private var testing = false
+    @State private var testMessage: String?
+    @State private var testSucceeded = false
 
     init(kind: RemoteSourceKind, onSave: @escaping (RemoteSource) -> Void) {
         self.kind = kind
@@ -29,8 +32,13 @@ struct AddSourceView: View {
                     }
                 }
                 if kind == .smb {
-                    TextField("共有名 (share)", text: $source.shareOrPath)
+                    TextField("共有名（必須・例: manga）", text: $source.shareOrPath)
                         .textInputAutocapitalization(.never)
+                    TextField("ドメイン / ワークグループ（任意）", text: Binding(
+                        get: { source.domain ?? "" },
+                        set: { source.domain = $0 }
+                    ))
+                    .textInputAutocapitalization(.never)
                 } else if kind == .webdav || kind == .opds || kind == .ftp || kind == .sftp {
                     TextField("パス / フィード", text: $source.shareOrPath)
                         .textInputAutocapitalization(.never)
@@ -50,6 +58,25 @@ struct AddSourceView: View {
                 SecureField("パスワード / シークレット", text: $source.password)
                 if kind == .webdav || kind == .opds || kind == .s3 {
                     Toggle("TLS (https)", isOn: $source.useTLS)
+                }
+                if kind == .smb {
+                    Section {
+                        Button {
+                            Task { await runSMBTest() }
+                        } label: {
+                            if testing {
+                                ProgressView()
+                            } else {
+                                Text("接続テスト")
+                            }
+                        }
+                        .disabled(testing || source.host.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty)
+                        if let testMessage {
+                            Text(testMessage)
+                                .font(.footnote)
+                                .foregroundStyle(testSucceeded ? .green : .red)
+                        }
+                    }
                 }
                 Section {
                     Text(helpText)
@@ -73,6 +100,21 @@ struct AddSourceView: View {
         }
     }
 
+    private func runSMBTest() async {
+        testing = true
+        testMessage = nil
+        testSucceeded = false
+        defer { testing = false }
+        do {
+            try await SMBClientService.testConnection(source: source)
+            testSucceeded = true
+            testMessage = "接続できました"
+        } catch {
+            testSucceeded = false
+            testMessage = error.localizedDescription
+        }
+    }
+
     private var hostPlaceholder: String {
         switch kind {
         case .smb: return "192.168.1.10 または nas.local"
@@ -88,7 +130,7 @@ struct AddSourceView: View {
     private var helpText: String {
         switch kind {
         case .smb:
-            return "Synology / QNAP / Windows 共有など。共有名は必須（例: manga）。参考: Comink / KedaReader / Andrea。"
+            return "ホストに IP、共有名に NAS の共有フォルダ名を入れます。ホスト欄に smb://192.168.1.10/manga と書いても構いません。初回は「ローカルネットワーク」許可が必要です。参考: Comink / KedaReader / Andrea。"
         case .webdav:
             return "NAS の WebDAV や Nextcloud。Basic 認証対応。"
         case .opds:
