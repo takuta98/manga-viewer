@@ -2,12 +2,12 @@ import SwiftUI
 
 @main
 struct MangaViewerApp: App {
+    @StateObject private var library = LibraryStore()
+
     var body: some Scene {
         WindowGroup {
-            ContentView()
-        }
-        .commands {
-            // Placeholder for future keyboard shortcuts on iPad/Mac Catalyst.
+            ContentView(library: library)
+                .environmentObject(library)
         }
     }
 }

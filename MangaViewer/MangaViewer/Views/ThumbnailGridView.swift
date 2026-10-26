@@ -2,52 +2,34 @@ import SwiftUI
 
 struct ThumbnailGridView: View {
     let volume: MangaVolume
-    let currentPage: Int
-    var onSelect: (Int) -> Void
-
-    private let columns = [GridItem(.adaptive(minimum: 72), spacing: 8)]
+    var onPick: (Int) -> Void
+    @Environment(\.dismiss) private var dismiss
 
     var body: some View {
-        ScrollViewReader { proxy in
+        NavigationStack {
             ScrollView {
-                LazyVGrid(columns: columns, spacing: 8) {
-                    ForEach(0..<volume.pageCount, id: \.self) { index in
-                        Button {
-                            onSelect(index)
-                        } label: {
-                            VStack(spacing: 4) {
-                                Group {
-                                    if let url = volume.pageURL(at: index),
-                                       let image = SampleImage.load(url: url) {
-                                        image.resizable().scaledToFill()
-                                    } else {
-                                        Rectangle().fill(Color.secondary.opacity(0.2))
-                                    }
+                LazyVGrid(columns: [GridItem(.adaptive(minimum: 90), spacing: 10)], spacing: 10) {
+                    ForEach(0..<volume.pageCount, id: \.self) { i in
+                        Button { onPick(i) } label: {
+                            VStack {
+                                if let url = volume.pageURL(at: i), let img = UIImage(contentsOfFile: url.path) {
+                                    Image(uiImage: img).resizable().scaledToFill()
+                                } else {
+                                    Rectangle().fill(Color.secondary.opacity(0.3))
                                 }
-                                .frame(width: 72, height: 108)
-                                .clipped()
-                                .overlay {
-                                    if index == currentPage {
-                                        RoundedRectangle(cornerRadius: 2)
-                                            .stroke(Color.accentColor, lineWidth: 2)
-                                    }
-                                }
-                                Text("\(index + 1)")
-                                    .font(.caption2)
-                                    .foregroundStyle(index == currentPage ? Color.accentColor : .secondary)
+                            }
+                            .frame(height: 130).clipped().cornerRadius(4)
+                            .overlay(alignment: .bottom) {
+                                Text("\(i+1)").font(.caption2).padding(4).background(.black.opacity(0.6)).foregroundStyle(.white)
                             }
                         }
                         .buttonStyle(.plain)
-                        .id(index)
                     }
                 }
                 .padding()
             }
-            .onAppear {
-                proxy.scrollTo(currentPage, anchor: .center)
-            }
+            .navigationTitle("サムネイル")
+            .toolbar { ToolbarItem(placement: .cancellationAction) { Button("閉じる") { dismiss() } } }
         }
-        .navigationTitle("ページ一覧")
-        .navigationBarTitleDisplayMode(.inline)
     }
 }

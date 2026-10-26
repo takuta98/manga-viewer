@@ -1,36 +1,19 @@
-# manga-viewer
+# 漫画ビューア（iPhone Duo）
 
-iPhone Duo 向け SwiftUI manga viewer。
+SwiftUI 製の漫画ビューアです。外部 Swift パッケージは使いません（Apple 標準フレームワークのみ）。
 
-参考にした取得経路・機能の系統: **Andrea / Comink / KedaReader**（SMB・WebDAV・OPDS・クラウド/Files）、および **ComicFlow**（ローカル RTL 見開き）。
+## できること
 
-## 開き方
+- 書庫（フォルダ整理・検索・グリッド/リスト）
+- 全画面読書、スライド / ページめくり
+- 縦は常に1ページ、横で十分な幅のときだけ見開き
+- 裏取り込みと転送状況画面
+- SMB / WebDAV / SFTP / FTP / OPDS / S3 / URL / Wi‑Fi / Files からの取り込み
+
+## 開発
+
+Xcode で `MangaViewer/MangaViewer.xcodeproj` を開いてください。
 
 ```bash
-open MangaViewer/MangaViewer.xcodeproj
+python3 scripts/quality-gate.py
 ```
-
-初回は Xcode が Swift Package（AMSMB2 / Citadel）を解決します。iOS 17+。
-
-## ファイルの入れ方（書庫右上 +）
-
-| 方法 | 用途 |
-|------|------|
-| **Files / iCloud / クラウド** | Files に出る iCloud・Dropbox・Google Drive・OneDrive・Files の SMB 接続など |
-| **SMB (NAS)** | Synology / QNAP / Windows 共有 |
-| **WebDAV** | NAS WebDAV / Nextcloud |
-| **SFTP** | SSH ファイル転送 |
-| **FTP** | PASV FTP |
-| **OPDS / Komga / Kavita** | OPDS カタログ |
-| **S3 / MinIO** | S3 互換オブジェクトストレージ |
-| **URL ダウンロード** | 直リンク CBZ/PDF 等 |
-| **Wi-Fi 転送** | 同一 LAN のブラウザから Upload |
-
-対応取り込み形式: **CBZ / ZIP / PDF / 画像**。CBR/RAR/7z は未デコード（変換が必要）。
-
-## 主な機能
-
-- 書庫: 検索・並び替え・改名・削除・進捗
-- リーダー: 見開き / 単ページ / 縦スクロール、RTL/LTR、表紙単独、ズーム、しおり、サムネ、明るさ、スリープ防止
-- Duo ポーズ: 見開き / 閉じ / 卓上
-- ComicInfo.xml のタイトル・方向を反映

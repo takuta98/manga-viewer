@@ -2,59 +2,25 @@ import SwiftUI
 
 struct WiFiTransferView: View {
     @ObservedObject var library: LibraryStore
-    @StateObject private var server = WiFiTransferServer.shared
+    @StateObject private var server = WiFiTransferServer()
     @Environment(\.dismiss) private var dismiss
-    @State private var message: String?
 
     var body: some View {
         NavigationStack {
-            Form {
-                Section {
-                    Toggle("サーバを起動", isOn: Binding(
-                        get: { server.isRunning },
-                        set: { on in
-                            if on { server.start() } else { server.stop() }
-                        }
-                    ))
-                    if server.isRunning {
-                        Text(server.addressText)
-                            .font(.system(.body, design: .monospaced))
-                            .textSelection(.enabled)
-                        Text("同じ Wi-Fi の PC/スマホブラウザで上記 URL を開き、ファイルを Upload してください。")
-                            .font(.footnote)
-                            .foregroundStyle(.secondary)
-                    }
-                }
-                if let message {
-                    Text(message).foregroundStyle(.secondary)
-                }
-                if let err = server.lastError {
-                    Text(err).foregroundStyle(.red)
-                }
+            VStack(spacing: 16) {
+                Text("同じ Wi‑Fi の別端末のブラウザで次のアドレスを開いてください。")
+                    .font(.subheadline).foregroundStyle(.secondary)
+                    .multilineTextAlignment(.center)
+                Text(server.addressText)
+                    .font(.title3.monospaced()).textSelection(.enabled)
+                Text("外部ライブラリは使わず、このアプリ内の簡易HTTPサーバで受信します。")
+                    .font(.footnote).foregroundStyle(.tertiary)
+                Spacer()
             }
-            .navigationTitle("Wi-Fi 転送")
-            .toolbar {
-                ToolbarItem(placement: .cancellationAction) {
-                    Button("閉じる") {
-                        server.stop()
-                        dismiss()
-                    }
-                }
-            }
-            .onAppear {
-                server.onFileReceived = { url in
-                    let activity = TransferActivityCenter.shared
-                    let job = activity.begin(title: url.lastPathComponent, status: "取り込み中…")
-                    do {
-                        _ = try library.importURL(url)
-                        activity.succeed(job, banner: "取り込み完了: \(url.lastPathComponent)")
-                        message = "取り込みました: \(url.lastPathComponent)"
-                    } catch {
-                        activity.fail(job, message: error.localizedDescription)
-                        message = error.localizedDescription
-                    }
-                }
-            }
+            .padding()
+            .navigationTitle("Wi‑Fi 転送")
+            .toolbar { ToolbarItem(placement: .cancellationAction) { Button("閉じる") { dismiss() } } }
+            .onAppear { server.start() }
             .onDisappear { server.stop() }
         }
     }

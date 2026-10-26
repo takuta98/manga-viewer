@@ -1,30 +1,17 @@
 import SwiftUI
 
 struct ContentView: View {
-    @StateObject private var library = LibraryStore.shared
-
-    @State private var selectedVolume: MangaVolume?
+    @ObservedObject var library: LibraryStore
+    @State private var reading: MangaVolume?
 
     var body: some View {
         NavigationStack {
             LibraryView(library: library) { volume in
-                selectedVolume = volume
+                reading = volume
             }
         }
-        .preferredColorScheme(.dark)
-        .overlay(alignment: .top) {
-            ActivityOverlayView()
-                .allowsHitTesting(true)
-        }
-        .fullScreenCover(item: $selectedVolume) { volume in
-            ReaderView(
-                library: library,
-                volume: library.volumes.first(where: { $0.id == volume.id }) ?? volume
-            )
+        .fullScreenCover(item: $reading) { volume in
+            ReaderView(library: library, volume: volume)
         }
     }
-}
-
-#Preview {
-    ContentView()
 }

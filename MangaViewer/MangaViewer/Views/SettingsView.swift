@@ -9,63 +9,28 @@ struct SettingsView: View {
             Form {
                 Section("読み方") {
                     Picker("方向", selection: $prefs.direction) {
-                        ForEach(ReadingDirection.allCases) { dir in
-                            Text(dir.label).tag(dir)
-                        }
+                        ForEach(ReadingDirection.allCases) { Text($0.label).tag($0) }
                     }
                     Picker("ページ", selection: $prefs.layoutMode) {
-                        ForEach(PageLayoutMode.allCases) { mode in
-                            Text(mode.label).tag(mode)
-                        }
+                        ForEach(PageLayoutMode.allCases) { Text($0.label).tag($0) }
                     }
-                    Text(DisplayLayoutResolver.explainsToUser)
-                        .font(.footnote)
-                        .foregroundStyle(.secondary)
-                    Picker("フィット", selection: $prefs.fitMode) {
-                        ForEach(PageFitMode.allCases) { mode in
-                            Text(mode.label).tag(mode)
-                        }
-                    }
+                    Text(DisplayLayoutResolver.explainsToUser).font(.footnote).foregroundStyle(.secondary)
                     Picker("ページ送り", selection: $prefs.turnStyle) {
-                        ForEach(PageTurnStyle.allCases) { style in
-                            Text(style.label).tag(style)
-                        }
+                        ForEach(PageTurnStyle.allCases) { Text($0.label).tag($0) }
                     }
                     Toggle("表紙を単独表示", isOn: $prefs.coverAlone)
                 }
-
                 Section("表示") {
-                    HStack {
-                        Text("明るさ")
-                        Slider(value: $prefs.brightness, in: 0.3...1.0)
-                    }
                     Toggle("読んでいる間はスリープしない", isOn: $prefs.keepScreenOn)
-                }
-
-                Section {
-                    Text("全体設定の「方向」は、これから取り込む作品の初期値です。作品ごとの方向は読書中の設定から変えられます。")
-                        .font(.footnote)
-                        .foregroundStyle(.secondary)
-                }
-
-                Section("ファイルの入れ方") {
-                    Text("書庫の + から SMB / WebDAV / SFTP / FTP / OPDS / S3 / URL / Wi-Fi転送 / Files（iCloud・各クラウド）に対応。参考実装の対象: Andrea / Comink / KedaReader 系の取得経路。")
-                        .font(.footnote)
-                        .foregroundStyle(.secondary)
                 }
             }
             .navigationTitle("設定")
             .toolbar {
                 ToolbarItem(placement: .confirmationAction) {
-                    Button("完了") {
-                        AppSettingsStore.savePrefs(prefs)
-                        dismiss()
-                    }
+                    Button("完了") { AppSettingsStore.savePrefs(prefs); dismiss() }
                 }
             }
-            .onChange(of: prefs) { _, newValue in
-                AppSettingsStore.savePrefs(newValue)
-            }
+            .onChange(of: prefs) { _, v in AppSettingsStore.savePrefs(v) }
         }
     }
 }

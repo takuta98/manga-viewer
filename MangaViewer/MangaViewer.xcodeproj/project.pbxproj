@@ -7,491 +7,382 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
-		03D377B8CC9B4BC59B6067A2 /* FTPClient.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5124BFD5B01345BF9886DB6F /* FTPClient.swift */; };
-		0EC4BBAA85F24E59A612E01C /* RemoteSource.swift in Sources */ = {isa = PBXBuildFile; fileRef = F0C52056C7E440BF842E3FCE /* RemoteSource.swift */; };
-		11B1CC8424704A82AF0BA199 /* MangaVolume.swift in Sources */ = {isa = PBXBuildFile; fileRef = AE0870754DE1438D872D81C0 /* MangaVolume.swift */; };
-		142AF0BB87C6489BBB08AA83 /* ImportHubView.swift in Sources */ = {isa = PBXBuildFile; fileRef = E2C56A7394A14A26B7F9BE2F /* ImportHubView.swift */; };
-		158D08242F054EAA83F6C9E9 /* ComicInfoParser.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1EC14D26C4FE4C7CAC5CCB9B /* ComicInfoParser.swift */; };
-		274038BF09394D93842210CC /* DuoFrameView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8A3F7CC2B0F944419473F553 /* DuoFrameView.swift */; };
-		27ECDA2C6BC54195BE2B74E5 /* ProgressStore.swift in Sources */ = {isa = PBXBuildFile; fileRef = 15C0918C9714460AABEFD2B2 /* ProgressStore.swift */; };
-		2F535896C42448FD8403DFF5 /* RemoteGateway.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7BB2EE56539B4A1EA7480E0C /* RemoteGateway.swift */; };
-		304A842F15474FEBB5D8A9C4 /* AMSMB2 in Frameworks */ = {isa = PBXBuildFile; productRef = 6BF2BC4368614CBE8D045E91 /* AMSMB2 */; };
-		A8F3C1D2E4B64A7F9C2E5D10 /* AMSMB2 in Embed Frameworks */ = {isa = PBXBuildFile; productRef = 6BF2BC4368614CBE8D045E91 /* AMSMB2 */; settings = {ATTRIBUTES = (CodeSignOnCopy, RemoveHeadersOnCopy); }; };
-		3D30E79610C74253840A2B26 /* SettingsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3BE1DD0F916D4E768B1360CB /* SettingsView.swift */; };
-		400A88EB27FD49E18ED64C6B /* RemoteBrowserView.swift in Sources */ = {isa = PBXBuildFile; fileRef = C49252BCF8914BECBD625FDC /* RemoteBrowserView.swift */; };
-		4873D19A42AD47419C6A60D3 /* SampleManga in Resources */ = {isa = PBXBuildFile; fileRef = 69BC7592317646029E37FC5A /* SampleManga */; };
-		492B16B2C448447380B9E252 /* ReaderView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4B0F09A33B21459CB630311D /* ReaderView.swift */; };
-		4E50C9EF3EDB42D8AF8388A1 /* MangaImporter.swift in Sources */ = {isa = PBXBuildFile; fileRef = 19864E8627D74DE39B2F47E1 /* MangaImporter.swift */; };
-		555A33E99DA94E01B7E37E28 /* ThumbnailGridView.swift in Sources */ = {isa = PBXBuildFile; fileRef = BDDBD9B37D8C4DE9847E102A /* ThumbnailGridView.swift */; };
-		5A2C42F6A3DA4FCCA228E34C /* WiFiTransferServer.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3BC0FD83B2C74D67B1395A60 /* WiFiTransferServer.swift */; };
-		68CD586DD5E240978B63AE5C /* OPDSClient.swift in Sources */ = {isa = PBXBuildFile; fileRef = 389965A97C6248B3A3217BF8 /* OPDSClient.swift */; };
-		69316BB0E200408989017B50 /* ZipUnarchiver.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0D5FC453C0334ACD8FDB4583 /* ZipUnarchiver.swift */; };
-		6BF2B45223254C2ABA21B300 /* MangaViewerApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = 497006F18A8C458F857C76E9 /* MangaViewerApp.swift */; };
-		742D198A508944F288831C81 /* S3Client.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4D1DC8B105684348A8DA5910 /* S3Client.swift */; };
-		745574E62137493D97DED3A7 /* ReaderSettings.swift in Sources */ = {isa = PBXBuildFile; fileRef = 949E8D38A1D24100B47964C4 /* ReaderSettings.swift */; };
-		79384086744B4FF29C7AD630 /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = C3961AE9DED44B6FAA72AD71 /* Assets.xcassets */; };
-		7C8F599F08434F2FB9E9BB0D /* SFTPClientService.swift in Sources */ = {isa = PBXBuildFile; fileRef = 76D5E54E1F364D84AB628C77 /* SFTPClientService.swift */; };
-		85181BD0FF83491AB68C319B /* AddSourceView.swift in Sources */ = {isa = PBXBuildFile; fileRef = F1B99B891E0A480AA17D0C97 /* AddSourceView.swift */; };
-		8AC13816DEB14BBF9A6E842F /* LibraryStore.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1670113F259F4947BBD077F0 /* LibraryStore.swift */; };
-		94C987B0EAA843969E6DD2D5 /* DuoPose.swift in Sources */ = {isa = PBXBuildFile; fileRef = 82B2BD35027B448B99BFD350 /* DuoPose.swift */; };
-		9792E8F9D35342A6A6100F86 /* SMBClientService.swift in Sources */ = {isa = PBXBuildFile; fileRef = E5FE3710406B412AA57940B4 /* SMBClientService.swift */; };
-		AD3A2B4781F54602B561F8DB /* WiFiTransferView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6A33121C4A9546E9B9FD58F6 /* WiFiTransferView.swift */; };
-		AE8B7DE39EB4429BB1ED55BF /* ContentView.swift in Sources */ = {isa = PBXBuildFile; fileRef = A9437DB581354914AC575484 /* ContentView.swift */; };
-		BA13E83623F94B58A942B76F /* LibraryView.swift in Sources */ = {isa = PBXBuildFile; fileRef = E1CD00C2C5C442BA89889B8F /* LibraryView.swift */; };
-		C1BD8C7928324B099542D006 /* RemoteSourceStore.swift in Sources */ = {isa = PBXBuildFile; fileRef = C1F5FA5EACAB412D9A7C95A9 /* RemoteSourceStore.swift */; };
-		C5FBEE2802C04EE2A09E35C8 /* HTTPDownloadService.swift in Sources */ = {isa = PBXBuildFile; fileRef = 03B99D342C694A1AA8703F1B /* HTTPDownloadService.swift */; };
-		C7BA70D1C74E469A8E283685 /* SpreadIndex.swift in Sources */ = {isa = PBXBuildFile; fileRef = F136B87073BA4FFAAD233E3A /* SpreadIndex.swift */; };
-		D4D291BF632A49B38E9010C0 /* Citadel in Frameworks */ = {isa = PBXBuildFile; productRef = D668BA979A7A4CE5AC753D35 /* Citadel */; };
-		D5E6E624B3FC4E2098128D83 /* SpreadIndexTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4C929EA256B94ED2BB6230E3 /* SpreadIndexTests.swift */; };
-		E7A1B2C3D4E5F60718293A4B /* RemoteClientTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = A1B2C3D4E5F60718293A4B5C /* RemoteClientTests.swift */; };
-		DCCC49DCA3EB489C9BCE7E89 /* WebDAVClient.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3D20E5DE48164415AED09101 /* WebDAVClient.swift */; };
-		EB90AA91CEA745E6A36015F7 /* Catalog.swift in Sources */ = {isa = PBXBuildFile; fileRef = 77E189F479AD45DDB111C28D /* Catalog.swift */; };
-		ECEEA8184F8740A087F4DFB2 /* PagePaneView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 13DB73B3A0C04FC483FAEBC7 /* PagePaneView.swift */; };
-		A49C5DA47F724107B16F51B6 /* PageTurnHost.swift in Sources */ = {isa = PBXBuildFile; fileRef = DA9D44640C3A42A6B12E4389 /* PageTurnHost.swift */; };
-		B22F12E3D4C55B7F0F8E9212 /* LibraryFolder.swift in Sources */ = {isa = PBXBuildFile; fileRef = A11F01D2C3B44A6E9E7D8101 /* LibraryFolder.swift */; };
-		D44F34A5F6E77D9B2B0A1434 /* TransferActivityCenter.swift in Sources */ = {isa = PBXBuildFile; fileRef = C33F23F4E5D66C8A1A9F0323 /* TransferActivityCenter.swift */; };
-		F66F56C7B8A99F1D4D2C3656 /* ActivityOverlayView.swift in Sources */ = {isa = PBXBuildFile; fileRef = E55F45B6A7F88E0C3C1B2545 /* ActivityOverlayView.swift */; };
-		B88F78D9C0B11A3F6F4E5878 /* KeychainStore.swift in Sources */ = {isa = PBXBuildFile; fileRef = A77F67C8B9A00F2E5E3D4767 /* KeychainStore.swift */; };
-		D22B33C44D55E66F77889902 /* UserFacingText.swift in Sources */ = {isa = PBXBuildFile; fileRef = C11A22B33C44D55E66F77801 /* UserFacingText.swift */; };
-		F44D55E66F778899AABBC04 /* ImportStaging.swift in Sources */ = {isa = PBXBuildFile; fileRef = E33C44D55E66F778899AAB03 /* ImportStaging.swift */; };
-		B66F778899AABBCCDDEE206 /* UserFacingTextTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = A55E66F778899AABBCCD105 /* UserFacingTextTests.swift */; };
-		A7F2E1D0C9B84A6E5D4C3B21 /* VolumeInfoView.swift in Sources */ = {isa = PBXBuildFile; fileRef = B8E3F2C1D0A95B7F6E5D4C32 /* VolumeInfoView.swift */; };
+		82FDB5029E6F8623BBAF7240 /* ContentView.swift in Sources */ = {isa = PBXBuildFile; fileRef = CB3E48D4B9BABC5FB05CF463 /* ContentView.swift */; };
+		642C53FA7ACFDEBA71F44458 /* MangaViewerApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3799DB62915A06FABB37E1A6 /* MangaViewerApp.swift */; };
+		A4E34B79A7537CAC7275B063 /* LibraryFolder.swift in Sources */ = {isa = PBXBuildFile; fileRef = 61509B4B8E37948CE043B932 /* LibraryFolder.swift */; };
+		C4C63AFB53B2FCDF296688B8 /* MangaVolume.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4AE744B8E1E873B194B9FE8E /* MangaVolume.swift */; };
+		C6A841A5FA0661B42ABC015A /* ReaderSettings.swift in Sources */ = {isa = PBXBuildFile; fileRef = F77A8A774936D4DC379CD530 /* ReaderSettings.swift */; };
+		086414496A62048B9F0005C4 /* RemoteSource.swift in Sources */ = {isa = PBXBuildFile; fileRef = A96C47DB53673EF57F38E815 /* RemoteSource.swift */; };
+		01CD85842FE1D3F41DCE9024 /* SpreadIndex.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9E9C6B6482EB627BC87CE869 /* SpreadIndex.swift */; };
+		5F670A85BCFE6D49887B9A39 /* Catalog.swift in Sources */ = {isa = PBXBuildFile; fileRef = B0D91B61C2C4BAB5E593F65E /* Catalog.swift */; };
+		939EBC534443C8042CF06BBD /* ComicInfoParser.swift in Sources */ = {isa = PBXBuildFile; fileRef = DA4A64CF554DF381BE15E460 /* ComicInfoParser.swift */; };
+		7D9E629B52EBFC13C690A7AD /* DisplayLayoutResolver.swift in Sources */ = {isa = PBXBuildFile; fileRef = F351727065A20AF92930F67E /* DisplayLayoutResolver.swift */; };
+		74D8D4AE1661A3B70C74B9EB /* ImportStaging.swift in Sources */ = {isa = PBXBuildFile; fileRef = FB13B9311969EA505AE6CFD0 /* ImportStaging.swift */; };
+		F18FD39366215944D9B9E815 /* KeychainStore.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8A8221CE8EF95DAA2F61FE36 /* KeychainStore.swift */; };
+		7C76DF8815EEC07102B80C91 /* LibraryStore.swift in Sources */ = {isa = PBXBuildFile; fileRef = C4DACF8DEA9E63E10EEBC8E2 /* LibraryStore.swift */; };
+		9E369299CBBE2DB707871D2F /* MangaImporter.swift in Sources */ = {isa = PBXBuildFile; fileRef = 79829E1CE29E833217253A2B /* MangaImporter.swift */; };
+		E26A3DB43D58B7755E436B7C /* ProgressStore.swift in Sources */ = {isa = PBXBuildFile; fileRef = E7ABD1F8D983013D78AD4E54 /* ProgressStore.swift */; };
+		F32CA37F7DA2D2BECB9BCA74 /* FTPClient.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0225580B63C65F5969317E46 /* FTPClient.swift */; };
+		B41FBD8589D69A82068D06E3 /* HTTPDownloadService.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9A9565E0D7E166006126F593 /* HTTPDownloadService.swift */; };
+		0D8EED8FB4A67B45E430F117 /* OPDSClient.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1C5C9B42ADA9FCCA9FE87E4D /* OPDSClient.swift */; };
+		E179473B05EB66F024D52206 /* RemoteGateway.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0EDBD67B99E26DF52C4CE97D /* RemoteGateway.swift */; };
+		31403673A1F6A493A5B0A94B /* RemoteSourceStore.swift in Sources */ = {isa = PBXBuildFile; fileRef = DA4499E0FC5AB1B2CB713B5C /* RemoteSourceStore.swift */; };
+		F60BB1C09E730B6FADE7C148 /* S3Client.swift in Sources */ = {isa = PBXBuildFile; fileRef = E7F040F9EC4DE39C49C5F3AF /* S3Client.swift */; };
+		4CD52B05CB7F625029067B93 /* SFTPClient.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8CE9FEE9731E05DFBDAEA029 /* SFTPClient.swift */; };
+		D3D305E1E66F8B74BEADBA4C /* SMBClient.swift in Sources */ = {isa = PBXBuildFile; fileRef = 70DF1D4CF9E12E8FC859DFC2 /* SMBClient.swift */; };
+		BCB90401E34B8B8B96E99CE8 /* WebDAVClient.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5457D898B19B0313F53F4196 /* WebDAVClient.swift */; };
+		C1B1C2F3179002726F600536 /* WiFiTransferServer.swift in Sources */ = {isa = PBXBuildFile; fileRef = 80E5ADB547659113C5492EB6 /* WiFiTransferServer.swift */; };
+		2BCB1AA1A9483F5FF03C709E /* TransferActivityCenter.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7A1E9D400DF562E308835AB4 /* TransferActivityCenter.swift */; };
+		C180DE70CE46C519C0398577 /* UserFacingText.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1AA18DF908E57245F4F2F578 /* UserFacingText.swift */; };
+		C0FEF4D9FA6F26207F378DBD /* ZipUnarchiver.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2834A13C9FBBAE39DC45931B /* ZipUnarchiver.swift */; };
+		DC5B1524BAFCFEF265A4031D /* ActivityOverlayView.swift in Sources */ = {isa = PBXBuildFile; fileRef = AF10F596763C217CBA592806 /* ActivityOverlayView.swift */; };
+		E1EA11ABD32DAAA68A3A687C /* DuoFrameView.swift in Sources */ = {isa = PBXBuildFile; fileRef = D69C1CE42AFEF801EB4A3098 /* DuoFrameView.swift */; };
+		272612C877FF3EDBF697BF2F /* AddSourceView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6B1B26293C3BBABA35D7DFEB /* AddSourceView.swift */; };
+		933A0189B384A8CA0B4F673B /* ImportHubView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2CC9853C5A2A1971DCD51856 /* ImportHubView.swift */; };
+		DF86F7212B398558EC57F4BC /* RemoteBrowserView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1E071A36F089A46A48CCA2E0 /* RemoteBrowserView.swift */; };
+		08CAA4207E8AAF890D448F63 /* WiFiTransferView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7E72F8913567D528C51E4B4E /* WiFiTransferView.swift */; };
+		AA2460F6BFA3BB134EFBADC0 /* LibraryView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3026E8ED606B8D5D96DC0D34 /* LibraryView.swift */; };
+		F8F11D0B3FB1579DA924F510 /* PagePaneView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7292D4B295AB80959CD16737 /* PagePaneView.swift */; };
+		DBA3408DF4A823A91F1131EE /* PageTurnHost.swift in Sources */ = {isa = PBXBuildFile; fileRef = FF1A5C6EE3B47EDA79A3870D /* PageTurnHost.swift */; };
+		5853991ABF7681F0E0EF9C35 /* ReaderView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5DE18A8485849B69496FB33A /* ReaderView.swift */; };
+		0366047E1EAD5CC5EA2D8838 /* SettingsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9B6C00F877111216236EB6BB /* SettingsView.swift */; };
+		E1C9E5954BC9B6B1AF9018D2 /* ThumbnailGridView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 116109FA04AFE08FDA4A158D /* ThumbnailGridView.swift */; };
+		0AF4873C65CEFC7B4ACC8206 /* TransferStatusView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 04913EC5126DD2235B1BCDFE /* TransferStatusView.swift */; };
+		BEDB3CC4D054DBDB50A1ACB0 /* VolumeInfoView.swift in Sources */ = {isa = PBXBuildFile; fileRef = E785406439C4F4784CDF6896 /* VolumeInfoView.swift */; };
+		42775E350B545572D41D1CA3 /* SpreadIndexTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = A1FE8318C0C78DFEAD3BD09F /* SpreadIndexTests.swift */; };
+		97EEEA72E17BDEBCDBCEE39E /* UserFacingTextTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = FF20F85AB388D38740A4A66F /* UserFacingTextTests.swift */; };
+		B09FA1D107EDD9357D618EDC /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = A10000000000000000000011 /* Assets.xcassets */; };
 /* End PBXBuildFile section */
 
-/* Begin PBXContainerItemProxy section */
-		D8D94F8902524F82B535F342 /* PBXContainerItemProxy */ = {
-			isa = PBXContainerItemProxy;
-			containerPortal = 4F63896D72E94350AA84E108 /* Project object */;
-			proxyType = 1;
-			remoteGlobalIDString = CB5DEDCB225E4861A747615A;
-			remoteInfo = MangaViewer;
-		};
-/* End PBXContainerItemProxy section */
-
 /* Begin PBXFileReference section */
-		03B99D342C694A1AA8703F1B /* HTTPDownloadService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HTTPDownloadService.swift; sourceTree = "<group>"; };
-		0D5FC453C0334ACD8FDB4583 /* ZipUnarchiver.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ZipUnarchiver.swift; sourceTree = "<group>"; };
-		13DB73B3A0C04FC483FAEBC7 /* PagePaneView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PagePaneView.swift; sourceTree = "<group>"; };
-		15C0918C9714460AABEFD2B2 /* ProgressStore.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ProgressStore.swift; sourceTree = "<group>"; };
-		1670113F259F4947BBD077F0 /* LibraryStore.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LibraryStore.swift; sourceTree = "<group>"; };
-		19864E8627D74DE39B2F47E1 /* MangaImporter.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MangaImporter.swift; sourceTree = "<group>"; };
-		1EC14D26C4FE4C7CAC5CCB9B /* ComicInfoParser.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ComicInfoParser.swift; sourceTree = "<group>"; };
-		389965A97C6248B3A3217BF8 /* OPDSClient.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = OPDSClient.swift; sourceTree = "<group>"; };
-		3BC0FD83B2C74D67B1395A60 /* WiFiTransferServer.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WiFiTransferServer.swift; sourceTree = "<group>"; };
-		3BE1DD0F916D4E768B1360CB /* SettingsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SettingsView.swift; sourceTree = "<group>"; };
-		3D20E5DE48164415AED09101 /* WebDAVClient.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WebDAVClient.swift; sourceTree = "<group>"; };
-		497006F18A8C458F857C76E9 /* MangaViewerApp.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MangaViewerApp.swift; sourceTree = "<group>"; };
-		4B0F09A33B21459CB630311D /* ReaderView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ReaderView.swift; sourceTree = "<group>"; };
-		4C929EA256B94ED2BB6230E3 /* SpreadIndexTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SpreadIndexTests.swift; sourceTree = "<group>"; };
-		A1B2C3D4E5F60718293A4B5C /* RemoteClientTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RemoteClientTests.swift; sourceTree = "<group>"; };
-		4D1DC8B105684348A8DA5910 /* S3Client.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = S3Client.swift; sourceTree = "<group>"; };
-		5124BFD5B01345BF9886DB6F /* FTPClient.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FTPClient.swift; sourceTree = "<group>"; };
-		69BC7592317646029E37FC5A /* SampleManga */ = {isa = PBXFileReference; lastKnownFileType = folder; name = SampleManga; path = Resources/SampleManga; sourceTree = "<group>"; };
-		6A33121C4A9546E9B9FD58F6 /* WiFiTransferView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WiFiTransferView.swift; sourceTree = "<group>"; };
-		736E1E21FF404B4B82FDFFCC /* MangaViewerTests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = MangaViewerTests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
-		76D5E54E1F364D84AB628C77 /* SFTPClientService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SFTPClientService.swift; sourceTree = "<group>"; };
-		77E189F479AD45DDB111C28D /* Catalog.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Catalog.swift; sourceTree = "<group>"; };
-		7BB2EE56539B4A1EA7480E0C /* RemoteGateway.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RemoteGateway.swift; sourceTree = "<group>"; };
-		82B2BD35027B448B99BFD350 /* DuoPose.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DuoPose.swift; sourceTree = "<group>"; };
-		8A3F7CC2B0F944419473F553 /* DuoFrameView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DuoFrameView.swift; sourceTree = "<group>"; };
-		949E8D38A1D24100B47964C4 /* ReaderSettings.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ReaderSettings.swift; sourceTree = "<group>"; };
-		A9437DB581354914AC575484 /* ContentView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ContentView.swift; sourceTree = "<group>"; };
-		AE0870754DE1438D872D81C0 /* MangaVolume.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MangaVolume.swift; sourceTree = "<group>"; };
-		BDDBD9B37D8C4DE9847E102A /* ThumbnailGridView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ThumbnailGridView.swift; sourceTree = "<group>"; };
-		C1F5FA5EACAB412D9A7C95A9 /* RemoteSourceStore.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RemoteSourceStore.swift; sourceTree = "<group>"; };
-		C3961AE9DED44B6FAA72AD71 /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
-		C49252BCF8914BECBD625FDC /* RemoteBrowserView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RemoteBrowserView.swift; sourceTree = "<group>"; };
-		E1CD00C2C5C442BA89889B8F /* LibraryView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LibraryView.swift; sourceTree = "<group>"; };
-		E2C56A7394A14A26B7F9BE2F /* ImportHubView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ImportHubView.swift; sourceTree = "<group>"; };
-		E5FE3710406B412AA57940B4 /* SMBClientService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SMBClientService.swift; sourceTree = "<group>"; };
-		E6BAC3B93AEC4F5D877C1575 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
-		F0C52056C7E440BF842E3FCE /* RemoteSource.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RemoteSource.swift; sourceTree = "<group>"; };
-		F136B87073BA4FFAAD233E3A /* SpreadIndex.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SpreadIndex.swift; sourceTree = "<group>"; };
-		F1B99B891E0A480AA17D0C97 /* AddSourceView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AddSourceView.swift; sourceTree = "<group>"; };
-		FEE2E0E65368424083797A8F /* MangaViewer.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = MangaViewer.app; sourceTree = BUILT_PRODUCTS_DIR; };
-		DA9D44640C3A42A6B12E4389 /* PageTurnHost.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PageTurnHost.swift; sourceTree = "<group>"; };
-		A11F01D2C3B44A6E9E7D8101 /* LibraryFolder.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LibraryFolder.swift; sourceTree = "<group>"; };
-		C33F23F4E5D66C8A1A9F0323 /* TransferActivityCenter.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TransferActivityCenter.swift; sourceTree = "<group>"; };
-		E55F45B6A7F88E0C3C1B2545 /* ActivityOverlayView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ActivityOverlayView.swift; sourceTree = "<group>"; };
-		A77F67C8B9A00F2E5E3D4767 /* KeychainStore.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = KeychainStore.swift; sourceTree = "<group>"; };
-		B8E3F2C1D0A95B7F6E5D4C32 /* VolumeInfoView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = VolumeInfoView.swift; sourceTree = "<group>"; };
+		CB3E48D4B9BABC5FB05CF463 /* ContentView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ContentView.swift; sourceTree = "<group>"; };
+		3799DB62915A06FABB37E1A6 /* MangaViewerApp.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MangaViewerApp.swift; sourceTree = "<group>"; };
+		61509B4B8E37948CE043B932 /* LibraryFolder.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LibraryFolder.swift; sourceTree = "<group>"; };
+		4AE744B8E1E873B194B9FE8E /* MangaVolume.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MangaVolume.swift; sourceTree = "<group>"; };
+		F77A8A774936D4DC379CD530 /* ReaderSettings.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ReaderSettings.swift; sourceTree = "<group>"; };
+		A96C47DB53673EF57F38E815 /* RemoteSource.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RemoteSource.swift; sourceTree = "<group>"; };
+		9E9C6B6482EB627BC87CE869 /* SpreadIndex.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SpreadIndex.swift; sourceTree = "<group>"; };
+		B0D91B61C2C4BAB5E593F65E /* Catalog.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Catalog.swift; sourceTree = "<group>"; };
+		DA4A64CF554DF381BE15E460 /* ComicInfoParser.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ComicInfoParser.swift; sourceTree = "<group>"; };
+		F351727065A20AF92930F67E /* DisplayLayoutResolver.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DisplayLayoutResolver.swift; sourceTree = "<group>"; };
+		FB13B9311969EA505AE6CFD0 /* ImportStaging.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ImportStaging.swift; sourceTree = "<group>"; };
+		8A8221CE8EF95DAA2F61FE36 /* KeychainStore.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = KeychainStore.swift; sourceTree = "<group>"; };
+		C4DACF8DEA9E63E10EEBC8E2 /* LibraryStore.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LibraryStore.swift; sourceTree = "<group>"; };
+		79829E1CE29E833217253A2B /* MangaImporter.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MangaImporter.swift; sourceTree = "<group>"; };
+		E7ABD1F8D983013D78AD4E54 /* ProgressStore.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ProgressStore.swift; sourceTree = "<group>"; };
+		0225580B63C65F5969317E46 /* FTPClient.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FTPClient.swift; sourceTree = "<group>"; };
+		9A9565E0D7E166006126F593 /* HTTPDownloadService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HTTPDownloadService.swift; sourceTree = "<group>"; };
+		1C5C9B42ADA9FCCA9FE87E4D /* OPDSClient.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = OPDSClient.swift; sourceTree = "<group>"; };
+		0EDBD67B99E26DF52C4CE97D /* RemoteGateway.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RemoteGateway.swift; sourceTree = "<group>"; };
+		DA4499E0FC5AB1B2CB713B5C /* RemoteSourceStore.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RemoteSourceStore.swift; sourceTree = "<group>"; };
+		E7F040F9EC4DE39C49C5F3AF /* S3Client.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = S3Client.swift; sourceTree = "<group>"; };
+		8CE9FEE9731E05DFBDAEA029 /* SFTPClient.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SFTPClient.swift; sourceTree = "<group>"; };
+		70DF1D4CF9E12E8FC859DFC2 /* SMBClient.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SMBClient.swift; sourceTree = "<group>"; };
+		5457D898B19B0313F53F4196 /* WebDAVClient.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WebDAVClient.swift; sourceTree = "<group>"; };
+		80E5ADB547659113C5492EB6 /* WiFiTransferServer.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WiFiTransferServer.swift; sourceTree = "<group>"; };
+		7A1E9D400DF562E308835AB4 /* TransferActivityCenter.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TransferActivityCenter.swift; sourceTree = "<group>"; };
+		1AA18DF908E57245F4F2F578 /* UserFacingText.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = UserFacingText.swift; sourceTree = "<group>"; };
+		2834A13C9FBBAE39DC45931B /* ZipUnarchiver.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ZipUnarchiver.swift; sourceTree = "<group>"; };
+		AF10F596763C217CBA592806 /* ActivityOverlayView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ActivityOverlayView.swift; sourceTree = "<group>"; };
+		D69C1CE42AFEF801EB4A3098 /* DuoFrameView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DuoFrameView.swift; sourceTree = "<group>"; };
+		6B1B26293C3BBABA35D7DFEB /* AddSourceView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AddSourceView.swift; sourceTree = "<group>"; };
+		2CC9853C5A2A1971DCD51856 /* ImportHubView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ImportHubView.swift; sourceTree = "<group>"; };
+		1E071A36F089A46A48CCA2E0 /* RemoteBrowserView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RemoteBrowserView.swift; sourceTree = "<group>"; };
+		7E72F8913567D528C51E4B4E /* WiFiTransferView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WiFiTransferView.swift; sourceTree = "<group>"; };
+		3026E8ED606B8D5D96DC0D34 /* LibraryView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LibraryView.swift; sourceTree = "<group>"; };
+		7292D4B295AB80959CD16737 /* PagePaneView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PagePaneView.swift; sourceTree = "<group>"; };
+		FF1A5C6EE3B47EDA79A3870D /* PageTurnHost.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PageTurnHost.swift; sourceTree = "<group>"; };
+		5DE18A8485849B69496FB33A /* ReaderView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ReaderView.swift; sourceTree = "<group>"; };
+		9B6C00F877111216236EB6BB /* SettingsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SettingsView.swift; sourceTree = "<group>"; };
+		116109FA04AFE08FDA4A158D /* ThumbnailGridView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ThumbnailGridView.swift; sourceTree = "<group>"; };
+		04913EC5126DD2235B1BCDFE /* TransferStatusView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TransferStatusView.swift; sourceTree = "<group>"; };
+		E785406439C4F4784CDF6896 /* VolumeInfoView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = VolumeInfoView.swift; sourceTree = "<group>"; };
+		A1FE8318C0C78DFEAD3BD09F /* SpreadIndexTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SpreadIndexTests.swift; sourceTree = "<group>"; };
+		FF20F85AB388D38740A4A66F /* UserFacingTextTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = UserFacingTextTests.swift; sourceTree = "<group>"; };
+		A10000000000000000000004 /* MangaViewer.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = MangaViewer.app; sourceTree = BUILT_PRODUCTS_DIR; };
+		A10000000000000000000005 /* MangaViewerTests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = MangaViewerTests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
+		A10000000000000000000010 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
+		A10000000000000000000011 /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
-		7AD48B3D58C64617AB8FA394 /* Frameworks */ = {
+		A10000000000000000000008 /* Frameworks */ = {
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
 			);
-			runOnlyForDeploymentPostprocessing = 0;
-		};
-		D58AD445294F41678BDA970C /* Frameworks */ = {
-			isa = PBXFrameworksBuildPhase;
-			buildActionMask = 2147483647;
-			files = (
-				304A842F15474FEBB5D8A9C4 /* AMSMB2 in Frameworks */,
-				D4D291BF632A49B38E9010C0 /* Citadel in Frameworks */);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
 /* End PBXFrameworksBuildPhase section */
 
 /* Begin PBXGroup section */
-		06A197F27B3C40CB84AD3C92 /* Remote */ = {
+		A1000000000000000000000C = {
 			isa = PBXGroup;
 			children = (
-				C1F5FA5EACAB412D9A7C95A9 /* RemoteSourceStore.swift */,
-				7BB2EE56539B4A1EA7480E0C /* RemoteGateway.swift */,
-				3D20E5DE48164415AED09101 /* WebDAVClient.swift */,
-				5124BFD5B01345BF9886DB6F /* FTPClient.swift */,
-				E5FE3710406B412AA57940B4 /* SMBClientService.swift */,
-				76D5E54E1F364D84AB628C77 /* SFTPClientService.swift */,
-				389965A97C6248B3A3217BF8 /* OPDSClient.swift */,
-				4D1DC8B105684348A8DA5910 /* S3Client.swift */,
-				03B99D342C694A1AA8703F1B /* HTTPDownloadService.swift */,
-				3BC0FD83B2C74D67B1395A60 /* WiFiTransferServer.swift */);
-			path = Remote;
-			sourceTree = "<group>";
-		};
-		132B8061F818400E825258A7 /* Packages */ = {
-			isa = PBXGroup;
-			children = (
+				A1000000000000000000000E /* MangaViewer */,
+				A1000000000000000000000F /* MangaViewerTests */,
+				A1000000000000000000000D /* Products */,
 			);
-			name = Packages;
 			sourceTree = "<group>";
 		};
-		19C1012D4FBF4F3FA28D317E /* Models */ = {
+		A1000000000000000000000D /* Products */ = {
 			isa = PBXGroup;
 			children = (
-				82B2BD35027B448B99BFD350 /* DuoPose.swift */,
-				AE0870754DE1438D872D81C0 /* MangaVolume.swift */,
-				F136B87073BA4FFAAD233E3A /* SpreadIndex.swift */,
-				949E8D38A1D24100B47964C4 /* ReaderSettings.swift */,
-				F0C52056C7E440BF842E3FCE /* RemoteSource.swift */,
-				A11F01D2C3B44A6E9E7D8101 /* LibraryFolder.swift */);
-			path = Models;
-			sourceTree = "<group>";
-		};
-		4281E245840B44D8885AD649 /* MangaViewer */ = {
-			isa = PBXGroup;
-			children = (
-				497006F18A8C458F857C76E9 /* MangaViewerApp.swift */,
-				A9437DB581354914AC575484 /* ContentView.swift */,
-				19C1012D4FBF4F3FA28D317E /* Models */,
-				430BA9C7843341AE82C95587 /* Services */,
-				C13D732FFC764769A03A9B0F /* Views */,
-				C3961AE9DED44B6FAA72AD71 /* Assets.xcassets */,
-				69BC7592317646029E37FC5A /* SampleManga */,
-				E6BAC3B93AEC4F5D877C1575 /* Info.plist */);
-			path = MangaViewer;
-			sourceTree = "<group>";
-		};
-		430BA9C7843341AE82C95587 /* Services */ = {
-			isa = PBXGroup;
-			children = (
-				77E189F479AD45DDB111C28D /* Catalog.swift */,
-				15C0918C9714460AABEFD2B2 /* ProgressStore.swift */,
-				C33F23F4E5D66C8A1A9F0323 /* TransferActivityCenter.swift */,
-				E33C44D55E66F778899AAB03 /* ImportStaging.swift */,
-				C11A22B33C44D55E66F77801 /* UserFacingText.swift */,
-				A77F67C8B9A00F2E5E3D4767 /* KeychainStore.swift */,
-				B1C2D3E4F5061728394A5B6C /* DisplayLayoutResolver.swift */,
-				1670113F259F4947BBD077F0 /* LibraryStore.swift */,
-				19864E8627D74DE39B2F47E1 /* MangaImporter.swift */,
-				0D5FC453C0334ACD8FDB4583 /* ZipUnarchiver.swift */,
-				1EC14D26C4FE4C7CAC5CCB9B /* ComicInfoParser.swift */,
-				06A197F27B3C40CB84AD3C92 /* Remote */);
-			path = Services;
-			sourceTree = "<group>";
-		};
-		4C27224BF46F4AFFB5CD7F28 /* Products */ = {
-			isa = PBXGroup;
-			children = (
-				FEE2E0E65368424083797A8F /* MangaViewer.app */,
-				736E1E21FF404B4B82FDFFCC /* MangaViewerTests.xctest */);
+				A10000000000000000000004 /* MangaViewer.app */,
+				A10000000000000000000005 /* MangaViewerTests.xctest */,
+			);
 			name = Products;
 			sourceTree = "<group>";
 		};
-		8DAA6FEBD2834804AB4B2B22 = {
+		A1000000000000000000000E /* MangaViewer */ = {
 			isa = PBXGroup;
 			children = (
-				4281E245840B44D8885AD649 /* MangaViewer */,
-				E3FB7D12DCAF4E6FB6FDF627 /* MangaViewerTests */,
-				4C27224BF46F4AFFB5CD7F28 /* Products */,
-				132B8061F818400E825258A7 /* Packages */);
+				CB3E48D4B9BABC5FB05CF463 /* ContentView.swift */,
+				3799DB62915A06FABB37E1A6 /* MangaViewerApp.swift */,
+				8410F5608A7907BCDA787BE4 /* Models */,
+				7F2B2D979124D3C0ACC3A831 /* Services */,
+				8ED6C0FD8C23B473263C95C6 /* Views */,
+				A10000000000000000000010 /* Info.plist */,
+				A10000000000000000000011 /* Assets.xcassets */,
+			);
+			path = MangaViewer;
 			sourceTree = "<group>";
 		};
-		97D593CF93DA45BA9A3FE097 /* Import */ = {
+		8410F5608A7907BCDA787BE4 /* Models */ = {
 			isa = PBXGroup;
 			children = (
-				E2C56A7394A14A26B7F9BE2F /* ImportHubView.swift */,
-				F1B99B891E0A480AA17D0C97 /* AddSourceView.swift */,
-				C49252BCF8914BECBD625FDC /* RemoteBrowserView.swift */,
-				6A33121C4A9546E9B9FD58F6 /* WiFiTransferView.swift */);
-			path = Import;
+				61509B4B8E37948CE043B932 /* LibraryFolder.swift */,
+				4AE744B8E1E873B194B9FE8E /* MangaVolume.swift */,
+				F77A8A774936D4DC379CD530 /* ReaderSettings.swift */,
+				A96C47DB53673EF57F38E815 /* RemoteSource.swift */,
+				9E9C6B6482EB627BC87CE869 /* SpreadIndex.swift */,
+			);
+			path = Models;
 			sourceTree = "<group>";
 		};
-		C13D732FFC764769A03A9B0F /* Views */ = {
+		7F2B2D979124D3C0ACC3A831 /* Services */ = {
 			isa = PBXGroup;
 			children = (
-				13DB73B3A0C04FC483FAEBC7 /* PagePaneView.swift */,
-				8A3F7CC2B0F944419473F553 /* DuoFrameView.swift */,
-				E1CD00C2C5C442BA89889B8F /* LibraryView.swift */,
-				B8E3F2C1D0A95B7F6E5D4C32 /* VolumeInfoView.swift */,
-				4B0F09A33B21459CB630311D /* ReaderView.swift */,
-				3BE1DD0F916D4E768B1360CB /* SettingsView.swift */,
-				BDDBD9B37D8C4DE9847E102A /* ThumbnailGridView.swift */,
-				97D593CF93DA45BA9A3FE097 /* Import */,
-				DA9D44640C3A42A6B12E4389 /* PageTurnHost.swift */,
-				E55F45B6A7F88E0C3C1B2545 /* ActivityOverlayView.swift */,
-				E66A78F9C1D22B5A9A7E8101 /* TransferStatusView.swift */);
+				B0D91B61C2C4BAB5E593F65E /* Catalog.swift */,
+				DA4A64CF554DF381BE15E460 /* ComicInfoParser.swift */,
+				F351727065A20AF92930F67E /* DisplayLayoutResolver.swift */,
+				FB13B9311969EA505AE6CFD0 /* ImportStaging.swift */,
+				8A8221CE8EF95DAA2F61FE36 /* KeychainStore.swift */,
+				C4DACF8DEA9E63E10EEBC8E2 /* LibraryStore.swift */,
+				79829E1CE29E833217253A2B /* MangaImporter.swift */,
+				E7ABD1F8D983013D78AD4E54 /* ProgressStore.swift */,
+				B0F8C3C7B2FC8191EF9C9D50 /* Remote */,
+				7A1E9D400DF562E308835AB4 /* TransferActivityCenter.swift */,
+				1AA18DF908E57245F4F2F578 /* UserFacingText.swift */,
+				2834A13C9FBBAE39DC45931B /* ZipUnarchiver.swift */,
+			);
+			path = Services;
+			sourceTree = "<group>";
+		};
+		B0F8C3C7B2FC8191EF9C9D50 /* Remote */ = {
+			isa = PBXGroup;
+			children = (
+				0225580B63C65F5969317E46 /* FTPClient.swift */,
+				9A9565E0D7E166006126F593 /* HTTPDownloadService.swift */,
+				1C5C9B42ADA9FCCA9FE87E4D /* OPDSClient.swift */,
+				0EDBD67B99E26DF52C4CE97D /* RemoteGateway.swift */,
+				DA4499E0FC5AB1B2CB713B5C /* RemoteSourceStore.swift */,
+				E7F040F9EC4DE39C49C5F3AF /* S3Client.swift */,
+				8CE9FEE9731E05DFBDAEA029 /* SFTPClient.swift */,
+				70DF1D4CF9E12E8FC859DFC2 /* SMBClient.swift */,
+				5457D898B19B0313F53F4196 /* WebDAVClient.swift */,
+				80E5ADB547659113C5492EB6 /* WiFiTransferServer.swift */,
+			);
+			path = Remote;
+			sourceTree = "<group>";
+		};
+		8ED6C0FD8C23B473263C95C6 /* Views */ = {
+			isa = PBXGroup;
+			children = (
+				AF10F596763C217CBA592806 /* ActivityOverlayView.swift */,
+				D69C1CE42AFEF801EB4A3098 /* DuoFrameView.swift */,
+				183C6715C542CFE9BB4728A6 /* Import */,
+				3026E8ED606B8D5D96DC0D34 /* LibraryView.swift */,
+				7292D4B295AB80959CD16737 /* PagePaneView.swift */,
+				FF1A5C6EE3B47EDA79A3870D /* PageTurnHost.swift */,
+				5DE18A8485849B69496FB33A /* ReaderView.swift */,
+				9B6C00F877111216236EB6BB /* SettingsView.swift */,
+				116109FA04AFE08FDA4A158D /* ThumbnailGridView.swift */,
+				04913EC5126DD2235B1BCDFE /* TransferStatusView.swift */,
+				E785406439C4F4784CDF6896 /* VolumeInfoView.swift */,
+			);
 			path = Views;
 			sourceTree = "<group>";
 		};
-		E3FB7D12DCAF4E6FB6FDF627 /* MangaViewerTests */ = {
+		183C6715C542CFE9BB4728A6 /* Import */ = {
 			isa = PBXGroup;
 			children = (
-				4C929EA256B94ED2BB6230E3 /* SpreadIndexTests.swift */,
-				A55E66F778899AABBCCD105 /* UserFacingTextTests.swift */,
-				A1B2C3D4E5F60718293A4B5C /* RemoteClientTests.swift */,
-				B66E778899AABBCCDDEE208 /* LibraryStoreDuplicateTests.swift */);
+				6B1B26293C3BBABA35D7DFEB /* AddSourceView.swift */,
+				2CC9853C5A2A1971DCD51856 /* ImportHubView.swift */,
+				1E071A36F089A46A48CCA2E0 /* RemoteBrowserView.swift */,
+				7E72F8913567D528C51E4B4E /* WiFiTransferView.swift */,
+			);
+			path = Import;
+			sourceTree = "<group>";
+		};
+		A1000000000000000000000F /* MangaViewerTests */ = {
+			isa = PBXGroup;
+			children = (
+				A1FE8318C0C78DFEAD3BD09F /* SpreadIndexTests.swift */,
+				FF20F85AB388D38740A4A66F /* UserFacingTextTests.swift */,
+				A1FE8318C0C78DFEAD3BD09F /* SpreadIndexTests.swift */,
+				FF20F85AB388D38740A4A66F /* UserFacingTextTests.swift */,
+			);
 			path = MangaViewerTests;
 			sourceTree = "<group>";
 		};
 /* End PBXGroup section */
 
 /* Begin PBXNativeTarget section */
-		687A43A54BAD48A7809ED1C2 /* MangaViewerTests */ = {
+		A1000000000000000000000A /* MangaViewer */ = {
 			isa = PBXNativeTarget;
-			buildConfigurationList = 362628F5D6BE4F998E3E4999 /* Build configuration list for PBXNativeTarget "MangaViewerTests" */;
+			buildConfigurationList = A10000000000000000000013 /* Build configuration list for PBXNativeTarget "MangaViewer" */;
 			buildPhases = (
-				F1DC5A6C61744527B991540A /* Sources */,
-				7AD48B3D58C64617AB8FA394 /* Frameworks */);
-			buildRules = (
+				A10000000000000000000006 /* Sources */,
+				A10000000000000000000008 /* Frameworks */,
+				A10000000000000000000009 /* Resources */,
 			);
-			dependencies = (
-				FE25095B412A4E86BD5202A0 /* PBXTargetDependency */);
-			name = MangaViewerTests;
-			productName = MangaViewerTests;
-			productReference = 736E1E21FF404B4B82FDFFCC /* MangaViewerTests.xctest */;
-			productType = "com.apple.product-type.bundle.unit-test";
-		};
-		CB5DEDCB225E4861A747615A /* MangaViewer */ = {
-			isa = PBXNativeTarget;
-			buildConfigurationList = 6F7E9F570B5141EAACEDA76D /* Build configuration list for PBXNativeTarget "MangaViewer" */;
-			buildPhases = (
-				E4361B50C4004E08B9A77A94 /* Sources */,
-				D58AD445294F41678BDA970C /* Frameworks */,
-				0FE56FBF7ED6428EBFFB054F /* Resources */,
-				B9E4D2C3F5A75B8E0D3F6E21 /* Embed Frameworks */);
 			buildRules = (
 			);
 			dependencies = (
 			);
 			name = MangaViewer;
-			packageProductDependencies = (
-				6BF2BC4368614CBE8D045E91 /* AMSMB2 */,
-				D668BA979A7A4CE5AC753D35 /* Citadel */);
 			productName = MangaViewer;
-			productReference = FEE2E0E65368424083797A8F /* MangaViewer.app */;
+			productReference = A10000000000000000000004 /* MangaViewer.app */;
 			productType = "com.apple.product-type.application";
+		};
+		A1000000000000000000000B /* MangaViewerTests */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = A10000000000000000000014 /* Build configuration list for PBXNativeTarget "MangaViewerTests" */;
+			buildPhases = (
+				A10000000000000000000007 /* Sources */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+			);
+			name = MangaViewerTests;
+			productName = MangaViewerTests;
+			productReference = A10000000000000000000005 /* MangaViewerTests.xctest */;
+			productType = "com.apple.product-type.bundle.unit-test";
 		};
 /* End PBXNativeTarget section */
 
 /* Begin PBXProject section */
-		4F63896D72E94350AA84E108 /* Project object */ = {
+		A10000000000000000000003 /* Project object */ = {
 			isa = PBXProject;
 			attributes = {
 				BuildIndependentTargetsInParallel = 1;
-				LastSwiftUpdateCheck = 1600;
-				LastUpgradeCheck = 1600;
-				TargetAttributes = {
-					687A43A54BAD48A7809ED1C2 = {
-						CreatedOnToolsVersion = 16.0;
-						TestTargetID = CB5DEDCB225E4861A747615A;
-					};
-					CB5DEDCB225E4861A747615A = {
-						CreatedOnToolsVersion = 16.0;
-					};
-				};
+				LastSwiftUpdateCheck = 1500;
+				LastUpgradeCheck = 1500;
 			};
-			buildConfigurationList = 13056AD27A764E15819EDF5D /* Build configuration list for PBXProject "MangaViewer" */;
+			buildConfigurationList = A10000000000000000000012 /* Build configuration list for PBXProject "MangaViewer" */;
 			compatibilityVersion = "Xcode 14.0";
 			developmentRegion = ja;
 			hasScannedForEncodings = 0;
 			knownRegions = (
 				en,
 				ja,
-				Base);
-			mainGroup = 8DAA6FEBD2834804AB4B2B22;
-			packageReferences = (
-				905E8436333747018CEF5017 /* XCRemoteSwiftPackageReference "AMSMB2" */,
-				205A91D33B8C4E0CB2BABD69 /* XCRemoteSwiftPackageReference "Citadel" */);
-			productRefGroup = 4C27224BF46F4AFFB5CD7F28 /* Products */;
+				Base,
+			);
+			mainGroup = A1000000000000000000000C;
+			productRefGroup = A1000000000000000000000D /* Products */;
 			projectDirPath = "";
 			projectRoot = "";
 			targets = (
-				CB5DEDCB225E4861A747615A /* MangaViewer */,
-				687A43A54BAD48A7809ED1C2 /* MangaViewerTests */);
+				A1000000000000000000000A /* MangaViewer */,
+				A1000000000000000000000B /* MangaViewerTests */,
+			);
 		};
 /* End PBXProject section */
 
-/* Begin PBXCopyFilesBuildPhase section */
-		B9E4D2C3F5A75B8E0D3F6E21 /* Embed Frameworks */ = {
-			isa = PBXCopyFilesBuildPhase;
-			buildActionMask = 2147483647;
-			dstPath = "";
-			dstSubfolderSpec = 10;
-			files = (
-				A8F3C1D2E4B64A7F9C2E5D10 /* AMSMB2 in Embed Frameworks */);
-			name = "Embed Frameworks";
-			runOnlyForDeploymentPostprocessing = 0;
-		};
-/* End PBXCopyFilesBuildPhase section */
-
 /* Begin PBXResourcesBuildPhase section */
-		0FE56FBF7ED6428EBFFB054F /* Resources */ = {
+		A10000000000000000000009 /* Resources */ = {
 			isa = PBXResourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				79384086744B4FF29C7AD630 /* Assets.xcassets in Resources */,
-				4873D19A42AD47419C6A60D3 /* SampleManga in Resources */);
+				B09FA1D107EDD9357D618EDC /* Assets.xcassets in Resources */,
+			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
 /* End PBXResourcesBuildPhase section */
 
 /* Begin PBXSourcesBuildPhase section */
-		E4361B50C4004E08B9A77A94 /* Sources */ = {
+		A10000000000000000000006 /* Sources */ = {
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				6BF2B45223254C2ABA21B300 /* MangaViewerApp.swift in Sources */,
-				AE8B7DE39EB4429BB1ED55BF /* ContentView.swift in Sources */,
-				94C987B0EAA843969E6DD2D5 /* DuoPose.swift in Sources */,
-				11B1CC8424704A82AF0BA199 /* MangaVolume.swift in Sources */,
-				C7BA70D1C74E469A8E283685 /* SpreadIndex.swift in Sources */,
-				745574E62137493D97DED3A7 /* ReaderSettings.swift in Sources */,
-				0EC4BBAA85F24E59A612E01C /* RemoteSource.swift in Sources */,
-				EB90AA91CEA745E6A36015F7 /* Catalog.swift in Sources */,
-				27ECDA2C6BC54195BE2B74E5 /* ProgressStore.swift in Sources */,
-				8AC13816DEB14BBF9A6E842F /* LibraryStore.swift in Sources */,
-				4E50C9EF3EDB42D8AF8388A1 /* MangaImporter.swift in Sources */,
-				69316BB0E200408989017B50 /* ZipUnarchiver.swift in Sources */,
-				158D08242F054EAA83F6C9E9 /* ComicInfoParser.swift in Sources */,
-				C1BD8C7928324B099542D006 /* RemoteSourceStore.swift in Sources */,
-				2F535896C42448FD8403DFF5 /* RemoteGateway.swift in Sources */,
-				DCCC49DCA3EB489C9BCE7E89 /* WebDAVClient.swift in Sources */,
-				03D377B8CC9B4BC59B6067A2 /* FTPClient.swift in Sources */,
-				9792E8F9D35342A6A6100F86 /* SMBClientService.swift in Sources */,
-				7C8F599F08434F2FB9E9BB0D /* SFTPClientService.swift in Sources */,
-				68CD586DD5E240978B63AE5C /* OPDSClient.swift in Sources */,
-				742D198A508944F288831C81 /* S3Client.swift in Sources */,
-				C5FBEE2802C04EE2A09E35C8 /* HTTPDownloadService.swift in Sources */,
-				5A2C42F6A3DA4FCCA228E34C /* WiFiTransferServer.swift in Sources */,
-				ECEEA8184F8740A087F4DFB2 /* PagePaneView.swift in Sources */,
-				274038BF09394D93842210CC /* DuoFrameView.swift in Sources */,
-				BA13E83623F94B58A942B76F /* LibraryView.swift in Sources */,
-				A7F2E1D0C9B84A6E5D4C3B21 /* VolumeInfoView.swift in Sources */,
-				492B16B2C448447380B9E252 /* ReaderView.swift in Sources */,
-				3D30E79610C74253840A2B26 /* SettingsView.swift in Sources */,
-				555A33E99DA94E01B7E37E28 /* ThumbnailGridView.swift in Sources */,
-				142AF0BB87C6489BBB08AA83 /* ImportHubView.swift in Sources */,
-				85181BD0FF83491AB68C319B /* AddSourceView.swift in Sources */,
-				400A88EB27FD49E18ED64C6B /* RemoteBrowserView.swift in Sources */,
-				AD3A2B4781F54602B561F8DB /* WiFiTransferView.swift in Sources */,
-				A49C5DA47F724107B16F51B6 /* PageTurnHost.swift in Sources */,
-				B22F12E3D4C55B7F0F8E9212 /* LibraryFolder.swift in Sources */,
-				D44F34A5F6E77D9B2B0A1434 /* TransferActivityCenter.swift in Sources */,
-				F66F56C7B8A99F1D4D2C3656 /* ActivityOverlayView.swift in Sources */,
-				B88F78D9C0B11A3F6F4E5878 /* KeychainStore.swift in Sources */,
-				D22B33C44D55E66F77889902 /* UserFacingText.swift in Sources */,
-				F44D55E66F778899AABBC04 /* ImportStaging.swift in Sources */,
-				A0B1C2D3E4F5061728394A5B /* DisplayLayoutResolver.swift in Sources */,
-				F77B89A0D2E33C6B0B8F9212 /* TransferStatusView.swift in Sources */);
+				82FDB5029E6F8623BBAF7240 /* ContentView.swift in Sources */,
+				642C53FA7ACFDEBA71F44458 /* MangaViewerApp.swift in Sources */,
+				A4E34B79A7537CAC7275B063 /* LibraryFolder.swift in Sources */,
+				C4C63AFB53B2FCDF296688B8 /* MangaVolume.swift in Sources */,
+				C6A841A5FA0661B42ABC015A /* ReaderSettings.swift in Sources */,
+				086414496A62048B9F0005C4 /* RemoteSource.swift in Sources */,
+				01CD85842FE1D3F41DCE9024 /* SpreadIndex.swift in Sources */,
+				5F670A85BCFE6D49887B9A39 /* Catalog.swift in Sources */,
+				939EBC534443C8042CF06BBD /* ComicInfoParser.swift in Sources */,
+				7D9E629B52EBFC13C690A7AD /* DisplayLayoutResolver.swift in Sources */,
+				74D8D4AE1661A3B70C74B9EB /* ImportStaging.swift in Sources */,
+				F18FD39366215944D9B9E815 /* KeychainStore.swift in Sources */,
+				7C76DF8815EEC07102B80C91 /* LibraryStore.swift in Sources */,
+				9E369299CBBE2DB707871D2F /* MangaImporter.swift in Sources */,
+				E26A3DB43D58B7755E436B7C /* ProgressStore.swift in Sources */,
+				F32CA37F7DA2D2BECB9BCA74 /* FTPClient.swift in Sources */,
+				B41FBD8589D69A82068D06E3 /* HTTPDownloadService.swift in Sources */,
+				0D8EED8FB4A67B45E430F117 /* OPDSClient.swift in Sources */,
+				E179473B05EB66F024D52206 /* RemoteGateway.swift in Sources */,
+				31403673A1F6A493A5B0A94B /* RemoteSourceStore.swift in Sources */,
+				F60BB1C09E730B6FADE7C148 /* S3Client.swift in Sources */,
+				4CD52B05CB7F625029067B93 /* SFTPClient.swift in Sources */,
+				D3D305E1E66F8B74BEADBA4C /* SMBClient.swift in Sources */,
+				BCB90401E34B8B8B96E99CE8 /* WebDAVClient.swift in Sources */,
+				C1B1C2F3179002726F600536 /* WiFiTransferServer.swift in Sources */,
+				2BCB1AA1A9483F5FF03C709E /* TransferActivityCenter.swift in Sources */,
+				C180DE70CE46C519C0398577 /* UserFacingText.swift in Sources */,
+				C0FEF4D9FA6F26207F378DBD /* ZipUnarchiver.swift in Sources */,
+				DC5B1524BAFCFEF265A4031D /* ActivityOverlayView.swift in Sources */,
+				E1EA11ABD32DAAA68A3A687C /* DuoFrameView.swift in Sources */,
+				272612C877FF3EDBF697BF2F /* AddSourceView.swift in Sources */,
+				933A0189B384A8CA0B4F673B /* ImportHubView.swift in Sources */,
+				DF86F7212B398558EC57F4BC /* RemoteBrowserView.swift in Sources */,
+				08CAA4207E8AAF890D448F63 /* WiFiTransferView.swift in Sources */,
+				AA2460F6BFA3BB134EFBADC0 /* LibraryView.swift in Sources */,
+				F8F11D0B3FB1579DA924F510 /* PagePaneView.swift in Sources */,
+				DBA3408DF4A823A91F1131EE /* PageTurnHost.swift in Sources */,
+				5853991ABF7681F0E0EF9C35 /* ReaderView.swift in Sources */,
+				0366047E1EAD5CC5EA2D8838 /* SettingsView.swift in Sources */,
+				E1C9E5954BC9B6B1AF9018D2 /* ThumbnailGridView.swift in Sources */,
+				0AF4873C65CEFC7B4ACC8206 /* TransferStatusView.swift in Sources */,
+				BEDB3CC4D054DBDB50A1ACB0 /* VolumeInfoView.swift in Sources */,
+			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
-		F1DC5A6C61744527B991540A /* Sources */ = {
+		A10000000000000000000007 /* Sources */ = {
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				D5E6E624B3FC4E2098128D83 /* SpreadIndexTests.swift in Sources */,
-				E7A1B2C3D4E5F60718293A4B /* RemoteClientTests.swift in Sources */,
-				B66F778899AABBCCDDEE206 /* UserFacingTextTests.swift in Sources */,
-				C77D8899AABBCCDDEE307A /* LibraryStoreDuplicateTests.swift in Sources */);
+				42775E350B545572D41D1CA3 /* SpreadIndexTests.swift in Sources */,
+				97EEEA72E17BDEBCDBCEE39E /* UserFacingTextTests.swift in Sources */,
+				42775E350B545572D41D1CA3 /* SpreadIndexTests.swift in Sources */,
+				97EEEA72E17BDEBCDBCEE39E /* UserFacingTextTests.swift in Sources */,
+			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
 /* End PBXSourcesBuildPhase section */
 
-/* Begin PBXTargetDependency section */
-		FE25095B412A4E86BD5202A0 /* PBXTargetDependency */ = {
-			isa = PBXTargetDependency;
-			target = CB5DEDCB225E4861A747615A /* MangaViewer */;
-			targetProxy = D8D94F8902524F82B535F342 /* PBXContainerItemProxy */;
-		};
-/* End PBXTargetDependency section */
-
 /* Begin XCBuildConfiguration section */
-		108DE4340861410DB8C34FA4 /* Release */ = {
+		B10000000000000000000001 /* Debug */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
 				ALWAYS_SEARCH_USER_PATHS = NO;
 				CLANG_ENABLE_MODULES = YES;
-				CLANG_ENABLE_OBJC_ARC = YES;
 				COPY_PHASE_STRIP = NO;
 				DEBUG_INFORMATION_FORMAT = dwarf;
-				ENABLE_STRICT_OBJC_MSGSEND = YES;
-				GCC_DYNAMIC_NO_PIC = YES;
-				GCC_OPTIMIZATION_LEVEL = s;
-				IPHONEOS_DEPLOYMENT_TARGET = 17.0;
-				ONLY_ACTIVE_ARCH = NO;
-				SDKROOT = iphoneos;
-				SWIFT_COMPILATION_MODE = wholemodule;
-				SWIFT_OPTIMIZATION_LEVEL = "-O";
-			};
-			name = Release;
-		};
-		4A50C20E372E4968BC55AF06 /* Debug */ = {
-			isa = XCBuildConfiguration;
-			buildSettings = {
-				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
-				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
-				CODE_SIGN_STYLE = Automatic;
-				CURRENT_PROJECT_VERSION = 1;
-				DEVELOPMENT_TEAM = 57243AS5Y9;
-				ENABLE_PREVIEWS = YES;
-				GENERATE_INFOPLIST_FILE = YES;
-				INFOPLIST_FILE = MangaViewer/Info.plist;
-				INFOPLIST_KEY_CFBundleDisplayName = "manga viewer";
-				INFOPLIST_KEY_LSSupportsOpeningDocumentsInPlace = YES;
-				INFOPLIST_KEY_NSLocalNetworkUsageDescription = "NAS・ファイルサーバ・Wi-Fi転送に接続するためにローカルネットワークを使用します。";
-				INFOPLIST_KEY_UIApplicationSceneManifest_Generation = YES;
-				INFOPLIST_KEY_UILaunchScreen_Generation = YES;
-				INFOPLIST_KEY_UISupportedInterfaceOrientations = "UIInterfaceOrientationPortrait UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight";
-				INFOPLIST_KEY_UISupportsDocumentBrowser = NO;
-				LD_RUNPATH_SEARCH_PATHS = (
-					"$(inherited)",
-					"@executable_path/Frameworks");
-				MARKETING_VERSION = 0.3.0;
-				PRODUCT_BUNDLE_IDENTIFIER = app.mangaviewer.MangaViewer;
-				PRODUCT_NAME = "$(TARGET_NAME)";
-				SUPPORTED_PLATFORMS = "iphoneos iphonesimulator";
-				SUPPORTS_MACCATALYST = NO;
-				SWIFT_EMIT_LOC_STRINGS = YES;
-				SWIFT_VERSION = 5.0;
-				TARGETED_DEVICE_FAMILY = "1,2";
-			};
-			name = Debug;
-		};
-		4AACF8CAC0A141BBAD4A249A /* Debug */ = {
-			isa = XCBuildConfiguration;
-			buildSettings = {
-				ALWAYS_SEARCH_USER_PATHS = NO;
-				CLANG_ENABLE_MODULES = YES;
-				CLANG_ENABLE_OBJC_ARC = YES;
-				COPY_PHASE_STRIP = NO;
-				DEBUG_INFORMATION_FORMAT = dwarf;
-				ENABLE_STRICT_OBJC_MSGSEND = YES;
-				GCC_DYNAMIC_NO_PIC = NO;
-				GCC_OPTIMIZATION_LEVEL = 0;
 				IPHONEOS_DEPLOYMENT_TARGET = 17.0;
 				ONLY_ACTIVE_ARCH = YES;
 				SDKROOT = iphoneos;
@@ -500,65 +391,91 @@
 			};
 			name = Debug;
 		};
-		7C1DEB67A81E454FBA5E4881 /* Release */ = {
+		B10000000000000000000002 /* Release */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
-				BUNDLE_LOADER = "$(TEST_HOST)";
-				CODE_SIGN_STYLE = Automatic;
-				CURRENT_PROJECT_VERSION = 1;
-				GENERATE_INFOPLIST_FILE = YES;
-				MARKETING_VERSION = 0.3.0;
-				PRODUCT_BUNDLE_IDENTIFIER = app.mangaviewer.MangaViewerTests;
-				PRODUCT_NAME = "$(TARGET_NAME)";
-				SWIFT_VERSION = 5.0;
-				TARGETED_DEVICE_FAMILY = "1,2";
-				TEST_HOST = "$(BUILT_PRODUCTS_DIR)/MangaViewer.app/$(BUNDLE_EXECUTABLE_FOLDER_PATH)/MangaViewer";
+				ALWAYS_SEARCH_USER_PATHS = NO;
+				CLANG_ENABLE_MODULES = YES;
+				COPY_PHASE_STRIP = NO;
+				IPHONEOS_DEPLOYMENT_TARGET = 17.0;
+				SDKROOT = iphoneos;
+				SWIFT_COMPILATION_MODE = wholemodule;
 			};
 			name = Release;
 		};
-		B85E0C1936334174813EC602 /* Debug */ = {
-			isa = XCBuildConfiguration;
-			buildSettings = {
-				BUNDLE_LOADER = "$(TEST_HOST)";
-				CODE_SIGN_STYLE = Automatic;
-				CURRENT_PROJECT_VERSION = 1;
-				GENERATE_INFOPLIST_FILE = YES;
-				MARKETING_VERSION = 0.3.0;
-				PRODUCT_BUNDLE_IDENTIFIER = app.mangaviewer.MangaViewerTests;
-				PRODUCT_NAME = "$(TARGET_NAME)";
-				SWIFT_VERSION = 5.0;
-				TARGETED_DEVICE_FAMILY = "1,2";
-				TEST_HOST = "$(BUILT_PRODUCTS_DIR)/MangaViewer.app/$(BUNDLE_EXECUTABLE_FOLDER_PATH)/MangaViewer";
-			};
-			name = Debug;
-		};
-		CF283B2A42CC4EF58A67C3F9 /* Release */ = {
+		B10000000000000000000003 /* Debug */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
-				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
 				CODE_SIGN_STYLE = Automatic;
 				CURRENT_PROJECT_VERSION = 1;
-				DEVELOPMENT_TEAM = 57243AS5Y9;
-				ENABLE_PREVIEWS = YES;
 				GENERATE_INFOPLIST_FILE = YES;
 				INFOPLIST_FILE = MangaViewer/Info.plist;
-				INFOPLIST_KEY_CFBundleDisplayName = "manga viewer";
-				INFOPLIST_KEY_LSSupportsOpeningDocumentsInPlace = YES;
-				INFOPLIST_KEY_NSLocalNetworkUsageDescription = "NAS・ファイルサーバ・Wi-Fi転送に接続するためにローカルネットワークを使用します。";
-				INFOPLIST_KEY_UIApplicationSceneManifest_Generation = YES;
+				INFOPLIST_KEY_CFBundleDisplayName = "漫画ビューア";
+				INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents = YES;
 				INFOPLIST_KEY_UILaunchScreen_Generation = YES;
 				INFOPLIST_KEY_UISupportedInterfaceOrientations = "UIInterfaceOrientationPortrait UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight";
-				INFOPLIST_KEY_UISupportsDocumentBrowser = NO;
 				LD_RUNPATH_SEARCH_PATHS = (
 					"$(inherited)",
-					"@executable_path/Frameworks");
-				MARKETING_VERSION = 0.3.0;
-				PRODUCT_BUNDLE_IDENTIFIER = app.mangaviewer.MangaViewer;
+					"@executable_path/Frameworks",
+				);
+				MARKETING_VERSION = 1.0;
+				PRODUCT_BUNDLE_IDENTIFIER = com.takuta98.MangaViewer;
 				PRODUCT_NAME = "$(TARGET_NAME)";
-				SUPPORTED_PLATFORMS = "iphoneos iphonesimulator";
-				SUPPORTS_MACCATALYST = NO;
 				SWIFT_EMIT_LOC_STRINGS = YES;
+				SWIFT_VERSION = 5.0;
+				TARGETED_DEVICE_FAMILY = "1,2";
+			};
+			name = Debug;
+		};
+		B10000000000000000000004 /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 1;
+				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_FILE = MangaViewer/Info.plist;
+				INFOPLIST_KEY_CFBundleDisplayName = "漫画ビューア";
+				INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents = YES;
+				INFOPLIST_KEY_UILaunchScreen_Generation = YES;
+				INFOPLIST_KEY_UISupportedInterfaceOrientations = "UIInterfaceOrientationPortrait UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight";
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+				);
+				MARKETING_VERSION = 1.0;
+				PRODUCT_BUNDLE_IDENTIFIER = com.takuta98.MangaViewer;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SWIFT_EMIT_LOC_STRINGS = YES;
+				SWIFT_VERSION = 5.0;
+				TARGETED_DEVICE_FAMILY = "1,2";
+			};
+			name = Release;
+		};
+		B10000000000000000000005 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 1;
+				GENERATE_INFOPLIST_FILE = YES;
+				MARKETING_VERSION = 1.0;
+				PRODUCT_BUNDLE_IDENTIFIER = com.takuta98.MangaViewerTests;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SWIFT_VERSION = 5.0;
+				TARGETED_DEVICE_FAMILY = "1,2";
+			};
+			name = Debug;
+		};
+		B10000000000000000000006 /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 1;
+				GENERATE_INFOPLIST_FILE = YES;
+				MARKETING_VERSION = 1.0;
+				PRODUCT_BUNDLE_IDENTIFIER = com.takuta98.MangaViewerTests;
+				PRODUCT_NAME = "$(TARGET_NAME)";
 				SWIFT_VERSION = 5.0;
 				TARGETED_DEVICE_FAMILY = "1,2";
 			};
@@ -567,63 +484,34 @@
 /* End XCBuildConfiguration section */
 
 /* Begin XCConfigurationList section */
-		13056AD27A764E15819EDF5D /* Build configuration list for PBXProject "MangaViewer" */ = {
+		A10000000000000000000012 /* Build configuration list for PBXProject "MangaViewer" */ = {
 			isa = XCConfigurationList;
 			buildConfigurations = (
-				4AACF8CAC0A141BBAD4A249A /* Debug */,
-				108DE4340861410DB8C34FA4 /* Release */);
+				B10000000000000000000001 /* Debug */,
+				B10000000000000000000002 /* Release */,
+			);
 			defaultConfigurationIsVisible = 0;
 			defaultConfigurationName = Release;
 		};
-		362628F5D6BE4F998E3E4999 /* Build configuration list for PBXNativeTarget "MangaViewerTests" */ = {
+		A10000000000000000000013 /* Build configuration list for PBXNativeTarget "MangaViewer" */ = {
 			isa = XCConfigurationList;
 			buildConfigurations = (
-				B85E0C1936334174813EC602 /* Debug */,
-				7C1DEB67A81E454FBA5E4881 /* Release */);
+				B10000000000000000000003 /* Debug */,
+				B10000000000000000000004 /* Release */,
+			);
 			defaultConfigurationIsVisible = 0;
 			defaultConfigurationName = Release;
 		};
-		6F7E9F570B5141EAACEDA76D /* Build configuration list for PBXNativeTarget "MangaViewer" */ = {
+		A10000000000000000000014 /* Build configuration list for PBXNativeTarget "MangaViewerTests" */ = {
 			isa = XCConfigurationList;
 			buildConfigurations = (
-				4A50C20E372E4968BC55AF06 /* Debug */,
-				CF283B2A42CC4EF58A67C3F9 /* Release */);
+				B10000000000000000000005 /* Debug */,
+				B10000000000000000000006 /* Release */,
+			);
 			defaultConfigurationIsVisible = 0;
 			defaultConfigurationName = Release;
 		};
 /* End XCConfigurationList section */
-
-/* Begin XCRemoteSwiftPackageReference section */
-		205A91D33B8C4E0CB2BABD69 /* XCRemoteSwiftPackageReference "Citadel" */ = {
-			isa = XCRemoteSwiftPackageReference;
-			repositoryURL = "https://github.com/orlandos-nl/Citadel";
-			requirement = {
-				kind = upToNextMajorVersion;
-				minimumVersion = 0.9.0;
-			};
-		};
-		905E8436333747018CEF5017 /* XCRemoteSwiftPackageReference "AMSMB2" */ = {
-			isa = XCRemoteSwiftPackageReference;
-			repositoryURL = "https://github.com/amosavian/AMSMB2";
-			requirement = {
-				kind = upToNextMajorVersion;
-				minimumVersion = 4.0.3;
-			};
-		};
-/* End XCRemoteSwiftPackageReference section */
-
-/* Begin XCSwiftPackageProductDependency section */
-		6BF2BC4368614CBE8D045E91 /* AMSMB2 */ = {
-			isa = XCSwiftPackageProductDependency;
-			package = 905E8436333747018CEF5017 /* XCRemoteSwiftPackageReference "AMSMB2" */;
-			productName = AMSMB2;
-		};
-		D668BA979A7A4CE5AC753D35 /* Citadel */ = {
-			isa = XCSwiftPackageProductDependency;
-			package = 205A91D33B8C4E0CB2BABD69 /* XCRemoteSwiftPackageReference "Citadel" */;
-			productName = Citadel;
-		};
-/* End XCSwiftPackageProductDependency section */
 	};
-	rootObject = 4F63896D72E94350AA84E108 /* Project object */;
+	rootObject = A10000000000000000000003 /* Project object */;
 }
