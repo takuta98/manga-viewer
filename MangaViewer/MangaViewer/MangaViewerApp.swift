@@ -7,7 +7,6 @@ struct MangaViewerApp: App {
     var body: some Scene {
         WindowGroup {
             ContentView(library: library)
-                .environmentObject(library)
         }
     }
 }

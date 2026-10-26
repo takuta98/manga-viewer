@@ -7,41 +7,37 @@ struct MangaVolume: Identifiable, Hashable, Codable {
     var pageFileNames: [String]
     var coverFileName: String?
     var direction: ReadingDirection
-    var folderId: UUID?
     var importedAt: Date
+    var isBundledSample: Bool
 
     var pageCount: Int { pageFileNames.count }
 
     func pageURL(at index: Int) -> URL? {
         guard pageFileNames.indices.contains(index) else { return nil }
-        return Catalog.pagesDirectory(for: directoryName).appendingPathComponent(pageFileNames[index])
+        let name = pageFileNames[index]
+        if isBundledSample {
+            let base = (name as NSString).deletingPathExtension
+            return Bundle.main.url(
+                forResource: base,
+                withExtension: "png",
+                subdirectory: "SampleManga/sample"
+            )
+        }
+        return LibraryPaths.volumeDirectory(directoryName).appendingPathComponent(name)
     }
 
     func coverURL() -> URL? {
         if let coverFileName {
-            return Catalog.pagesDirectory(for: directoryName).appendingPathComponent(coverFileName)
+            if isBundledSample {
+                let base = (coverFileName as NSString).deletingPathExtension
+                return Bundle.main.url(
+                    forResource: base.isEmpty ? coverFileName : base,
+                    withExtension: "png",
+                    subdirectory: "SampleManga/sample"
+                )
+            }
+            return LibraryPaths.volumeDirectory(directoryName).appendingPathComponent(coverFileName)
         }
         return pageURL(at: 0)
-    }
-}
-
-enum ReadingDirection: String, CaseIterable, Identifiable, Codable {
-    case rtl
-    case ltr
-
-    var id: String { rawValue }
-
-    var label: String {
-        switch self {
-        case .rtl: return AppCopy.directionRTL
-        case .ltr: return AppCopy.directionLTR
-        }
-    }
-
-    var shortLabel: String {
-        switch self {
-        case .rtl: return AppCopy.directionRTLShort
-        case .ltr: return AppCopy.directionLTRShort
-        }
     }
 }
