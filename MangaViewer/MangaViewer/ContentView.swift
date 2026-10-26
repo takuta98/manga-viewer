@@ -14,6 +14,7 @@ struct ContentView: View {
         .preferredColorScheme(.dark)
         .overlay(alignment: .top) {
             ActivityOverlayView()
+                .allowsHitTesting(true)
         }
         .fullScreenCover(item: $selectedVolume) { volume in
             ReaderView(

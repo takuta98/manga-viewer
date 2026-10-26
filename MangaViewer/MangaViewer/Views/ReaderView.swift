@@ -51,8 +51,13 @@ struct ReaderView: View {
                     pagingReader
                 }
             }
-            .opacity(prefs.brightness)
             .ignoresSafeArea()
+
+            // 明るさは透過ではなく黒オーバーレイ
+            Color.black
+                .opacity(1.0 - prefs.brightness)
+                .ignoresSafeArea()
+                .allowsHitTesting(false)
 
             if chromeVisible {
                 chromeOverlay
@@ -76,6 +81,7 @@ struct ReaderView: View {
         }
         .onChange(of: spreadIndex) { _, newValue in
             progress.setSpreadIndex(newValue, for: volume.id)
+            prefetchAround(newValue)
         }
         .onChange(of: prefs) { _, newValue in
             AppSettingsStore.savePrefs(newValue)
@@ -279,7 +285,6 @@ struct ReaderView: View {
                     }
                 }
                 Toggle("表紙単独", isOn: $prefs.coverAlone)
-                Toggle("黒背景", isOn: $prefs.backgroundBlack)
                 HStack {
                     Text("明るさ")
                     Slider(value: $prefs.brightness, in: 0.35...1.0)
@@ -293,6 +298,28 @@ struct ReaderView: View {
             }
         }
         .presentationDetents([.medium, .large])
+    }
+
+    private func prefetchAround(_ index: Int) {
+        let layout = effectiveLayout == .webtoon ? PageLayoutMode.single : effectiveLayout
+        var urls: [URL] = []
+        for offset in -2...2 {
+            let i = index + offset
+            guard i >= 0, i < totalSpreads else { continue }
+            let pages = SpreadIndex.pages(
+                for: i,
+                pageCount: volume.pageCount,
+                direction: effectiveDirection,
+                coverAlone: prefs.coverAlone,
+                layout: layout
+            )
+            for idx in [pages.leftIndex, pages.rightIndex].compactMap({ $0 }) {
+                if let url = volume.pageURL(at: idx) {
+                    urls.append(url)
+                }
+            }
+        }
+        PageImageCache.shared.prefetch(urls: urls)
     }
 
     private func jumpToPage(_ page: Int) {

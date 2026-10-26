@@ -38,7 +38,9 @@ struct PageTurnHost: UIViewControllerRepresentable {
     func makeUIViewController(context: Context) -> UIPageViewController {
         let options: [UIPageViewController.OptionsKey: Any]?
         if style == .curl {
-            options = [.spineLocation: UIPageViewController.SpineLocation.min.rawValue]
+            // RTL 漫画は右綴じに寄せる
+            let spine: UIPageViewController.SpineLocation = isRTL ? .max : .min
+            options = [.spineLocation: spine.rawValue]
         } else {
             options = nil
         }
@@ -51,18 +53,22 @@ struct PageTurnHost: UIViewControllerRepresentable {
         pvc.delegate = context.coordinator
         pvc.view.backgroundColor = .black
         if style == .curl {
-            pvc.isDoubleSided = false
+            pvc.isDoubleSided = true
         }
 
         let tap = UITapGestureRecognizer(target: context.coordinator, action: #selector(Coordinator.handleTap(_:)))
         tap.cancelsTouchesInView = false
         pvc.view.addGestureRecognizer(tap)
+        context.coordinator.singleTap = tap
 
         context.coordinator.pageViewController = pvc
         context.coordinator.onTapCenter = onTapCenter
         context.coordinator.haptic.prepare()
 
         if let first = context.coordinator.controller(for: index) {
+            if let zoom = first as? ZoomHostingController {
+                zoom.attachSingleTapDependency(tap)
+            }
             pvc.setViewControllers([first], direction: .forward, animated: false)
             context.coordinator.currentIndex = index
         }
@@ -106,6 +112,7 @@ struct PageTurnHost: UIViewControllerRepresentable {
         var currentIndex: Int = 0
         var onTapCenter: () -> Void = {}
         weak var pageViewController: UIPageViewController?
+        weak var singleTap: UITapGestureRecognizer?
         let haptic = UISelectionFeedbackGenerator()
         private var cache: [Int: ZoomHostingController] = [:]
 
@@ -154,7 +161,17 @@ struct PageTurnHost: UIViewControllerRepresentable {
                 return cached
             }
             let host = ZoomHostingController(rootView: parent.makePage(index))
+            if let singleTap {
+                host.attachSingleTapDependency(singleTap)
+            }
             cache[index] = host
+            // ざっくり LRU: 前後以外を間引く
+            if cache.count > 12 {
+                let keep = Set((index - 2)...(index + 2))
+                for key in cache.keys where !keep.contains(key) && key != index {
+                    cache.removeValue(forKey: key)
+                }
+            }
             return host
         }
 
@@ -247,6 +264,15 @@ final class ZoomHostingController: UIViewController, UIScrollViewDelegate {
         let doubleTap = UITapGestureRecognizer(target: self, action: #selector(handleDoubleTap(_:)))
         doubleTap.numberOfTapsRequired = 2
         scrollView.addGestureRecognizer(doubleTap)
+        self.doubleTap = doubleTap
+    }
+
+    private var doubleTap: UITapGestureRecognizer?
+
+    func attachSingleTapDependency(_ singleTap: UITapGestureRecognizer) {
+        if let doubleTap {
+            singleTap.require(toFail: doubleTap)
+        }
     }
 
     override func viewDidLayoutSubviews() {

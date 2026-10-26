@@ -14,11 +14,16 @@ struct PagePaneView: View {
             ZStack {
                 Color.black
                 if let image {
-                    Image(uiImage: image)
-                        .resizable()
-                        .aspectRatio(contentMode: contentMode)
-                        .frame(width: geo.size.width, height: geo.size.height)
-                        .accessibilityLabel(pageNumber.map { "ページ \($0)" } ?? "ページ")
+                    let fitted = fittedSize(imageSize: image.size, in: geo.size)
+                    ScrollView([.horizontal, .vertical], showsIndicators: false) {
+                        Image(uiImage: image)
+                            .resizable()
+                            .interpolation(.high)
+                            .frame(width: fitted.width, height: fitted.height)
+                            .frame(minWidth: geo.size.width, minHeight: geo.size.height)
+                    }
+                    .disabled(fitMode == .fitScreen)
+                    .accessibilityLabel(pageNumber.map { "ページ \($0)" } ?? "ページ")
                 } else if failed {
                     VStack(spacing: 8) {
                         Image(systemName: "exclamationmark.triangle")
@@ -35,15 +40,26 @@ struct PagePaneView: View {
             .clipped()
         }
         .ignoresSafeArea()
-        .task(id: url?.path) {
+        .task(id: "\(url?.path ?? "")-\(fitMode.rawValue)") {
             await load()
         }
     }
 
-    private var contentMode: ContentMode {
+    private func fittedSize(imageSize: CGSize, in bounds: CGSize) -> CGSize {
+        guard imageSize.width > 0, imageSize.height > 0, bounds.width > 0, bounds.height > 0 else {
+            return bounds
+        }
+        let imageRatio = imageSize.width / imageSize.height
         switch fitMode {
-        case .fitWidth, .fitScreen: return .fit
-        case .fitHeight: return .fit
+        case .fitWidth:
+            let w = bounds.width
+            return CGSize(width: w, height: w / imageRatio)
+        case .fitHeight:
+            let h = bounds.height
+            return CGSize(width: h * imageRatio, height: h)
+        case .fitScreen:
+            let scale = min(bounds.width / imageSize.width, bounds.height / imageSize.height)
+            return CGSize(width: imageSize.width * scale, height: imageSize.height * scale)
         }
     }
 
@@ -75,7 +91,7 @@ final class PageImageCache {
     private let cache = NSCache<NSString, UIImage>()
 
     private init() {
-        cache.countLimit = 48
+        cache.countLimit = 64
     }
 
     func image(for url: URL) -> UIImage? {
@@ -84,6 +100,19 @@ final class PageImageCache {
 
     func store(_ image: UIImage, for url: URL) {
         cache.setObject(image, forKey: url.path as NSString)
+    }
+
+    func prefetch(urls: [URL]) {
+        for url in urls {
+            if image(for: url) != nil { continue }
+            Task.detached(priority: .utility) {
+                if let img = SampleImage.uiImage(url: url) {
+                    await MainActor.run {
+                        PageImageCache.shared.store(img, for: url)
+                    }
+                }
+            }
+        }
     }
 }
 

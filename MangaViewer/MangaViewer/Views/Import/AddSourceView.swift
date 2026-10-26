@@ -61,6 +61,11 @@ struct AddSourceView: View {
                     Toggle("TLS (https)", isOn: $source.useTLS)
                 }
                 if kind == .smb {
+                    TextField("ドメイン / ワークグループ（任意）", text: Binding(
+                        get: { source.domain ?? "" },
+                        set: { source.domain = $0 }
+                    ))
+                    .textInputAutocapitalization(.never)
                     Section {
                         Button {
                             Task { await runSMBTest() }

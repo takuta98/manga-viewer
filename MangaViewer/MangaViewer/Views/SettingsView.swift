@@ -29,16 +29,20 @@ struct SettingsView: View {
                         }
                     }
                     Toggle("表紙を単独表示", isOn: $prefs.coverAlone)
-                    Toggle("余白クロップ（簡易）", isOn: $prefs.cropMargins)
                 }
 
                 Section("表示") {
-                    Toggle("黒背景", isOn: $prefs.backgroundBlack)
                     HStack {
                         Text("明るさ")
                         Slider(value: $prefs.brightness, in: 0.3...1.0)
                     }
                     Toggle("読んでいる間はスリープしない", isOn: $prefs.keepScreenOn)
+                }
+
+                Section {
+                    Text("全体設定の「方向」は、これから取り込む作品の初期値です。作品ごとの方向は読書中の設定から変えられます。")
+                        .font(.footnote)
+                        .foregroundStyle(.secondary)
                 }
 
                 Section("ファイルの入れ方") {

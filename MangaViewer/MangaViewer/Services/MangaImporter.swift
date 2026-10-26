@@ -13,7 +13,7 @@ enum MangaImporter {
         return types
     }()
 
-    static func importFile(from sourceURL: URL) throws -> MangaVolume {
+    static func importFile(from sourceURL: URL, titleOverride: String? = nil) throws -> MangaVolume {
         let accessing = sourceURL.startAccessingSecurityScopedResource()
         defer {
             if accessing { sourceURL.stopAccessingSecurityScopedResource() }
@@ -27,7 +27,10 @@ enum MangaImporter {
 
         let ext = sourceURL.pathExtension.lowercased()
         var title = sourceURL.deletingPathExtension().lastPathComponent
-        var direction: ReadingDirection = .rtl
+        if let titleOverride, !titleOverride.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty {
+            title = titleOverride
+        }
+        var direction: ReadingDirection = AppSettingsStore.loadPrefs().direction
 
         if ext == "cbr" || ext == "rar" || ext == "7z" || ext == "cb7" {
             try? fm.removeItem(at: volumeRoot)

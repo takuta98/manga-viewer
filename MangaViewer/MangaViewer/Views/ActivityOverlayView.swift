@@ -2,6 +2,7 @@ import SwiftUI
 
 struct ActivityOverlayView: View {
     @ObservedObject var activity = TransferActivityCenter.shared
+    var showsCancel: Bool = true
 
     var body: some View {
         VStack(spacing: 10) {
@@ -22,6 +23,12 @@ struct ActivityOverlayView: View {
                             .font(.subheadline.weight(.semibold))
                             .lineLimit(1)
                         Spacer()
+                        if showsCancel, !job.isFinished {
+                            Button("中止") {
+                                activity.cancel(job.id)
+                            }
+                            .font(.caption.weight(.semibold))
+                        }
                         if let fraction = job.fraction {
                             Text("\(Int(fraction * 100))%")
                                 .font(.caption.monospacedDigit())
@@ -50,6 +57,5 @@ struct ActivityOverlayView: View {
         .padding(.top, 12)
         .animation(.easeInOut(duration: 0.25), value: activity.activeJobs.map(\.id))
         .animation(.easeInOut(duration: 0.25), value: activity.banner)
-        .allowsHitTesting(false)
     }
 }

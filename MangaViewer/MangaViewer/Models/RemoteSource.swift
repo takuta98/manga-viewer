@@ -42,18 +42,16 @@ enum RemoteSourceKind: String, Codable, CaseIterable, Identifiable {
     }
 }
 
-struct RemoteSource: Identifiable, Codable, Hashable {
+struct RemoteSource: Identifiable, Hashable {
     var id: String
     var kind: RemoteSourceKind
     var name: String
-    /// Host or base URL (scheme optional depending on kind).
     var host: String
     var port: Int?
     var shareOrPath: String
     var username: String
-    /// Stored in Keychain in production; UserDefaults for MVP (device-local).
+    /// メモリ上のみ。永続化は Keychain。
     var password: String
-    /// SMB のドメイン / ワークグループ（空なら省略）。既存 JSON 互換のため Optional。
     var domain: String?
     var region: String?
     var bucket: String?
@@ -91,6 +89,47 @@ struct RemoteSource: Identifiable, Codable, Hashable {
     }
 }
 
+extension RemoteSource: Codable {
+    enum CodingKeys: String, CodingKey {
+        case id, kind, name, host, port, shareOrPath, username, password, domain, region, bucket, useTLS, createdAt
+    }
+
+    init(from decoder: Decoder) throws {
+        let c = try decoder.container(keyedBy: CodingKeys.self)
+        id = try c.decode(String.self, forKey: .id)
+        kind = try c.decode(RemoteSourceKind.self, forKey: .kind)
+        name = try c.decode(String.self, forKey: .name)
+        host = try c.decode(String.self, forKey: .host)
+        port = try c.decodeIfPresent(Int.self, forKey: .port)
+        shareOrPath = try c.decodeIfPresent(String.self, forKey: .shareOrPath) ?? ""
+        username = try c.decodeIfPresent(String.self, forKey: .username) ?? ""
+        // 旧 JSON からの移行用。通常は空で Keychain から読む。
+        password = try c.decodeIfPresent(String.self, forKey: .password) ?? ""
+        domain = try c.decodeIfPresent(String.self, forKey: .domain)
+        region = try c.decodeIfPresent(String.self, forKey: .region)
+        bucket = try c.decodeIfPresent(String.self, forKey: .bucket)
+        useTLS = try c.decodeIfPresent(Bool.self, forKey: .useTLS) ?? true
+        createdAt = try c.decodeIfPresent(Date.self, forKey: .createdAt) ?? Date()
+    }
+
+    func encode(to encoder: Encoder) throws {
+        var c = encoder.container(keyedBy: CodingKeys.self)
+        try c.encode(id, forKey: .id)
+        try c.encode(kind, forKey: .kind)
+        try c.encode(name, forKey: .name)
+        try c.encode(host, forKey: .host)
+        try c.encodeIfPresent(port, forKey: .port)
+        try c.encode(shareOrPath, forKey: .shareOrPath)
+        try c.encode(username, forKey: .username)
+        // パスワードは JSON に書かない
+        try c.encodeIfPresent(domain, forKey: .domain)
+        try c.encodeIfPresent(region, forKey: .region)
+        try c.encodeIfPresent(bucket, forKey: .bucket)
+        try c.encode(useTLS, forKey: .useTLS)
+        try c.encode(createdAt, forKey: .createdAt)
+    }
+}
+
 struct RemoteEntry: Identifiable, Hashable {
     var id: String { path + name }
     var name: String
@@ -103,15 +142,26 @@ struct RemoteEntry: Identifiable, Hashable {
 enum ComicFileProbe {
     static let archiveExtensions = ["cbz", "zip", "pdf", "cbr", "rar", "cb7", "7z", "epub"]
     static let imageExtensions = ["jpg", "jpeg", "png", "webp", "gif", "heic", "bmp", "avif"]
+    static let supportedArchiveExtensions = ["cbz", "zip", "pdf"]
+
+    static func fileExtension(of name: String) -> String {
+        (name as NSString).pathExtension.lowercased()
+    }
+
+    static func isSupportedArchive(_ name: String) -> Bool {
+        supportedArchiveExtensions.contains(fileExtension(of: name))
+    }
+
+    static func isSupportedImage(_ name: String) -> Bool {
+        imageExtensions.contains(fileExtension(of: name))
+    }
 
     static func isImportableFile(_ name: String) -> Bool {
-        let ext = (name as NSString).pathExtension.lowercased()
+        let ext = fileExtension(of: name)
         return archiveExtensions.contains(ext) || imageExtensions.contains(ext)
     }
 
     static func isSupportedForImport(_ name: String) -> Bool {
-        let ext = (name as NSString).pathExtension.lowercased()
-        // CBR/RAR/7z listed for UI but may fail until decoder present.
-        return ["cbz", "zip", "pdf"].contains(ext) || imageExtensions.contains(ext)
+        isSupportedArchive(name) || isSupportedImage(name)
     }
 }

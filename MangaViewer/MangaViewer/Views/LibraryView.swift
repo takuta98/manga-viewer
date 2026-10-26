@@ -149,6 +149,16 @@ struct LibraryView: View {
         .listStyle(.plain)
         .searchable(text: $query, prompt: "タイトル検索")
         .navigationTitle(currentFolder?.name ?? "書庫")
+        .safeAreaInset(edge: .top) {
+            if let err = library.catalogLoadError {
+                Text(err)
+                    .font(.footnote)
+                    .foregroundStyle(.white)
+                    .padding(10)
+                    .frame(maxWidth: .infinity)
+                    .background(Color.red.opacity(0.85))
+            }
+        }
         .navigationBarBackButtonHidden(false)
         .toolbar {
             ToolbarItem(placement: .topBarLeading) {

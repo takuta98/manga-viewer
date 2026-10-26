@@ -1,5 +1,24 @@
 import Foundation
 
+enum RemoteImportUnit: Sendable {
+    case archive(RemoteEntry)
+    case imageFolder(title: String, images: [RemoteEntry])
+
+    var sortKey: String {
+        switch self {
+        case .archive(let e): return e.path
+        case .imageFolder(_, let images): return images.first?.path ?? ""
+        }
+    }
+
+    var displayName: String {
+        switch self {
+        case .archive(let e): return e.name
+        case .imageFolder(let title, _): return title
+        }
+    }
+}
+
 enum RemoteGateway {
     static func list(source: RemoteSource, path: String) async throws -> [RemoteEntry] {
         switch source.kind {
@@ -40,24 +59,44 @@ enum RemoteGateway {
         }
     }
 
-    /// フォルダ以下の取込可能なファイルを再帰収集する。
-    static func collectImportableFiles(source: RemoteSource, path: String) async throws -> [RemoteEntry] {
-        var result: [RemoteEntry] = []
-        try await collectImportableFiles(source: source, path: path, into: &result)
-        return result.sorted { $0.path.localizedStandardCompare($1.path) == .orderedAscending }
+    /// フォルダ取込単位。アーカイブは1ファイル1冊、画像群はディレクトリ単位で1冊。
+    static func collectImportUnits(source: RemoteSource, path: String) async throws -> [RemoteImportUnit] {
+        var archives: [RemoteEntry] = []
+        var imagesByDir: [String: [RemoteEntry]] = [:]
+        try await walk(source: source, path: path) { entry in
+            if ComicFileProbe.isSupportedArchive(entry.name) {
+                archives.append(entry)
+            } else if ComicFileProbe.isSupportedImage(entry.name) {
+                let parent = (entry.path as NSString).deletingLastPathComponent
+                imagesByDir[parent, default: []].append(entry)
+            }
+        }
+        var units: [RemoteImportUnit] = archives.map { .archive($0) }
+        for (dir, images) in imagesByDir {
+            let sorted = images.sorted { $0.path.localizedStandardCompare($1.path) == .orderedAscending }
+            let rawTitle: String
+            if dir.isEmpty {
+                rawTitle = (path as NSString).lastPathComponent
+            } else {
+                rawTitle = (dir as NSString).lastPathComponent
+            }
+            let title = rawTitle.isEmpty ? "無題" : rawTitle
+            units.append(.imageFolder(title: title, images: sorted))
+        }
+        return units.sorted { $0.sortKey.localizedStandardCompare($1.sortKey) == .orderedAscending }
     }
 
-    private static func collectImportableFiles(
+    private static func walk(
         source: RemoteSource,
         path: String,
-        into result: inout [RemoteEntry]
+        visit: (RemoteEntry) -> Void
     ) async throws {
         let entries = try await list(source: source, path: path)
         for entry in entries {
             if entry.isDirectory {
-                try await collectImportableFiles(source: source, path: entry.path, into: &result)
-            } else if ComicFileProbe.isSupportedForImport(entry.name) {
-                result.append(entry)
+                try await walk(source: source, path: entry.path, visit: visit)
+            } else {
+                visit(entry)
             }
         }
     }
