@@ -13,7 +13,32 @@ final class LibraryStore: ObservableObject {
     private var blockPersistence = false
 
     var sortedFolders: [LibraryFolder] {
-        folders.sorted { $0.name.localizedStandardCompare($1.name) == .orderedAscending }
+        // 読書中のシリーズを先に、同ランクは最大進み％→しおり件数→名前
+        folders.sorted { a, b in
+            func stats(_ folder: LibraryFolder) -> (reading: Int, maxPct: Int, marks: Int) {
+                var reading = 0
+                var maxPct = 0
+                var marks = 0
+                for vol in volumes where vol.folderId == folder.id {
+                    let pct = ProgressStore.shared.progressPercent(
+                        for: vol, coverAlone: true, layout: .single
+                    )
+                    if pct > 0 && pct < 100 {
+                        reading += 1
+                        maxPct = max(maxPct, pct)
+                    }
+                    marks += ProgressStore.shared.bookmarks(for: vol.id).count
+                }
+                return (reading, maxPct, marks)
+            }
+            let sa = stats(a)
+            let sb = stats(b)
+            if (sa.reading > 0) != (sb.reading > 0) { return sa.reading > 0 }
+            if sa.reading != sb.reading { return sa.reading > sb.reading }
+            if sa.maxPct != sb.maxPct { return sa.maxPct > sb.maxPct }
+            if sa.marks != sb.marks { return sa.marks > sb.marks }
+            return a.name.localizedStandardCompare(b.name) == .orderedAscending
+        }
     }
 
     var sortedVolumes: [MangaVolume] {
@@ -21,9 +46,30 @@ final class LibraryStore: ObservableObject {
         case .recent: return volumes.sorted { $0.importedAt > $1.importedAt }
         case .title: return volumes.sorted { $0.title.localizedStandardCompare($1.title) == .orderedAscending }
         case .progress:
-            return volumes.sorted {
-                ProgressStore.shared.progressPercent(for: $0, coverAlone: true, layout: .single) >
-                ProgressStore.shared.progressPercent(for: $1, coverAlone: true, layout: .single)
+            // 続き → 未読 → 読了。同ランクは進み％降順 → しおり件数降順 → タイトル
+            return volumes.sorted { a, b in
+                func rank(_ v: MangaVolume) -> Int {
+                    let pct = ProgressStore.shared.progressPercent(
+                        for: v, coverAlone: true, layout: .single
+                    )
+                    if pct > 0 && pct < 100 { return 0 }
+                    if pct == 0 { return 1 }
+                    return 2
+                }
+                let ra = rank(a)
+                let rb = rank(b)
+                if ra != rb { return ra < rb }
+                let pa = ProgressStore.shared.progressPercent(
+                    for: a, coverAlone: true, layout: .single
+                )
+                let pb = ProgressStore.shared.progressPercent(
+                    for: b, coverAlone: true, layout: .single
+                )
+                if pa != pb { return pa > pb }
+                let ma = ProgressStore.shared.bookmarks(for: a.id).count
+                let mb = ProgressStore.shared.bookmarks(for: b.id).count
+                if ma != mb { return ma > mb }
+                return a.title.localizedStandardCompare(b.title) == .orderedAscending
             }
         }
     }
@@ -91,8 +137,12 @@ final class LibraryStore: ObservableObject {
     @discardableResult
     func importURL(_ url: URL, folderId: UUID? = nil, titleOverride: String? = nil) throws -> MangaVolume {
         let title = titleOverride ?? UserFacingText.title(fromFileName: url.lastPathComponent)
-        if let existing = detectDuplicate(title: title) {
-            return existing
+        if detectDuplicate(title: title) != nil {
+            throw NSError(
+                domain: "LibraryStore",
+                code: 409,
+                userInfo: [NSLocalizedDescriptionKey: AppCopy.alreadyHave]
+            )
         }
         let volume = try MangaImporter.importFile(at: url, title: title, folderId: folderId)
         volumes.insert(volume, at: 0)
@@ -128,7 +178,7 @@ final class LibraryStore: ObservableObject {
             catalogLoadError = nil
         } catch {
             blockPersistence = true
-            catalogLoadError = "本棚データの読み込みに失敗しました。既存データは上書きしていません。"
+            catalogLoadError = AppCopy.libraryLoadFailed
         }
     }
 
@@ -139,7 +189,7 @@ final class LibraryStore: ObservableObject {
             let data = try JSONEncoder().encode(payload)
             try data.write(to: Catalog.libraryJSON, options: .atomic)
         } catch {
-            catalogLoadError = "本棚の保存に失敗しました。"
+            catalogLoadError = AppCopy.librarySaveFailed
         }
     }
 }

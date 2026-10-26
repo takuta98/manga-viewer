@@ -66,7 +66,7 @@ enum ZipUnarchiver {
             }
         }
         guard result > 0 else {
-            throw NSError(domain: "ZipUnarchiver", code: 1, userInfo: [NSLocalizedDescriptionKey: "ZIPの展開に失敗しました"])
+            throw NSError(domain: "ZipUnarchiver", code: 1, userInfo: [NSLocalizedDescriptionKey: AppCopy.zipExtractFailed])
         }
         return dest.prefix(result)
     }

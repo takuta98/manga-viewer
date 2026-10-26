@@ -12,11 +12,11 @@ enum RemoteError: LocalizedError {
         case .message(let s), .requestFailed(let s):
             return s
         case .invalidURL:
-            return "URLが不正です"
+            return AppCopy.invalidURL
         case .unsupported:
-            return "この形式は未対応です"
+            return AppCopy.remoteUnsupported
         case .notConfigured:
-            return "接続情報が不足しています"
+            return AppCopy.remoteNotConfigured
         }
     }
 }

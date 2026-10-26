@@ -16,13 +16,16 @@ final class TransferActivityCenter: ObservableObject {
         var isFailed: Bool
         var isFinished: Bool
         var isCancelled: Bool
+        var volumeId: UUID?
     }
 
     @Published private(set) var jobs: [Job] = []
     @Published var toast: String?
+    @Published var pendingOpenVolumeId: UUID?
     private var cancelFlags: [UUID: Bool] = [:]
     private var taskHandles: [UUID: Task<Void, Never>] = [:]
     private var toastToken = UUID()
+    private var suppressCancelToast = false
 
     var activeJobs: [Job] { jobs.filter { !$0.isFinished } }
     var activeCount: Int { activeJobs.count }
@@ -58,15 +61,17 @@ final class TransferActivityCenter: ObservableObject {
                 sourceKey: sourceKey,
                 isFailed: false,
                 isFinished: false,
-                isCancelled: false
+                isCancelled: false,
+                volumeId: nil
             ),
             at: 0
         )
+        Self.requestNotificationPermissionOnce()
         if announce {
             if activeCount == 1 {
-                showToast("\(AppCopy.downloadStarted)\n\(title)", duration: 1.6)
+                showToast("\(AppCopy.downloadStarted)：\(title)", duration: 1.6)
             } else {
-                showToast(AppCopy.downloadStarted, duration: 1.6)
+                showToast(AppCopy.downloadStarted, duration: 1.4)
             }
             UIImpactFeedbackGenerator(style: .light).impactOccurred()
         }
@@ -76,13 +81,29 @@ final class TransferActivityCenter: ObservableObject {
     func attachTask(_ id: UUID, _ task: Task<Void, Never>) { taskHandles[id] = task }
     func isCancelled(_ id: UUID) -> Bool { cancelFlags[id] == true }
 
-    func cancel(_ id: UUID) {
+    func cancel(_ id: UUID, announce: Bool = true) {
         cancelFlags[id] = true
         taskHandles[id]?.cancel()
         guard let idx = jobs.firstIndex(where: { $0.id == id }) else { return }
         if !jobs[idx].isFinished {
             jobs[idx].status = AppCopy.cancelling
             jobs[idx].isCancelled = true
+            if announce {
+                UIImpactFeedbackGenerator(style: .medium).impactOccurred()
+            }
+        }
+    }
+
+    func cancelAllActive() {
+        let ids = activeJobs.map(\.id)
+        guard !ids.isEmpty else { return }
+        suppressCancelToast = true
+        for id in ids { cancel(id, announce: false) }
+        showToast(AppCopy.cancelled, duration: 1.6)
+        UIImpactFeedbackGenerator(style: .medium).impactOccurred()
+        Task { @MainActor in
+            try? await Task.sleep(nanoseconds: 300_000_000)
+            suppressCancelToast = false
         }
     }
 
@@ -94,22 +115,28 @@ final class TransferActivityCenter: ObservableObject {
         }
     }
 
-    func succeed(_ id: UUID, message: String? = nil) {
+    func succeed(_ id: UUID, message: String? = nil, volumeId: UUID? = nil) {
         guard let idx = jobs.firstIndex(where: { $0.id == id }) else { return }
         let title = jobs[idx].title
-        jobs[idx].status = AppCopy.done
+        jobs[idx].status = message ?? AppCopy.done
         jobs[idx].fraction = 1
         jobs[idx].isFinished = true
+        if let volumeId { jobs[idx].volumeId = volumeId }
         taskHandles[id] = nil
-        let body = message ?? "\(AppCopy.downloadFinished)\n\(title)"
-        showToast(body, duration: 2.2)
+        cancelFlags[id] = nil
+        if let message {
+            // 既存スキップ等でも volumeId があれば読む導線を添える
+            if volumeId != nil {
+                showToast("\(message) · \(AppCopy.readNow)", duration: 2.2)
+            } else {
+                showToast(message, duration: 2.0)
+            }
+        } else if volumeId != nil {
+            showToast(AppCopy.downloadFinishedReadHint, duration: 2.2)
+        } else {
+            showToast("\(AppCopy.downloadFinished)：\(title)", duration: 2.0)
+        }
         UINotificationFeedbackGenerator().notificationOccurred(.success)
-        let content = UNMutableNotificationContent()
-        content.title = AppCopy.downloadFinished
-        content.body = title
-        UNUserNotificationCenter.current().add(
-            UNNotificationRequest(identifier: UUID().uuidString, content: content, trigger: nil)
-        )
     }
 
     func fail(_ id: UUID, message: String) {
@@ -118,10 +145,33 @@ final class TransferActivityCenter: ObservableObject {
         jobs[idx].isFailed = true
         jobs[idx].isFinished = true
         taskHandles[id] = nil
-        showToast("\(AppCopy.downloadFailed)\n\(message)", duration: 2.2)
+        cancelFlags[id] = nil
+        showToast("\(AppCopy.downloadFailed)：\(message)", duration: 2.2)
+        UINotificationFeedbackGenerator().notificationOccurred(.error)
     }
 
-    func clearFinished() { jobs.removeAll { $0.isFinished } }
+    func finishCancelled(_ id: UUID) {
+        guard let idx = jobs.firstIndex(where: { $0.id == id }) else { return }
+        jobs[idx].status = AppCopy.cancelled
+        jobs[idx].isCancelled = true
+        jobs[idx].isFailed = false
+        jobs[idx].isFinished = true
+        taskHandles[id] = nil
+        cancelFlags[id] = nil
+        // 一括中止時は cancelAllActive 側で一度だけ通知する
+        if !suppressCancelToast {
+            showToast(AppCopy.cancelled, duration: 1.6)
+        }
+    }
+
+    func clearFinished() {
+        let finishedIds = jobs.filter(\.isFinished).map(\.id)
+        jobs.removeAll { $0.isFinished }
+        for id in finishedIds {
+            taskHandles[id] = nil
+            cancelFlags[id] = nil
+        }
+    }
 
     func showToast(_ message: String, duration: Double = 2.0) {
         let token = UUID()

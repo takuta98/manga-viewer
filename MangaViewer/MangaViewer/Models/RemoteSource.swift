@@ -5,13 +5,13 @@ enum RemoteSourceKind: String, CaseIterable, Identifiable, Codable {
     var id: String { rawValue }
     var label: String {
         switch self {
-        case .smb: return "SMB（NAS）"
-        case .webdav: return "WebDAV"
-        case .sftp: return "SFTP"
-        case .ftp: return "FTP"
-        case .opds: return "OPDS"
-        case .s3: return "S3互換"
-        case .http: return "URL"
+        case .smb: return AppCopy.kindSMB
+        case .webdav: return AppCopy.kindWebDAV
+        case .sftp: return AppCopy.kindSFTP
+        case .ftp: return AppCopy.kindFTP
+        case .opds: return AppCopy.kindOPDS
+        case .s3: return AppCopy.kindS3
+        case .http: return AppCopy.kindHTTP
         }
     }
 }

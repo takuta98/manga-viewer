@@ -11,7 +11,5 @@ enum DisplayLayoutResolver {
         return preference == .spread ? .spread : .single
     }
 
-    static var explainsToUser: String {
-        "縦画面は常に1ページ。横に広く開いたときだけ見開きになります。"
-    }
+    static var explainsToUser: String { AppCopy.layoutExplain }
 }

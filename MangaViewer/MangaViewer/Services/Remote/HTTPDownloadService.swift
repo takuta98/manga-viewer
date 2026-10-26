@@ -27,7 +27,7 @@ enum HTTPDownloadService {
         }
         let (tmp, response) = try await URLSession.shared.download(for: request)
         if let http = response as? HTTPURLResponse, !(200...299).contains(http.statusCode) {
-            throw RemoteError.requestFailed("ダウンロードに失敗しました（\(http.statusCode)）")
+            throw RemoteError.requestFailed("\(AppCopy.downloadFailedHTTP)（\(http.statusCode)）")
         }
         try? FileManager.default.removeItem(at: dest)
         try FileManager.default.moveItem(at: tmp, to: dest)

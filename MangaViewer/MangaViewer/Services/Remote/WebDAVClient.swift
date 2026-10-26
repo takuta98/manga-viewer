@@ -43,7 +43,7 @@ enum WebDAVClient {
             ? nil
             : URLCredential(user: source.username, password: source.password, persistence: .forSession)
         guard let provider = WebDAVFileProvider(baseURL: url, credential: credential) else {
-            throw RemoteError.requestFailed("WebDAV クライアントを初期化できません")
+            throw RemoteError.requestFailed(AppCopy.webdavInitFailed)
         }
         return provider
     }

@@ -8,11 +8,11 @@ enum OPDSClient {
         applyAuth(&request, source: source)
         let (data, response) = try await URLSession.shared.data(for: request)
         guard let http = response as? HTTPURLResponse, (200...299).contains(http.statusCode) else {
-            throw RemoteError.requestFailed("OPDS フィードの取得に失敗しました")
+            throw RemoteError.requestFailed(AppCopy.opdsFetchFailed)
         }
         let feed = try Feed(data: data)
         guard case .atom(let atom) = feed else {
-            throw RemoteError.requestFailed("OPDS（Atom）フィードではありません")
+            throw RemoteError.requestFailed(AppCopy.opdsNotAtom)
         }
         return (atom.entries ?? []).compactMap { entry -> RemoteEntry? in
             let title = entry.title?.trimmingCharacters(in: .whitespacesAndNewlines)
@@ -48,7 +48,7 @@ enum OPDSClient {
         applyAuth(&request, source: source)
         let (temp, response) = try await URLSession.shared.download(for: request)
         guard let http = response as? HTTPURLResponse, (200...299).contains(http.statusCode) else {
-            throw RemoteError.requestFailed("OPDS のダウンロードに失敗しました")
+            throw RemoteError.requestFailed(AppCopy.opdsDownloadFailed)
         }
         try? FileManager.default.removeItem(at: local)
         try FileManager.default.moveItem(at: temp, to: local)

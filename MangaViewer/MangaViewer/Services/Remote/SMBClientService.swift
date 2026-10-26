@@ -30,7 +30,7 @@ enum SMBClientService {
         let endpoint = try Endpoint.resolve(source)
         let target = try resolveTarget(endpoint: endpoint, path: path)
         guard !target.share.isEmpty else {
-            throw RemoteError.requestFailed("フォルダを選んでからファイルを取り込んでください")
+            throw RemoteError.requestFailed(AppCopy.pickFolderFirst)
         }
         try await SMBShareSession.shared.withConnected(endpoint: endpoint, share: target.share) { manager in
             // 大きな CBZ をメモリに載せないよう、ディスクへ直接ストリームする。
@@ -50,7 +50,7 @@ enum SMBClientService {
         let endpoint = try Endpoint.resolve(source)
         let shares = try await fetchShares(endpoint)
         if shares.isEmpty {
-            throw RemoteError.requestFailed("接続はできましたが、見えるフォルダがありません。ユーザー権限を確認してください。")
+            throw RemoteError.requestFailed(AppCopy.smbNoFolders)
         }
     }
 
@@ -152,7 +152,7 @@ enum SMBClientService {
             persistence: .forSession
         )
         guard let manager = SMB2Manager(url: url, domain: endpoint.domain, credential: credential) else {
-            throw RemoteError.requestFailed("SMB クライアントを初期化できません（IP の形式を確認してください）")
+            throw RemoteError.requestFailed(AppCopy.smbClientInitFailed)
         }
         manager.timeout = 20
         return manager
@@ -164,18 +164,18 @@ enum SMBClientService {
         let detail = ns.localizedDescription
         let lower = detail.lowercased()
         if lower.contains("permission") || lower.contains("access") || ns.code == 13 {
-            return .requestFailed("ログインできませんでした。ユーザー名とパスワードを確認してください。\n\(detail)")
+            return .requestFailed(AppCopy.smbLoginFailed(detail))
         }
         if lower.contains("not found") || lower.contains("no such") || ns.code == 2 {
-            return .requestFailed("フォルダが見つかりません。\n\(detail)")
+            return .requestFailed(AppCopy.smbFolderNotFound(detail))
         }
         if lower.contains("timed out") || lower.contains("timeout") || lower.contains("host is down") {
-            return .requestFailed("NAS に届きません。同じ Wi‑Fi か、IP が合っているか、ローカルネットワーク許可を確認してください。\n\(detail)")
+            return .requestFailed(AppCopy.smbUnreachable(detail))
         }
         if lower.contains("connection") || lower.contains("refused") || lower.contains("unreachable") {
-            return .requestFailed("接続できませんでした。IP と、NAS 側の SMB が有効かを確認してください。\n\(detail)")
+            return .requestFailed(AppCopy.smbConnectFailed(detail))
         }
-        return .requestFailed("接続エラー: \(detail)")
+        return .requestFailed(AppCopy.smbConnectError(detail))
     }
 
     // MARK: - Endpoint parsing

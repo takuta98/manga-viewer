@@ -5,9 +5,9 @@ enum PageFitMode: String, CaseIterable, Identifiable, Codable {
     var id: String { rawValue }
     var label: String {
         switch self {
-        case .fitWidth: return "幅に合わせる"
-        case .fitHeight: return "高さに合わせる"
-        case .fitScreen: return "画面に合わせる"
+        case .fitWidth: return AppCopy.fitWidth
+        case .fitHeight: return AppCopy.fitHeight
+        case .fitScreen: return AppCopy.fitScreen
         }
     }
 }
@@ -17,9 +17,9 @@ enum PageLayoutMode: String, CaseIterable, Identifiable, Codable {
     var id: String { rawValue }
     var label: String {
         switch self {
-        case .single: return "単ページ"
-        case .spread: return "見開き（横で許可）"
-        case .webtoon: return "縦スクロール"
+        case .single: return AppCopy.layoutSingle
+        case .spread: return AppCopy.layoutSpread
+        case .webtoon: return AppCopy.layoutWebtoon
         }
     }
 }
@@ -29,8 +29,8 @@ enum PageTurnStyle: String, CaseIterable, Identifiable, Codable {
     var id: String { rawValue }
     var label: String {
         switch self {
-        case .slide: return "スライド"
-        case .curl: return "ページめくり"
+        case .slide: return AppCopy.turnSlide
+        case .curl: return AppCopy.turnCurl
         }
     }
 }
@@ -40,9 +40,9 @@ enum LibrarySort: String, CaseIterable, Identifiable, Codable {
     var id: String { rawValue }
     var label: String {
         switch self {
-        case .recent: return "最近"
-        case .title: return "タイトル"
-        case .progress: return "進捗"
+        case .recent: return AppCopy.sortRecent
+        case .title: return AppCopy.sortTitle
+        case .progress: return AppCopy.sortProgress
         }
     }
 }
@@ -50,7 +50,7 @@ enum LibrarySort: String, CaseIterable, Identifiable, Codable {
 enum LibraryDisplayMode: String, CaseIterable, Identifiable, Codable {
     case list, grid
     var id: String { rawValue }
-    var label: String { self == .list ? "リスト" : "グリッド" }
+    var label: String { self == .list ? AppCopy.displayList : AppCopy.displayGrid }
     var systemImage: String { self == .list ? "list.bullet" : "square.grid.2x2" }
     var toggled: LibraryDisplayMode { self == .list ? .grid : .list }
 }

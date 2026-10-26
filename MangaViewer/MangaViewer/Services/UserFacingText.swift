@@ -16,7 +16,7 @@ enum UserFacingText {
     static func title(fromFileName raw: String) -> String {
         var s = (raw as NSString).deletingPathExtension
         s = s.trimmingCharacters(in: .whitespacesAndNewlines)
-        if s.isEmpty { return "無題" }
+        if s.isEmpty { return AppCopy.untitled }
         var changed = true
         while changed {
             changed = false
@@ -35,6 +35,6 @@ enum UserFacingText {
         if let slash = s.lastIndex(of: "/") {
             s = String(s[s.index(after: slash)...])
         }
-        return s.isEmpty ? "無題" : s
+        return s.isEmpty ? AppCopy.untitled : s
     }
 }

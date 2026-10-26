@@ -44,7 +44,7 @@ enum FTPClient {
             ? nil
             : URLCredential(user: source.username, password: source.password, persistence: .forSession)
         guard let provider = FTPFileProvider(baseURL: url, mode: .default, credential: credential) else {
-            throw RemoteError.requestFailed("FTP クライアントを初期化できません")
+            throw RemoteError.requestFailed(AppCopy.ftpInitFailed)
         }
         return provider
     }

@@ -16,10 +16,10 @@ enum MangaImporter {
         } else if url.hasDirectoryPath {
             pages = try importImageFolder(url, to: dest)
         } else {
-            throw NSError(domain: "MangaImporter", code: 1, userInfo: [NSLocalizedDescriptionKey: "未対応の形式です"])
+            throw NSError(domain: "MangaImporter", code: 1, userInfo: [NSLocalizedDescriptionKey: AppCopy.unsupportedFormat])
         }
         guard !pages.isEmpty else {
-            throw NSError(domain: "MangaImporter", code: 2, userInfo: [NSLocalizedDescriptionKey: "画像ページが見つかりません"])
+            throw NSError(domain: "MangaImporter", code: 2, userInfo: [NSLocalizedDescriptionKey: AppCopy.noImagePages])
         }
         return MangaVolume(
             id: UUID(),

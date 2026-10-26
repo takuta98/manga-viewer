@@ -33,15 +33,15 @@ enum ReadingDirection: String, CaseIterable, Identifiable, Codable {
 
     var label: String {
         switch self {
-        case .rtl: return "右開き（日本語）"
-        case .ltr: return "左開き"
+        case .rtl: return AppCopy.directionRTL
+        case .ltr: return AppCopy.directionLTR
         }
     }
 
     var shortLabel: String {
         switch self {
-        case .rtl: return "右開き"
-        case .ltr: return "左開き"
+        case .rtl: return AppCopy.directionRTLShort
+        case .ltr: return AppCopy.directionLTRShort
         }
     }
 }

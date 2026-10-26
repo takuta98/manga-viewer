@@ -7,6 +7,7 @@ struct PageTurnHost: UIViewControllerRepresentable {
     var style: PageTurnStyle
     var rtl: Bool
     var reduceMotion: Bool
+    var onTap: (() -> Void)?
     var makePage: (Int) -> AnyView
 
     func makeCoordinator() -> Coordinator { Coordinator(self) }
@@ -18,6 +19,9 @@ struct PageTurnHost: UIViewControllerRepresentable {
         pvc.delegate = context.coordinator
         pvc.isDoubleSided = false
         context.coordinator.pvc = pvc
+        let tap = UITapGestureRecognizer(target: context.coordinator, action: #selector(Coordinator.didTap))
+        tap.cancelsTouchesInView = false
+        pvc.view.addGestureRecognizer(tap)
         if let first = context.coordinator.controller(for: index) {
             pvc.setViewControllers([first], direction: .forward, animated: false)
         }
@@ -26,6 +30,10 @@ struct PageTurnHost: UIViewControllerRepresentable {
 
     func updateUIViewController(_ pvc: UIPageViewController, context: Context) {
         context.coordinator.parent = self
+        if context.coordinator.cachedPageCount != pageCount {
+            context.coordinator.clearCache()
+            context.coordinator.cachedPageCount = pageCount
+        }
         guard let current = pvc.viewControllers?.first as? HostingPageController else { return }
         if current.index != index, let next = context.coordinator.controller(for: index) {
             let forward = rtl ? index < current.index : index > current.index
@@ -37,12 +45,23 @@ struct PageTurnHost: UIViewControllerRepresentable {
         var parent: PageTurnHost
         weak var pvc: UIPageViewController?
         private var cache: [Int: HostingPageController] = [:]
+        var cachedPageCount: Int = -1
 
-        init(_ parent: PageTurnHost) { self.parent = parent }
+        init(_ parent: PageTurnHost) {
+            self.parent = parent
+            self.cachedPageCount = parent.pageCount
+        }
+
+        @objc func didTap() { parent.onTap?() }
+
+        func clearCache() { cache.removeAll(keepingCapacity: true) }
 
         func controller(for index: Int) -> HostingPageController? {
             guard index >= 0, index < parent.pageCount else { return nil }
-            if let c = cache[index] { return c }
+            if let c = cache[index] {
+                c.rootView = parent.makePage(index)
+                return c
+            }
             let host = HostingPageController(rootView: parent.makePage(index), index: index)
             cache[index] = host
             return host

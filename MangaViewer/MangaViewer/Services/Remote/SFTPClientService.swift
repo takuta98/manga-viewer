@@ -79,7 +79,7 @@ enum SFTPClientService {
     }
 }
 
-/// フォルダ巡回・連続ダウンロードで SSH/SFTP を張り直さない。
+/// フォルダ巡回・連続入手で SSH/SFTP を張り直さない。
 private actor SFTPSessionPool {
     static let shared = SFTPSessionPool()
 
