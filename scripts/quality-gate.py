@@ -36,6 +36,8 @@ def main() -> int:
         "Services/ReadingProgress.swift",
         "Models/MangaVolume.swift",
         "Models/ReadingModels.swift",
+        "Services/DuoLayout.swift",
+        "Views/DuoFrameView.swift",
     ]
     for rel in required:
         if not (SRC / rel).exists():
@@ -87,6 +89,19 @@ def main() -> int:
         fail("[読む] ReaderView が PageBrowser を使っていない")
     if "allowsHitTesting(false)" not in reader:
         fail("[読む] Chrome 中央のヒット無効化が無い")
+    if "DuoLayout.resolve" not in reader:
+        fail("[Duo] ReaderView が DuoLayout を使っていない")
+    if "DuoFrameView" not in reader:
+        fail("[Duo] ReaderView が DuoFrameView を使っていない")
+    if "duoEdgeTaps" not in reader:
+        fail("[Duo] 見開きの端タップが無い")
+
+    duo = read(SRC / "Services" / "DuoLayout.swift")
+    if "aspect >= 1.25" not in duo:
+        fail("[Duo] 横向き判定が無い")
+    models = read(SRC / "Models" / "ReadingModels.swift")
+    if "layoutMode: PageLayoutMode = .duo" not in models:
+        fail("[Duo] 既定レイアウトが Duo ではない")
 
     pbx = read(ROOT / "MangaViewer" / "MangaViewer.xcodeproj" / "project.pbxproj")
     for path in swift_files():

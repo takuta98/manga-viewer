@@ -28,10 +28,25 @@ enum PageFitMode: String, CaseIterable, Identifiable, Codable {
     }
 }
 
+enum PageLayoutMode: String, CaseIterable, Identifiable, Codable {
+    case single
+    case duo
+    var id: String { rawValue }
+    var label: String {
+        switch self {
+        case .single: return "単ページ"
+        case .duo: return "Duo（横で見開き）"
+        }
+    }
+}
+
 struct ReaderPreferences: Codable, Equatable {
     var direction: ReadingDirection = .rtl
     var turnStyle: PageTurnStyle = .slide
     var fitMode: PageFitMode = .fitScreen
+    /// Duo を許可する。縦では常に単ページ、横に広いときだけ見開き。
+    var layoutMode: PageLayoutMode = .duo
+    var coverAlone: Bool = true
     var brightness: Double = 1
     var keepScreenOn: Bool = true
 }
