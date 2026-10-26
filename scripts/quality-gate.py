@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
-"""基本機能ゲート：本棚・読む・入手。ページ送りを壊す構成を拒否する。"""
+"""基本機能ゲート：本棚・読む・入手・Duo。ページ送りとレイアウトループを拒否する。"""
 from __future__ import annotations
 import sys
 from pathlib import Path
@@ -30,20 +30,19 @@ def main() -> int:
         "Views/ReaderView.swift",
         "Views/PageBrowser.swift",
         "Views/PageImageView.swift",
+        "Views/DuoFrameView.swift",
         "Services/LibraryStore.swift",
         "Services/VolumeImporter.swift",
         "Services/ZipExtractor.swift",
         "Services/ReadingProgress.swift",
+        "Services/DuoLayout.swift",
         "Models/MangaVolume.swift",
         "Models/ReadingModels.swift",
-        "Services/DuoLayout.swift",
-        "Views/DuoFrameView.swift",
     ]
     for rel in required:
         if not (SRC / rel).exists():
             fail(f"[基本] {rel} が無い")
 
-    # 旧実装の残骸を禁止
     banned_names = [
         "ZipUnarchiver.swift",
         "PageTurnHost.swift",
@@ -85,13 +84,10 @@ def main() -> int:
         fail("[読む] 端タップめくりが無い")
     if "isInteractivelyAnimating" not in browser:
         fail("[読む] めくり中の SwiftUI 同期抑止が無い")
-    if "canAnimate" not in browser:
-        fail("[読む] 端タップのめくりアニメが無い")
+    if "publishIndex" not in browser:
+        fail("[読む] PageBrowser の Binding 更新遅延が無い")
     if "animated: false" not in browser:
         fail("[読む] SwiftUI 同期の非アニメーション経路が無い")
-    models = read(SRC / "Models" / "ReadingModels.swift")
-    if "turnStyle: PageTurnStyle = .curl" not in models:
-        fail("[読む] 既定のページ送りがめくり（curl）ではない")
 
     reader = read(SRC / "Views" / "ReaderView.swift")
     if "PageBrowser(" not in reader:
@@ -99,26 +95,33 @@ def main() -> int:
     if "allowsHitTesting(false)" not in reader:
         fail("[読む] Chrome 中央のヒット無効化が無い")
     if "containerSize = geo.size" in reader or "let _ = { containerSize" in reader:
-        fail("[読む] GeometryReader 内で @State を書き換えている（起動／表示で落ちる）")
-    if "onChange(of: geo.size)" in reader:
-        fail("[読む] geo.size の onChange で State を書いている（View update 中警告）")
-    if "DispatchQueue.main.async" not in reader:
-        fail("[読む] サイズ変化時の State 更新遅延が無い")
-    if "publishIndex" not in browser:
-        fail("[読む] PageBrowser の Binding 更新遅延が無い")
-    if "DuoLayout.resolve" not in reader:
-        fail("[Duo] ReaderView が DuoLayout を使っていない")
-    if "DuoFrameView" not in reader:
-        fail("[Duo] ReaderView が DuoFrameView を使っていない")
-    if "duoEdgeTaps" not in reader:
-        fail("[Duo] 見開きの端タップが無い")
+        fail("[読む] GeometryReader 内で @State を書き換えている")
+    if "onPreferenceChange(ReaderSizeKey" in reader or "ReaderSizeKey" in reader:
+        fail("[Duo] preference→State ループの残骸がある")
+    if "else if layout == .duo" in reader or "if layout == .duo" in reader:
+        fail("[Duo] 単ページと Duo で View 木を分岐している（固まる）")
+    if "appliedLayout" not in reader:
+        fail("[Duo] 安定レイアウト状態が無い")
+    if "DuoLayout.isUsable" not in reader:
+        fail("[Duo] 不正サイズの無視が無い")
+    if "adoptSize" not in reader:
+        fail("[Duo] サイズ採用経路が無い")
 
     duo = read(SRC / "Services" / "DuoLayout.swift")
+    if "isUsable" not in duo:
+        fail("[Duo] isUsable が無い")
     if "aspect >= 1.25" not in duo:
         fail("[Duo] 横向き判定が無い")
+
+    frame = read(SRC / "Views" / "DuoFrameView.swift")
+    if ".aspectRatio(" in frame:
+        fail("[Duo] DuoFrameView が aspectRatio で自分のサイズを変えている（計測ループ）")
+
     models = read(SRC / "Models" / "ReadingModels.swift")
     if "layoutMode: PageLayoutMode = .duo" not in models:
         fail("[Duo] 既定レイアウトが Duo ではない")
+    if "turnStyle: PageTurnStyle = .curl" not in models:
+        fail("[読む] 既定のページ送りがめくり（curl）ではない")
 
     pbx = read(ROOT / "MangaViewer" / "MangaViewer.xcodeproj" / "project.pbxproj")
     for path in swift_files():

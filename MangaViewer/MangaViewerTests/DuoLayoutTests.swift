@@ -3,6 +3,11 @@ import XCTest
 @testable import MangaViewer
 
 final class DuoLayoutTests: XCTestCase {
+    func testRejectsZeroHeightFrames() {
+        XCTAssertFalse(DuoLayout.isUsable(CGSize(width: 951, height: 0)))
+        XCTAssertTrue(DuoLayout.isUsable(CGSize(width: 844, height: 390)))
+    }
+
     func testPortraitIsSingle() {
         let layout = DuoLayout.resolve(
             containerSize: CGSize(width: 390, height: 844),

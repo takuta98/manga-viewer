@@ -1,6 +1,7 @@
 import SwiftUI
 
-/// iPhone Duo の見開き枠。横向きで画面いっぱいに2ページを並べる。
+/// Duo 見開きの枠。中身のサイズを変えず、親から与えられた領域いっぱいに敷く。
+/// （aspectRatio で自分の高さを変えると GeometryReader 計測ループの原因になる）
 struct DuoFrameView<Content: View>: View {
     @ViewBuilder var content: () -> Content
 

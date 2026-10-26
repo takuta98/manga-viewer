@@ -13,6 +13,8 @@ struct ReaderView: View {
     @State private var spreadIndex = 0
     @State private var showChrome = false
     @State private var showSettings = false
+    /// 折りたたみ途中の 0 サイズでは更新しない。前回の有効レイアウトを維持する。
+    @State private var appliedLayout: PageLayoutMode = .single
 
     private let progress = ReadingProgress.shared
 
@@ -22,73 +24,61 @@ struct ReaderView: View {
         _direction = State(initialValue: volume.direction)
     }
 
+    private var totalSpreads: Int {
+        SpreadIndex.totalSpreads(
+            pageCount: volume.pageCount,
+            coverAlone: prefs.coverAlone,
+            layout: appliedLayout
+        )
+    }
+
+    private var currentPageIndex: Int {
+        SpreadIndex.pageIndices(
+            spreadIndex: spreadIndex,
+            pageCount: volume.pageCount,
+            coverAlone: prefs.coverAlone,
+            layout: appliedLayout
+        ).0 ?? 0
+    }
+
     var body: some View {
-        GeometryReader { geo in
-            let layout = DuoLayout.resolve(containerSize: geo.size, preference: prefs.layoutMode)
-            let spreads = SpreadIndex.totalSpreads(
-                pageCount: volume.pageCount,
-                coverAlone: prefs.coverAlone,
-                layout: layout
-            )
-            let page = SpreadIndex.pageIndices(
-                spreadIndex: clamped(spreadIndex, spreads: spreads),
-                pageCount: volume.pageCount,
-                coverAlone: prefs.coverAlone,
-                layout: layout
-            ).0 ?? 0
+        // Duo 指針: 単ページ／見開きで別の View 木に切り替えない（状態と UIPageViewController を壊す）。
+        ZStack {
+            Color.black.ignoresSafeArea()
 
-            ZStack {
-                Color.black.ignoresSafeArea()
-
-                if volume.pageCount <= 0 {
-                    ContentUnavailableView("ページがありません", systemImage: "doc.questionmark")
-                        .foregroundStyle(.white)
-                } else if layout == .duo {
-                    duoPages(layout: layout)
-                        .opacity(prefs.brightness)
-                    duoEdgeTaps(width: geo.size.width, spreads: spreads)
-                } else {
-                    PageBrowser(
-                        pageCount: volume.pageCount,
-                        index: pageBinding,
-                        style: prefs.turnStyle,
-                        rtl: direction == .rtl,
-                        reduceMotion: reduceMotion,
-                        onToggleChrome: {
-                            withAnimation(.easeInOut(duration: 0.2)) { showChrome.toggle() }
-                        }
-                    ) { index in
-                        AnyView(
-                            PageImageView(
-                                url: volume.pageURL(at: index),
-                                pageNumber: index + 1,
-                                fitMode: prefs.fitMode
-                            )
-                        )
+            if volume.pageCount <= 0 {
+                ContentUnavailableView("ページがありません", systemImage: "doc.questionmark")
+                    .foregroundStyle(.white)
+            } else {
+                PageBrowser(
+                    pageCount: max(totalSpreads, 1),
+                    index: $spreadIndex,
+                    // 見開き合成ページは pageCurl と相性が悪いので Duo 中はスライドにする。
+                    style: appliedLayout == .duo ? .slide : prefs.turnStyle,
+                    rtl: direction == .rtl,
+                    reduceMotion: reduceMotion,
+                    onToggleChrome: {
+                        withAnimation(.easeInOut(duration: 0.2)) { showChrome.toggle() }
                     }
-                    .id("\(prefs.turnStyle.rawValue)-\(direction.rawValue)")
-                    .opacity(prefs.brightness)
+                ) { index in
+                    AnyView(spreadPage(index))
                 }
-
-                if showChrome {
-                    chrome(
-                        safeTop: geo.safeAreaInsets.top,
-                        safeBottom: geo.safeAreaInsets.bottom,
-                        page: page,
-                        layout: layout,
-                        spreads: spreads
-                    )
-                }
+                // Duo 切替で木を破棄しない。送り方と方向の変更時だけ再生成。
+                .id("\(direction.rawValue)-\(appliedLayout == .duo ? "slide" : prefs.turnStyle.rawValue)")
+                .opacity(prefs.brightness)
             }
-            .background(
-                Color.clear.preference(key: ReaderSizeKey.self, value: geo.size)
-            )
+
+            if showChrome {
+                chromeOverlay
+            }
         }
-        .onPreferenceChange(ReaderSizeKey.self) { newSize in
-            // View update 中の @State 更新を避ける
-            let nextLayout = DuoLayout.resolve(containerSize: newSize, preference: prefs.layoutMode)
-            DispatchQueue.main.async {
-                rematerializeSpread(for: nextLayout)
+        .background {
+            GeometryReader { geo in
+                Color.clear
+                    .onAppear { adoptSize(geo.size) }
+                    .onChange(of: geo.size) { _, newSize in
+                        adoptSize(newSize)
+                    }
             }
         }
         .statusBarHidden(!showChrome)
@@ -97,11 +87,14 @@ struct ReaderView: View {
         .onDisappear {
             UIApplication.shared.isIdleTimerDisabled = false
         }
-        .onChange(of: prefs.layoutMode) { _, mode in
-            DispatchQueue.main.async { rematerializeSpread(for: mode) }
+        .onChange(of: spreadIndex) { _, _ in
+            progress.setPageIndex(currentPageIndex, for: volume.id)
+        }
+        .onChange(of: prefs.layoutMode) { _, _ in
+            rematerializeFromProgress(layout: appliedLayout)
         }
         .onChange(of: prefs.coverAlone) { _, _ in
-            DispatchQueue.main.async { rematerializeSpread(for: prefs.layoutMode) }
+            rematerializeFromProgress(layout: appliedLayout)
         }
         .onChange(of: direction) { _, value in
             library.updateDirection(volume, direction: value)
@@ -115,186 +108,150 @@ struct ReaderView: View {
         }
     }
 
-    private var pageBinding: Binding<Int> {
-        Binding(
-            get: {
-                SpreadIndex.pageIndices(
-                    spreadIndex: spreadIndex,
-                    pageCount: volume.pageCount,
-                    coverAlone: prefs.coverAlone,
-                    layout: .single
-                ).0 ?? 0
-            },
-            set: { newPage in
-                spreadIndex = SpreadIndex.spreadIndex(
-                    forPage: newPage,
-                    coverAlone: prefs.coverAlone,
-                    layout: .single
-                )
-                progress.setPageIndex(newPage, for: volume.id)
-            }
-        )
-    }
-
-    private func duoPages(layout: PageLayoutMode) -> some View {
+    private func spreadPage(_ index: Int) -> some View {
         let pages = SpreadIndex.pageIndices(
-            spreadIndex: spreadIndex,
+            spreadIndex: index,
             pageCount: volume.pageCount,
             coverAlone: prefs.coverAlone,
-            layout: layout
+            layout: appliedLayout
         )
         return DuoFrameView {
-            HStack(spacing: 0) {
-                if direction == .rtl {
-                    pagePane(pages.1)
-                    pagePane(pages.0)
-                } else {
-                    pagePane(pages.0)
-                    pagePane(pages.1)
+            GeometryReader { geo in
+                HStack(spacing: hingeGutter(in: geo)) {
+                    if appliedLayout == .duo {
+                        if direction == .rtl {
+                            pagePane(pages.1, size: geo.size)
+                            pagePane(pages.0, size: geo.size)
+                        } else {
+                            pagePane(pages.0, size: geo.size)
+                            pagePane(pages.1, size: geo.size)
+                        }
+                    } else {
+                        pagePane(pages.0, size: geo.size)
+                    }
                 }
+                .frame(width: geo.size.width, height: geo.size.height)
             }
         }
     }
 
+    /// 将来の reservedRegions(.division) 用。SDK が無い環境では 0。
+    private func hingeGutter(in geo: GeometryProxy) -> CGFloat {
+        0
+    }
+
     @ViewBuilder
-    private func pagePane(_ index: Int?) -> some View {
+    private func pagePane(_ index: Int?, size: CGSize) -> some View {
         if let index {
             PageImageView(
                 url: volume.pageURL(at: index),
                 pageNumber: index + 1,
                 fitMode: prefs.fitMode
             )
+            .frame(
+                width: appliedLayout == .duo ? size.width / 2 : size.width,
+                height: size.height
+            )
         } else {
             Color.black
+                .frame(
+                    width: appliedLayout == .duo ? size.width / 2 : size.width,
+                    height: size.height
+                )
         }
     }
 
-    private func duoEdgeTaps(width: CGFloat, spreads: Int) -> some View {
-        HStack(spacing: 0) {
-            Color.clear
-                .contentShape(Rectangle())
-                .onTapGesture { turn(forward: direction == .rtl, spreads: spreads) }
-                .frame(width: width * 0.28)
-            Color.clear
-                .contentShape(Rectangle())
-                .onTapGesture {
-                    withAnimation(.easeInOut(duration: 0.2)) { showChrome.toggle() }
+    private var chromeOverlay: some View {
+        GeometryReader { geo in
+            VStack(spacing: 0) {
+                HStack(spacing: 12) {
+                    Button { dismiss() } label: {
+                        Image(systemName: "chevron.down").frame(width: 36, height: 36)
+                    }
+                    .accessibilityLabel("本棚に戻る")
+
+                    VStack(spacing: 2) {
+                        Text(volume.title)
+                            .font(.footnote.weight(.semibold))
+                            .lineLimit(1)
+                        Text("\(currentPageIndex + 1) / \(volume.pageCount) · \(appliedLayout == .duo ? "Duo" : "単ページ")")
+                            .font(.caption.monospacedDigit())
+                    }
+                    Spacer(minLength: 0)
+                    Button { showSettings = true } label: {
+                        Image(systemName: "slider.horizontal.3").frame(width: 36, height: 36)
+                    }
+                    .accessibilityLabel("読書設定")
                 }
-            Color.clear
-                .contentShape(Rectangle())
-                .onTapGesture { turn(forward: direction != .rtl, spreads: spreads) }
-                .frame(width: width * 0.28)
+                .foregroundStyle(.white)
+                .padding(.horizontal, 12)
+                .padding(.top, geo.safeAreaInsets.top + 4)
+                .padding(.bottom, 12)
+                .background(
+                    LinearGradient(colors: [.black.opacity(0.85), .clear], startPoint: .top, endPoint: .bottom)
+                )
+
+                Color.clear
+                    .frame(maxWidth: .infinity, maxHeight: .infinity)
+                    .allowsHitTesting(false)
+                    .contentShape(Rectangle())
+                    .onTapGesture {
+                        withAnimation(.easeInOut(duration: 0.2)) { showChrome.toggle() }
+                    }
+
+                let maxSpread = max(totalSpreads - 1, 0)
+                Slider(
+                    value: Binding(
+                        get: { Double(min(max(spreadIndex, 0), maxSpread)) },
+                        set: { spreadIndex = Int($0.rounded()) }
+                    ),
+                    in: 0...Double(maxSpread),
+                    step: 1
+                )
+                .padding(.horizontal, 20)
+                .padding(.bottom, geo.safeAreaInsets.bottom + 12)
+                .background(
+                    LinearGradient(colors: [.clear, .black.opacity(0.85)], startPoint: .top, endPoint: .bottom)
+                )
+            }
+            .ignoresSafeArea()
         }
+        // Chrome の中央以外は PageBrowser のスワイプを妨げないよう、オーバーレイ全体は通す。
+        // 上下バーはデフォルトでヒットを受ける。
     }
 
-    private func turn(forward: Bool, spreads: Int) {
-        let maxIndex = max(spreads - 1, 0)
-        if forward {
-            spreadIndex = min(spreadIndex + 1, maxIndex)
-        } else {
-            spreadIndex = max(spreadIndex - 1, 0)
+    private func adoptSize(_ size: CGSize) {
+        // 高さ0などの過渡フレームではレイアウトを切り替えない（Duo で固まる主因）。
+        guard DuoLayout.isUsable(size) else { return }
+        let next = DuoLayout.resolve(containerSize: size, preference: prefs.layoutMode)
+        guard next != appliedLayout else { return }
+        DispatchQueue.main.async {
+            appliedLayout = next
+            rematerializeFromProgress(layout: next)
         }
-        let page = SpreadIndex.pageIndices(
-            spreadIndex: spreadIndex,
-            pageCount: volume.pageCount,
-            coverAlone: prefs.coverAlone,
-            layout: .duo
-        ).0 ?? 0
-        progress.setPageIndex(page, for: volume.id)
-        UIImpactFeedbackGenerator(style: .light).impactOccurred()
     }
 
     private func restoreProgress() {
         prefs = AppSettingsStore.load()
-        rematerializeSpread(for: prefs.layoutMode)
+        rematerializeFromProgress(layout: appliedLayout)
         UIApplication.shared.isIdleTimerDisabled = prefs.keepScreenOn
         showChrome = false
     }
 
-    private func rematerializeSpread(for layout: PageLayoutMode) {
+    private func rematerializeFromProgress(layout: PageLayoutMode) {
         let page = progress.pageIndex(for: volume.id)
         let spreads = SpreadIndex.totalSpreads(
             pageCount: volume.pageCount,
             coverAlone: prefs.coverAlone,
             layout: layout
         )
-        let next = clamped(
-            SpreadIndex.spreadIndex(forPage: page, coverAlone: prefs.coverAlone, layout: layout),
-            spreads: spreads
+        let next = min(
+            max(SpreadIndex.spreadIndex(forPage: page, coverAlone: prefs.coverAlone, layout: layout), 0),
+            max(spreads - 1, 0)
         )
         if spreadIndex != next {
             spreadIndex = next
         }
-    }
-
-    private func clamped(_ index: Int, spreads: Int) -> Int {
-        min(max(index, 0), max(spreads - 1, 0))
-    }
-
-    private func chrome(
-        safeTop: CGFloat,
-        safeBottom: CGFloat,
-        page: Int,
-        layout: PageLayoutMode,
-        spreads: Int
-    ) -> some View {
-        let maxSpread = max(spreads - 1, 0)
-        return VStack(spacing: 0) {
-            HStack(spacing: 12) {
-                Button { dismiss() } label: {
-                    Image(systemName: "chevron.down").frame(width: 36, height: 36)
-                }
-                .accessibilityLabel("本棚に戻る")
-
-                VStack(spacing: 2) {
-                    Text(volume.title)
-                        .font(.footnote.weight(.semibold))
-                        .lineLimit(1)
-                    Text("\(page + 1) / \(volume.pageCount) · \(layout == .duo ? "Duo" : "単ページ")")
-                        .font(.caption.monospacedDigit())
-                }
-                Spacer(minLength: 0)
-                Button { showSettings = true } label: {
-                    Image(systemName: "slider.horizontal.3").frame(width: 36, height: 36)
-                }
-                .accessibilityLabel("読書設定")
-            }
-            .foregroundStyle(.white)
-            .padding(.horizontal, 12)
-            .padding(.top, safeTop + 4)
-            .padding(.bottom, 12)
-            .background(
-                LinearGradient(colors: [.black.opacity(0.85), .clear], startPoint: .top, endPoint: .bottom)
-            )
-
-            Color.clear
-                .frame(maxWidth: .infinity, maxHeight: .infinity)
-                .allowsHitTesting(false)
-
-            Slider(
-                value: Binding(
-                    get: { Double(clamped(spreadIndex, spreads: spreads)) },
-                    set: { value in
-                        spreadIndex = Int(value.rounded())
-                        let page = SpreadIndex.pageIndices(
-                            spreadIndex: spreadIndex,
-                            pageCount: volume.pageCount,
-                            coverAlone: prefs.coverAlone,
-                            layout: layout
-                        ).0 ?? 0
-                        progress.setPageIndex(page, for: volume.id)
-                    }
-                ),
-                in: 0...Double(maxSpread),
-                step: 1
-            )
-            .padding(.horizontal, 20)
-            .padding(.bottom, safeBottom + 12)
-            .background(
-                LinearGradient(colors: [.clear, .black.opacity(0.85)], startPoint: .top, endPoint: .bottom)
-            )
-        }
-        .ignoresSafeArea()
     }
 
     private var settingsSheet: some View {
@@ -338,12 +295,5 @@ struct ReaderView: View {
             }
         }
         .presentationDetents([.medium, .large])
-    }
-}
-
-private struct ReaderSizeKey: PreferenceKey {
-    static var defaultValue: CGSize = .zero
-    static func reduce(value: inout CGSize, nextValue: () -> CGSize) {
-        value = nextValue()
     }
 }
