@@ -1,0 +1,63 @@
+name: iOS Build
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+jobs:
+  build:
+    runs-on: macos-15
+    timeout-minutes: 45
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Show Xcode
+        run: xcodebuild -version && ls /Applications | grep -i xcode
+
+      - name: Resolve packages
+        working-directory: MangaViewer
+        run: |
+          xcodebuild -resolvePackageDependencies \
+            -project MangaViewer.xcodeproj \
+            -scheme MangaViewer
+
+      - name: Build for iOS Simulator
+        working-directory: MangaViewer
+        run: |
+          set -o pipefail
+          DEST=$(xcodebuild -project MangaViewer.xcodeproj -scheme MangaViewer -showdestinations 2>/dev/null \
+            | grep 'platform:iOS Simulator' | grep 'name:iPhone' | head -1 \
+            | sed -n 's/.*id:\([^,]*\).*/id=\1/p')
+          if [ -z "$DEST" ]; then
+            DEST='generic/platform=iOS Simulator'
+          else
+            DEST="platform=iOS Simulator,$DEST"
+          fi
+          echo "Using destination: $DEST"
+          xcodebuild build \
+            -project MangaViewer.xcodeproj \
+            -scheme MangaViewer \
+            -destination "$DEST" \
+            -configuration Debug \
+            CODE_SIGNING_ALLOWED=NO \
+            CODE_SIGN_IDENTITY="" \
+            CODE_SIGNING_REQUIRED=NO
+
+      - name: Unit tests
+        working-directory: MangaViewer
+        run: |
+          DEST=$(xcodebuild -project MangaViewer.xcodeproj -scheme MangaViewer -showdestinations 2>/dev/null \
+            | grep 'platform:iOS Simulator' | grep 'name:iPhone' | head -1 \
+            | sed -n 's/.*id:\([^,]*\).*/id=\1/p')
+          if [ -z "$DEST" ]; then
+            echo "No iPhone simulator; skipping tests"
+            exit 0
+          fi
+          xcodebuild test \
+            -project MangaViewer.xcodeproj \
+            -scheme MangaViewer \
+            -destination "platform=iOS Simulator,id=$DEST" \
+            CODE_SIGNING_ALLOWED=NO \
+            CODE_SIGN_IDENTITY="" \
+            CODE_SIGNING_REQUIRED=NO

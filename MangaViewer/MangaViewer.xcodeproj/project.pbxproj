@@ -1,0 +1,588 @@
+// !$*UTF8*$!
+{
+	archiveVersion = 1;
+	classes = {
+	};
+	objectVersion = 56;
+	objects = {
+
+/* Begin PBXBuildFile section */
+		03D377B8CC9B4BC59B6067A2 /* FTPClient.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5124BFD5B01345BF9886DB6F /* FTPClient.swift */; };
+		0EC4BBAA85F24E59A612E01C /* RemoteSource.swift in Sources */ = {isa = PBXBuildFile; fileRef = F0C52056C7E440BF842E3FCE /* RemoteSource.swift */; };
+		11B1CC8424704A82AF0BA199 /* MangaVolume.swift in Sources */ = {isa = PBXBuildFile; fileRef = AE0870754DE1438D872D81C0 /* MangaVolume.swift */; };
+		142AF0BB87C6489BBB08AA83 /* ImportHubView.swift in Sources */ = {isa = PBXBuildFile; fileRef = E2C56A7394A14A26B7F9BE2F /* ImportHubView.swift */; };
+		158D08242F054EAA83F6C9E9 /* ComicInfoParser.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1EC14D26C4FE4C7CAC5CCB9B /* ComicInfoParser.swift */; };
+		274038BF09394D93842210CC /* DuoFrameView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8A3F7CC2B0F944419473F553 /* DuoFrameView.swift */; };
+		27ECDA2C6BC54195BE2B74E5 /* ProgressStore.swift in Sources */ = {isa = PBXBuildFile; fileRef = 15C0918C9714460AABEFD2B2 /* ProgressStore.swift */; };
+		2F535896C42448FD8403DFF5 /* RemoteGateway.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7BB2EE56539B4A1EA7480E0C /* RemoteGateway.swift */; };
+		304A842F15474FEBB5D8A9C4 /* AMSMB2 in Frameworks */ = {isa = PBXBuildFile; productRef = 6BF2BC4368614CBE8D045E91 /* AMSMB2 */; };
+		A8F3C1D2E4B64A7F9C2E5D10 /* AMSMB2 in Embed Frameworks */ = {isa = PBXBuildFile; productRef = 6BF2BC4368614CBE8D045E91 /* AMSMB2 */; settings = {ATTRIBUTES = (CodeSignOnCopy, RemoveHeadersOnCopy); }; };
+		3D30E79610C74253840A2B26 /* SettingsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3BE1DD0F916D4E768B1360CB /* SettingsView.swift */; };
+		400A88EB27FD49E18ED64C6B /* RemoteBrowserView.swift in Sources */ = {isa = PBXBuildFile; fileRef = C49252BCF8914BECBD625FDC /* RemoteBrowserView.swift */; };
+		4873D19A42AD47419C6A60D3 /* SampleManga in Resources */ = {isa = PBXBuildFile; fileRef = 69BC7592317646029E37FC5A /* SampleManga */; };
+		492B16B2C448447380B9E252 /* ReaderView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4B0F09A33B21459CB630311D /* ReaderView.swift */; };
+		4E50C9EF3EDB42D8AF8388A1 /* MangaImporter.swift in Sources */ = {isa = PBXBuildFile; fileRef = 19864E8627D74DE39B2F47E1 /* MangaImporter.swift */; };
+		555A33E99DA94E01B7E37E28 /* ThumbnailGridView.swift in Sources */ = {isa = PBXBuildFile; fileRef = BDDBD9B37D8C4DE9847E102A /* ThumbnailGridView.swift */; };
+		5A2C42F6A3DA4FCCA228E34C /* WiFiTransferServer.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3BC0FD83B2C74D67B1395A60 /* WiFiTransferServer.swift */; };
+		68CD586DD5E240978B63AE5C /* OPDSClient.swift in Sources */ = {isa = PBXBuildFile; fileRef = 389965A97C6248B3A3217BF8 /* OPDSClient.swift */; };
+		69316BB0E200408989017B50 /* ZipUnarchiver.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0D5FC453C0334ACD8FDB4583 /* ZipUnarchiver.swift */; };
+		6BF2B45223254C2ABA21B300 /* MangaViewerApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = 497006F18A8C458F857C76E9 /* MangaViewerApp.swift */; };
+		742D198A508944F288831C81 /* S3Client.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4D1DC8B105684348A8DA5910 /* S3Client.swift */; };
+		745574E62137493D97DED3A7 /* ReaderSettings.swift in Sources */ = {isa = PBXBuildFile; fileRef = 949E8D38A1D24100B47964C4 /* ReaderSettings.swift */; };
+		79384086744B4FF29C7AD630 /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = C3961AE9DED44B6FAA72AD71 /* Assets.xcassets */; };
+		7C8F599F08434F2FB9E9BB0D /* SFTPClientService.swift in Sources */ = {isa = PBXBuildFile; fileRef = 76D5E54E1F364D84AB628C77 /* SFTPClientService.swift */; };
+		85181BD0FF83491AB68C319B /* AddSourceView.swift in Sources */ = {isa = PBXBuildFile; fileRef = F1B99B891E0A480AA17D0C97 /* AddSourceView.swift */; };
+		8AC13816DEB14BBF9A6E842F /* LibraryStore.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1670113F259F4947BBD077F0 /* LibraryStore.swift */; };
+		94C987B0EAA843969E6DD2D5 /* DuoPose.swift in Sources */ = {isa = PBXBuildFile; fileRef = 82B2BD35027B448B99BFD350 /* DuoPose.swift */; };
+		9792E8F9D35342A6A6100F86 /* SMBClientService.swift in Sources */ = {isa = PBXBuildFile; fileRef = E5FE3710406B412AA57940B4 /* SMBClientService.swift */; };
+		AD3A2B4781F54602B561F8DB /* WiFiTransferView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6A33121C4A9546E9B9FD58F6 /* WiFiTransferView.swift */; };
+		AE8B7DE39EB4429BB1ED55BF /* ContentView.swift in Sources */ = {isa = PBXBuildFile; fileRef = A9437DB581354914AC575484 /* ContentView.swift */; };
+		BA13E83623F94B58A942B76F /* LibraryView.swift in Sources */ = {isa = PBXBuildFile; fileRef = E1CD00C2C5C442BA89889B8F /* LibraryView.swift */; };
+		C1BD8C7928324B099542D006 /* RemoteSourceStore.swift in Sources */ = {isa = PBXBuildFile; fileRef = C1F5FA5EACAB412D9A7C95A9 /* RemoteSourceStore.swift */; };
+		C5FBEE2802C04EE2A09E35C8 /* HTTPDownloadService.swift in Sources */ = {isa = PBXBuildFile; fileRef = 03B99D342C694A1AA8703F1B /* HTTPDownloadService.swift */; };
+		C7BA70D1C74E469A8E283685 /* SpreadIndex.swift in Sources */ = {isa = PBXBuildFile; fileRef = F136B87073BA4FFAAD233E3A /* SpreadIndex.swift */; };
+		D4D291BF632A49B38E9010C0 /* Citadel in Frameworks */ = {isa = PBXBuildFile; productRef = D668BA979A7A4CE5AC753D35 /* Citadel */; };
+		D5E6E624B3FC4E2098128D83 /* SpreadIndexTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4C929EA256B94ED2BB6230E3 /* SpreadIndexTests.swift */; };
+		DCCC49DCA3EB489C9BCE7E89 /* WebDAVClient.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3D20E5DE48164415AED09101 /* WebDAVClient.swift */; };
+		EB90AA91CEA745E6A36015F7 /* Catalog.swift in Sources */ = {isa = PBXBuildFile; fileRef = 77E189F479AD45DDB111C28D /* Catalog.swift */; };
+		ECEEA8184F8740A087F4DFB2 /* PagePaneView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 13DB73B3A0C04FC483FAEBC7 /* PagePaneView.swift */; };
+		A49C5DA47F724107B16F51B6 /* PageTurnHost.swift in Sources */ = {isa = PBXBuildFile; fileRef = DA9D44640C3A42A6B12E4389 /* PageTurnHost.swift */; };
+/* End PBXBuildFile section */
+
+/* Begin PBXContainerItemProxy section */
+		D8D94F8902524F82B535F342 /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = 4F63896D72E94350AA84E108 /* Project object */;
+			proxyType = 1;
+			remoteGlobalIDString = CB5DEDCB225E4861A747615A;
+			remoteInfo = MangaViewer;
+		};
+/* End PBXContainerItemProxy section */
+
+/* Begin PBXFileReference section */
+		03B99D342C694A1AA8703F1B /* HTTPDownloadService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HTTPDownloadService.swift; sourceTree = "<group>"; };
+		0D5FC453C0334ACD8FDB4583 /* ZipUnarchiver.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ZipUnarchiver.swift; sourceTree = "<group>"; };
+		13DB73B3A0C04FC483FAEBC7 /* PagePaneView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PagePaneView.swift; sourceTree = "<group>"; };
+		15C0918C9714460AABEFD2B2 /* ProgressStore.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ProgressStore.swift; sourceTree = "<group>"; };
+		1670113F259F4947BBD077F0 /* LibraryStore.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LibraryStore.swift; sourceTree = "<group>"; };
+		19864E8627D74DE39B2F47E1 /* MangaImporter.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MangaImporter.swift; sourceTree = "<group>"; };
+		1EC14D26C4FE4C7CAC5CCB9B /* ComicInfoParser.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ComicInfoParser.swift; sourceTree = "<group>"; };
+		389965A97C6248B3A3217BF8 /* OPDSClient.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = OPDSClient.swift; sourceTree = "<group>"; };
+		3BC0FD83B2C74D67B1395A60 /* WiFiTransferServer.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WiFiTransferServer.swift; sourceTree = "<group>"; };
+		3BE1DD0F916D4E768B1360CB /* SettingsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SettingsView.swift; sourceTree = "<group>"; };
+		3D20E5DE48164415AED09101 /* WebDAVClient.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WebDAVClient.swift; sourceTree = "<group>"; };
+		497006F18A8C458F857C76E9 /* MangaViewerApp.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MangaViewerApp.swift; sourceTree = "<group>"; };
+		4B0F09A33B21459CB630311D /* ReaderView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ReaderView.swift; sourceTree = "<group>"; };
+		4C929EA256B94ED2BB6230E3 /* SpreadIndexTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SpreadIndexTests.swift; sourceTree = "<group>"; };
+		4D1DC8B105684348A8DA5910 /* S3Client.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = S3Client.swift; sourceTree = "<group>"; };
+		5124BFD5B01345BF9886DB6F /* FTPClient.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FTPClient.swift; sourceTree = "<group>"; };
+		69BC7592317646029E37FC5A /* SampleManga */ = {isa = PBXFileReference; lastKnownFileType = folder; name = SampleManga; path = Resources/SampleManga; sourceTree = "<group>"; };
+		6A33121C4A9546E9B9FD58F6 /* WiFiTransferView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WiFiTransferView.swift; sourceTree = "<group>"; };
+		736E1E21FF404B4B82FDFFCC /* MangaViewerTests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = MangaViewerTests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
+		76D5E54E1F364D84AB628C77 /* SFTPClientService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SFTPClientService.swift; sourceTree = "<group>"; };
+		77E189F479AD45DDB111C28D /* Catalog.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Catalog.swift; sourceTree = "<group>"; };
+		7BB2EE56539B4A1EA7480E0C /* RemoteGateway.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RemoteGateway.swift; sourceTree = "<group>"; };
+		82B2BD35027B448B99BFD350 /* DuoPose.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DuoPose.swift; sourceTree = "<group>"; };
+		8A3F7CC2B0F944419473F553 /* DuoFrameView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DuoFrameView.swift; sourceTree = "<group>"; };
+		949E8D38A1D24100B47964C4 /* ReaderSettings.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ReaderSettings.swift; sourceTree = "<group>"; };
+		A9437DB581354914AC575484 /* ContentView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ContentView.swift; sourceTree = "<group>"; };
+		AE0870754DE1438D872D81C0 /* MangaVolume.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MangaVolume.swift; sourceTree = "<group>"; };
+		BDDBD9B37D8C4DE9847E102A /* ThumbnailGridView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ThumbnailGridView.swift; sourceTree = "<group>"; };
+		C1F5FA5EACAB412D9A7C95A9 /* RemoteSourceStore.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RemoteSourceStore.swift; sourceTree = "<group>"; };
+		C3961AE9DED44B6FAA72AD71 /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
+		C49252BCF8914BECBD625FDC /* RemoteBrowserView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RemoteBrowserView.swift; sourceTree = "<group>"; };
+		E1CD00C2C5C442BA89889B8F /* LibraryView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LibraryView.swift; sourceTree = "<group>"; };
+		E2C56A7394A14A26B7F9BE2F /* ImportHubView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ImportHubView.swift; sourceTree = "<group>"; };
+		E5FE3710406B412AA57940B4 /* SMBClientService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SMBClientService.swift; sourceTree = "<group>"; };
+		E6BAC3B93AEC4F5D877C1575 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
+		F0C52056C7E440BF842E3FCE /* RemoteSource.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RemoteSource.swift; sourceTree = "<group>"; };
+		F136B87073BA4FFAAD233E3A /* SpreadIndex.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SpreadIndex.swift; sourceTree = "<group>"; };
+		F1B99B891E0A480AA17D0C97 /* AddSourceView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AddSourceView.swift; sourceTree = "<group>"; };
+		FEE2E0E65368424083797A8F /* MangaViewer.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = MangaViewer.app; sourceTree = BUILT_PRODUCTS_DIR; };
+		DA9D44640C3A42A6B12E4389 /* PageTurnHost.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PageTurnHost.swift; sourceTree = "<group>"; };
+/* End PBXFileReference section */
+
+/* Begin PBXFrameworksBuildPhase section */
+		7AD48B3D58C64617AB8FA394 /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		D58AD445294F41678BDA970C /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				304A842F15474FEBB5D8A9C4 /* AMSMB2 in Frameworks */,
+				D4D291BF632A49B38E9010C0 /* Citadel in Frameworks */);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXFrameworksBuildPhase section */
+
+/* Begin PBXGroup section */
+		06A197F27B3C40CB84AD3C92 /* Remote */ = {
+			isa = PBXGroup;
+			children = (
+				C1F5FA5EACAB412D9A7C95A9 /* RemoteSourceStore.swift */,
+				7BB2EE56539B4A1EA7480E0C /* RemoteGateway.swift */,
+				3D20E5DE48164415AED09101 /* WebDAVClient.swift */,
+				5124BFD5B01345BF9886DB6F /* FTPClient.swift */,
+				E5FE3710406B412AA57940B4 /* SMBClientService.swift */,
+				76D5E54E1F364D84AB628C77 /* SFTPClientService.swift */,
+				389965A97C6248B3A3217BF8 /* OPDSClient.swift */,
+				4D1DC8B105684348A8DA5910 /* S3Client.swift */,
+				03B99D342C694A1AA8703F1B /* HTTPDownloadService.swift */,
+				3BC0FD83B2C74D67B1395A60 /* WiFiTransferServer.swift */);
+			path = Remote;
+			sourceTree = "<group>";
+		};
+		132B8061F818400E825258A7 /* Packages */ = {
+			isa = PBXGroup;
+			children = (
+			);
+			name = Packages;
+			sourceTree = "<group>";
+		};
+		19C1012D4FBF4F3FA28D317E /* Models */ = {
+			isa = PBXGroup;
+			children = (
+				82B2BD35027B448B99BFD350 /* DuoPose.swift */,
+				AE0870754DE1438D872D81C0 /* MangaVolume.swift */,
+				F136B87073BA4FFAAD233E3A /* SpreadIndex.swift */,
+				949E8D38A1D24100B47964C4 /* ReaderSettings.swift */,
+				F0C52056C7E440BF842E3FCE /* RemoteSource.swift */);
+			path = Models;
+			sourceTree = "<group>";
+		};
+		4281E245840B44D8885AD649 /* MangaViewer */ = {
+			isa = PBXGroup;
+			children = (
+				497006F18A8C458F857C76E9 /* MangaViewerApp.swift */,
+				A9437DB581354914AC575484 /* ContentView.swift */,
+				19C1012D4FBF4F3FA28D317E /* Models */,
+				430BA9C7843341AE82C95587 /* Services */,
+				C13D732FFC764769A03A9B0F /* Views */,
+				C3961AE9DED44B6FAA72AD71 /* Assets.xcassets */,
+				69BC7592317646029E37FC5A /* SampleManga */,
+				E6BAC3B93AEC4F5D877C1575 /* Info.plist */);
+			path = MangaViewer;
+			sourceTree = "<group>";
+		};
+		430BA9C7843341AE82C95587 /* Services */ = {
+			isa = PBXGroup;
+			children = (
+				77E189F479AD45DDB111C28D /* Catalog.swift */,
+				15C0918C9714460AABEFD2B2 /* ProgressStore.swift */,
+				1670113F259F4947BBD077F0 /* LibraryStore.swift */,
+				19864E8627D74DE39B2F47E1 /* MangaImporter.swift */,
+				0D5FC453C0334ACD8FDB4583 /* ZipUnarchiver.swift */,
+				1EC14D26C4FE4C7CAC5CCB9B /* ComicInfoParser.swift */,
+				06A197F27B3C40CB84AD3C92 /* Remote */);
+			path = Services;
+			sourceTree = "<group>";
+		};
+		4C27224BF46F4AFFB5CD7F28 /* Products */ = {
+			isa = PBXGroup;
+			children = (
+				FEE2E0E65368424083797A8F /* MangaViewer.app */,
+				736E1E21FF404B4B82FDFFCC /* MangaViewerTests.xctest */);
+			name = Products;
+			sourceTree = "<group>";
+		};
+		8DAA6FEBD2834804AB4B2B22 = {
+			isa = PBXGroup;
+			children = (
+				4281E245840B44D8885AD649 /* MangaViewer */,
+				E3FB7D12DCAF4E6FB6FDF627 /* MangaViewerTests */,
+				4C27224BF46F4AFFB5CD7F28 /* Products */,
+				132B8061F818400E825258A7 /* Packages */);
+			sourceTree = "<group>";
+		};
+		97D593CF93DA45BA9A3FE097 /* Import */ = {
+			isa = PBXGroup;
+			children = (
+				E2C56A7394A14A26B7F9BE2F /* ImportHubView.swift */,
+				F1B99B891E0A480AA17D0C97 /* AddSourceView.swift */,
+				C49252BCF8914BECBD625FDC /* RemoteBrowserView.swift */,
+				6A33121C4A9546E9B9FD58F6 /* WiFiTransferView.swift */);
+			path = Import;
+			sourceTree = "<group>";
+		};
+		C13D732FFC764769A03A9B0F /* Views */ = {
+			isa = PBXGroup;
+			children = (
+				13DB73B3A0C04FC483FAEBC7 /* PagePaneView.swift */,
+				8A3F7CC2B0F944419473F553 /* DuoFrameView.swift */,
+				E1CD00C2C5C442BA89889B8F /* LibraryView.swift */,
+				4B0F09A33B21459CB630311D /* ReaderView.swift */,
+				3BE1DD0F916D4E768B1360CB /* SettingsView.swift */,
+				BDDBD9B37D8C4DE9847E102A /* ThumbnailGridView.swift */,
+				97D593CF93DA45BA9A3FE097 /* Import */, DA9D44640C3A42A6B12E4389 /* PageTurnHost.swift */);
+			path = Views;
+			sourceTree = "<group>";
+		};
+		E3FB7D12DCAF4E6FB6FDF627 /* MangaViewerTests */ = {
+			isa = PBXGroup;
+			children = (
+				4C929EA256B94ED2BB6230E3 /* SpreadIndexTests.swift */);
+			path = MangaViewerTests;
+			sourceTree = "<group>";
+		};
+/* End PBXGroup section */
+
+/* Begin PBXNativeTarget section */
+		687A43A54BAD48A7809ED1C2 /* MangaViewerTests */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = 362628F5D6BE4F998E3E4999 /* Build configuration list for PBXNativeTarget "MangaViewerTests" */;
+			buildPhases = (
+				F1DC5A6C61744527B991540A /* Sources */,
+				7AD48B3D58C64617AB8FA394 /* Frameworks */);
+			buildRules = (
+			);
+			dependencies = (
+				FE25095B412A4E86BD5202A0 /* PBXTargetDependency */);
+			name = MangaViewerTests;
+			productName = MangaViewerTests;
+			productReference = 736E1E21FF404B4B82FDFFCC /* MangaViewerTests.xctest */;
+			productType = "com.apple.product-type.bundle.unit-test";
+		};
+		CB5DEDCB225E4861A747615A /* MangaViewer */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = 6F7E9F570B5141EAACEDA76D /* Build configuration list for PBXNativeTarget "MangaViewer" */;
+			buildPhases = (
+				E4361B50C4004E08B9A77A94 /* Sources */,
+				D58AD445294F41678BDA970C /* Frameworks */,
+				0FE56FBF7ED6428EBFFB054F /* Resources */,
+				B9E4D2C3F5A75B8E0D3F6E21 /* Embed Frameworks */);
+			buildRules = (
+			);
+			dependencies = (
+			);
+			name = MangaViewer;
+			packageProductDependencies = (
+				6BF2BC4368614CBE8D045E91 /* AMSMB2 */,
+				D668BA979A7A4CE5AC753D35 /* Citadel */);
+			productName = MangaViewer;
+			productReference = FEE2E0E65368424083797A8F /* MangaViewer.app */;
+			productType = "com.apple.product-type.application";
+		};
+/* End PBXNativeTarget section */
+
+/* Begin PBXProject section */
+		4F63896D72E94350AA84E108 /* Project object */ = {
+			isa = PBXProject;
+			attributes = {
+				BuildIndependentTargetsInParallel = 1;
+				LastSwiftUpdateCheck = 1600;
+				LastUpgradeCheck = 1600;
+				TargetAttributes = {
+					687A43A54BAD48A7809ED1C2 = {
+						CreatedOnToolsVersion = 16.0;
+						TestTargetID = CB5DEDCB225E4861A747615A;
+					};
+					CB5DEDCB225E4861A747615A = {
+						CreatedOnToolsVersion = 16.0;
+					};
+				};
+			};
+			buildConfigurationList = 13056AD27A764E15819EDF5D /* Build configuration list for PBXProject "MangaViewer" */;
+			compatibilityVersion = "Xcode 14.0";
+			developmentRegion = ja;
+			hasScannedForEncodings = 0;
+			knownRegions = (
+				en,
+				ja,
+				Base);
+			mainGroup = 8DAA6FEBD2834804AB4B2B22;
+			packageReferences = (
+				905E8436333747018CEF5017 /* XCRemoteSwiftPackageReference "AMSMB2" */,
+				205A91D33B8C4E0CB2BABD69 /* XCRemoteSwiftPackageReference "Citadel" */);
+			productRefGroup = 4C27224BF46F4AFFB5CD7F28 /* Products */;
+			projectDirPath = "";
+			projectRoot = "";
+			targets = (
+				CB5DEDCB225E4861A747615A /* MangaViewer */,
+				687A43A54BAD48A7809ED1C2 /* MangaViewerTests */);
+		};
+/* End PBXProject section */
+
+/* Begin PBXCopyFilesBuildPhase section */
+		B9E4D2C3F5A75B8E0D3F6E21 /* Embed Frameworks */ = {
+			isa = PBXCopyFilesBuildPhase;
+			buildActionMask = 2147483647;
+			dstPath = "";
+			dstSubfolderSpec = 10;
+			files = (
+				A8F3C1D2E4B64A7F9C2E5D10 /* AMSMB2 in Embed Frameworks */);
+			name = "Embed Frameworks";
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXCopyFilesBuildPhase section */
+
+/* Begin PBXResourcesBuildPhase section */
+		0FE56FBF7ED6428EBFFB054F /* Resources */ = {
+			isa = PBXResourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				79384086744B4FF29C7AD630 /* Assets.xcassets in Resources */,
+				4873D19A42AD47419C6A60D3 /* SampleManga in Resources */);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXResourcesBuildPhase section */
+
+/* Begin PBXSourcesBuildPhase section */
+		E4361B50C4004E08B9A77A94 /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				6BF2B45223254C2ABA21B300 /* MangaViewerApp.swift in Sources */,
+				AE8B7DE39EB4429BB1ED55BF /* ContentView.swift in Sources */,
+				94C987B0EAA843969E6DD2D5 /* DuoPose.swift in Sources */,
+				11B1CC8424704A82AF0BA199 /* MangaVolume.swift in Sources */,
+				C7BA70D1C74E469A8E283685 /* SpreadIndex.swift in Sources */,
+				745574E62137493D97DED3A7 /* ReaderSettings.swift in Sources */,
+				0EC4BBAA85F24E59A612E01C /* RemoteSource.swift in Sources */,
+				EB90AA91CEA745E6A36015F7 /* Catalog.swift in Sources */,
+				27ECDA2C6BC54195BE2B74E5 /* ProgressStore.swift in Sources */,
+				8AC13816DEB14BBF9A6E842F /* LibraryStore.swift in Sources */,
+				4E50C9EF3EDB42D8AF8388A1 /* MangaImporter.swift in Sources */,
+				69316BB0E200408989017B50 /* ZipUnarchiver.swift in Sources */,
+				158D08242F054EAA83F6C9E9 /* ComicInfoParser.swift in Sources */,
+				C1BD8C7928324B099542D006 /* RemoteSourceStore.swift in Sources */,
+				2F535896C42448FD8403DFF5 /* RemoteGateway.swift in Sources */,
+				DCCC49DCA3EB489C9BCE7E89 /* WebDAVClient.swift in Sources */,
+				03D377B8CC9B4BC59B6067A2 /* FTPClient.swift in Sources */,
+				9792E8F9D35342A6A6100F86 /* SMBClientService.swift in Sources */,
+				7C8F599F08434F2FB9E9BB0D /* SFTPClientService.swift in Sources */,
+				68CD586DD5E240978B63AE5C /* OPDSClient.swift in Sources */,
+				742D198A508944F288831C81 /* S3Client.swift in Sources */,
+				C5FBEE2802C04EE2A09E35C8 /* HTTPDownloadService.swift in Sources */,
+				5A2C42F6A3DA4FCCA228E34C /* WiFiTransferServer.swift in Sources */,
+				ECEEA8184F8740A087F4DFB2 /* PagePaneView.swift in Sources */,
+				274038BF09394D93842210CC /* DuoFrameView.swift in Sources */,
+				BA13E83623F94B58A942B76F /* LibraryView.swift in Sources */,
+				492B16B2C448447380B9E252 /* ReaderView.swift in Sources */,
+				3D30E79610C74253840A2B26 /* SettingsView.swift in Sources */,
+				555A33E99DA94E01B7E37E28 /* ThumbnailGridView.swift in Sources */,
+				142AF0BB87C6489BBB08AA83 /* ImportHubView.swift in Sources */,
+				85181BD0FF83491AB68C319B /* AddSourceView.swift in Sources */,
+				400A88EB27FD49E18ED64C6B /* RemoteBrowserView.swift in Sources */,
+				AD3A2B4781F54602B561F8DB /* WiFiTransferView.swift in Sources */, A49C5DA47F724107B16F51B6 /* PageTurnHost.swift in Sources */);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		F1DC5A6C61744527B991540A /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				D5E6E624B3FC4E2098128D83 /* SpreadIndexTests.swift in Sources */);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXSourcesBuildPhase section */
+
+/* Begin PBXTargetDependency section */
+		FE25095B412A4E86BD5202A0 /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			target = CB5DEDCB225E4861A747615A /* MangaViewer */;
+			targetProxy = D8D94F8902524F82B535F342 /* PBXContainerItemProxy */;
+		};
+/* End PBXTargetDependency section */
+
+/* Begin XCBuildConfiguration section */
+		108DE4340861410DB8C34FA4 /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ALWAYS_SEARCH_USER_PATHS = NO;
+				CLANG_ENABLE_MODULES = YES;
+				CLANG_ENABLE_OBJC_ARC = YES;
+				COPY_PHASE_STRIP = NO;
+				DEBUG_INFORMATION_FORMAT = dwarf;
+				ENABLE_STRICT_OBJC_MSGSEND = YES;
+				GCC_DYNAMIC_NO_PIC = YES;
+				GCC_OPTIMIZATION_LEVEL = s;
+				IPHONEOS_DEPLOYMENT_TARGET = 17.0;
+				ONLY_ACTIVE_ARCH = NO;
+				SDKROOT = iphoneos;
+				SWIFT_COMPILATION_MODE = wholemodule;
+				SWIFT_OPTIMIZATION_LEVEL = "-O";
+			};
+			name = Release;
+		};
+		4A50C20E372E4968BC55AF06 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
+				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 1;
+				DEVELOPMENT_TEAM = 57243AS5Y9;
+				ENABLE_PREVIEWS = YES;
+				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_FILE = MangaViewer/Info.plist;
+				INFOPLIST_KEY_CFBundleDisplayName = "manga viewer";
+				INFOPLIST_KEY_LSSupportsOpeningDocumentsInPlace = YES;
+				INFOPLIST_KEY_NSLocalNetworkUsageDescription = "NAS・ファイルサーバ・Wi-Fi転送に接続するためにローカルネットワークを使用します。";
+				INFOPLIST_KEY_UIApplicationSceneManifest_Generation = YES;
+				INFOPLIST_KEY_UILaunchScreen_Generation = YES;
+				INFOPLIST_KEY_UISupportedInterfaceOrientations = "UIInterfaceOrientationPortrait UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight";
+				INFOPLIST_KEY_UISupportsDocumentBrowser = NO;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks");
+				MARKETING_VERSION = 0.3.0;
+				PRODUCT_BUNDLE_IDENTIFIER = app.mangaviewer.MangaViewer;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SUPPORTED_PLATFORMS = "iphoneos iphonesimulator";
+				SUPPORTS_MACCATALYST = NO;
+				SWIFT_EMIT_LOC_STRINGS = YES;
+				SWIFT_VERSION = 5.0;
+				TARGETED_DEVICE_FAMILY = "1,2";
+			};
+			name = Debug;
+		};
+		4AACF8CAC0A141BBAD4A249A /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ALWAYS_SEARCH_USER_PATHS = NO;
+				CLANG_ENABLE_MODULES = YES;
+				CLANG_ENABLE_OBJC_ARC = YES;
+				COPY_PHASE_STRIP = NO;
+				DEBUG_INFORMATION_FORMAT = dwarf;
+				ENABLE_STRICT_OBJC_MSGSEND = YES;
+				GCC_DYNAMIC_NO_PIC = NO;
+				GCC_OPTIMIZATION_LEVEL = 0;
+				IPHONEOS_DEPLOYMENT_TARGET = 17.0;
+				ONLY_ACTIVE_ARCH = YES;
+				SDKROOT = iphoneos;
+				SWIFT_ACTIVE_COMPILATION_CONDITIONS = DEBUG;
+				SWIFT_OPTIMIZATION_LEVEL = "-Onone";
+			};
+			name = Debug;
+		};
+		7C1DEB67A81E454FBA5E4881 /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				BUNDLE_LOADER = "$(TEST_HOST)";
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 1;
+				GENERATE_INFOPLIST_FILE = YES;
+				MARKETING_VERSION = 0.3.0;
+				PRODUCT_BUNDLE_IDENTIFIER = app.mangaviewer.MangaViewerTests;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SWIFT_VERSION = 5.0;
+				TARGETED_DEVICE_FAMILY = "1,2";
+				TEST_HOST = "$(BUILT_PRODUCTS_DIR)/MangaViewer.app/$(BUNDLE_EXECUTABLE_FOLDER_PATH)/MangaViewer";
+			};
+			name = Release;
+		};
+		B85E0C1936334174813EC602 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				BUNDLE_LOADER = "$(TEST_HOST)";
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 1;
+				GENERATE_INFOPLIST_FILE = YES;
+				MARKETING_VERSION = 0.3.0;
+				PRODUCT_BUNDLE_IDENTIFIER = app.mangaviewer.MangaViewerTests;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SWIFT_VERSION = 5.0;
+				TARGETED_DEVICE_FAMILY = "1,2";
+				TEST_HOST = "$(BUILT_PRODUCTS_DIR)/MangaViewer.app/$(BUNDLE_EXECUTABLE_FOLDER_PATH)/MangaViewer";
+			};
+			name = Debug;
+		};
+		CF283B2A42CC4EF58A67C3F9 /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
+				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 1;
+				DEVELOPMENT_TEAM = 57243AS5Y9;
+				ENABLE_PREVIEWS = YES;
+				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_FILE = MangaViewer/Info.plist;
+				INFOPLIST_KEY_CFBundleDisplayName = "manga viewer";
+				INFOPLIST_KEY_LSSupportsOpeningDocumentsInPlace = YES;
+				INFOPLIST_KEY_NSLocalNetworkUsageDescription = "NAS・ファイルサーバ・Wi-Fi転送に接続するためにローカルネットワークを使用します。";
+				INFOPLIST_KEY_UIApplicationSceneManifest_Generation = YES;
+				INFOPLIST_KEY_UILaunchScreen_Generation = YES;
+				INFOPLIST_KEY_UISupportedInterfaceOrientations = "UIInterfaceOrientationPortrait UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight";
+				INFOPLIST_KEY_UISupportsDocumentBrowser = NO;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks");
+				MARKETING_VERSION = 0.3.0;
+				PRODUCT_BUNDLE_IDENTIFIER = app.mangaviewer.MangaViewer;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SUPPORTED_PLATFORMS = "iphoneos iphonesimulator";
+				SUPPORTS_MACCATALYST = NO;
+				SWIFT_EMIT_LOC_STRINGS = YES;
+				SWIFT_VERSION = 5.0;
+				TARGETED_DEVICE_FAMILY = "1,2";
+			};
+			name = Release;
+		};
+/* End XCBuildConfiguration section */
+
+/* Begin XCConfigurationList section */
+		13056AD27A764E15819EDF5D /* Build configuration list for PBXProject "MangaViewer" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				4AACF8CAC0A141BBAD4A249A /* Debug */,
+				108DE4340861410DB8C34FA4 /* Release */);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+		362628F5D6BE4F998E3E4999 /* Build configuration list for PBXNativeTarget "MangaViewerTests" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				B85E0C1936334174813EC602 /* Debug */,
+				7C1DEB67A81E454FBA5E4881 /* Release */);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+		6F7E9F570B5141EAACEDA76D /* Build configuration list for PBXNativeTarget "MangaViewer" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				4A50C20E372E4968BC55AF06 /* Debug */,
+				CF283B2A42CC4EF58A67C3F9 /* Release */);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+/* End XCConfigurationList section */
+
+/* Begin XCRemoteSwiftPackageReference section */
+		205A91D33B8C4E0CB2BABD69 /* XCRemoteSwiftPackageReference "Citadel" */ = {
+			isa = XCRemoteSwiftPackageReference;
+			repositoryURL = "https://github.com/orlandos-nl/Citadel";
+			requirement = {
+				kind = upToNextMajorVersion;
+				minimumVersion = 0.9.0;
+			};
+		};
+		905E8436333747018CEF5017 /* XCRemoteSwiftPackageReference "AMSMB2" */ = {
+			isa = XCRemoteSwiftPackageReference;
+			repositoryURL = "https://github.com/amosavian/AMSMB2";
+			requirement = {
+				kind = upToNextMajorVersion;
+				minimumVersion = 4.0.3;
+			};
+		};
+/* End XCRemoteSwiftPackageReference section */
+
+/* Begin XCSwiftPackageProductDependency section */
+		6BF2BC4368614CBE8D045E91 /* AMSMB2 */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = 905E8436333747018CEF5017 /* XCRemoteSwiftPackageReference "AMSMB2" */;
+			productName = AMSMB2;
+		};
+		D668BA979A7A4CE5AC753D35 /* Citadel */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = 205A91D33B8C4E0CB2BABD69 /* XCRemoteSwiftPackageReference "Citadel" */;
+			productName = Citadel;
+		};
+/* End XCSwiftPackageProductDependency section */
+	};
+	rootObject = 4F63896D72E94350AA84E108 /* Project object */;
+}
