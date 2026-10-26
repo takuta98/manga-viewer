@@ -102,19 +102,8 @@ struct ReaderView: View {
         .onDisappear {
             UIApplication.shared.isIdleTimerDisabled = false
         }
-        .onChange(of: spreadIndex) { _, value in
-            let layout = prefs.layoutMode == .duo ? PageLayoutMode.duo : .single
-            // 進捗はページ番号で保存する
-            let page = SpreadIndex.pageIndices(
-                spreadIndex: value,
-                pageCount: volume.pageCount,
-                coverAlone: prefs.coverAlone,
-                layout: layout == .duo ? .duo : .single
-            ).0 ?? value
-            progress.setPageIndex(page, for: volume.id)
-        }
         .onChange(of: prefs.layoutMode) { _, mode in
-            rematerializeSpread(for: mode == .duo ? .duo : .single)
+            rematerializeSpread(for: mode)
         }
         .onChange(of: prefs.coverAlone) { _, _ in
             rematerializeSpread(for: prefs.layoutMode)
@@ -189,6 +178,13 @@ struct ReaderView: View {
         } else {
             spreadIndex = max(spreadIndex - 1, 0)
         }
+        let page = SpreadIndex.pageIndices(
+            spreadIndex: spreadIndex,
+            pageCount: volume.pageCount,
+            coverAlone: prefs.coverAlone,
+            layout: .duo
+        ).0 ?? 0
+        progress.setPageIndex(page, for: volume.id)
         UIImpactFeedbackGenerator(style: .light).impactOccurred()
     }
 
@@ -259,7 +255,16 @@ struct ReaderView: View {
             Slider(
                 value: Binding(
                     get: { Double(clamped(spreadIndex, spreads: spreads)) },
-                    set: { spreadIndex = Int($0.rounded()) }
+                    set: { value in
+                        spreadIndex = Int(value.rounded())
+                        let page = SpreadIndex.pageIndices(
+                            spreadIndex: spreadIndex,
+                            pageCount: volume.pageCount,
+                            coverAlone: prefs.coverAlone,
+                            layout: layout
+                        ).0 ?? 0
+                        progress.setPageIndex(page, for: volume.id)
+                    }
                 ),
                 in: 0...Double(maxSpread),
                 step: 1
