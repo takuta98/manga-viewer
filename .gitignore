@@ -6,4 +6,6 @@ build/
 .swiftpm/
 
 MangaViewer/Packages/
+MangaViewer/Config/Local.xcconfig
+
 
