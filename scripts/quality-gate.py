@@ -82,12 +82,16 @@ def main() -> int:
         fail("[読む] 前後ページ dataSource が無い")
     if "handleTap" not in browser:
         fail("[読む] 端タップめくりが無い")
-    if "isInteractivelyAnimating" not in browser:
+    if "isBusy" not in browser:
         fail("[読む] めくり中の SwiftUI 同期抑止が無い")
     if "publishIndex" not in browser:
         fail("[読む] PageBrowser の Binding 更新遅延が無い")
-    if "animated: false" not in browser:
-        fail("[読む] SwiftUI 同期の非アニメーション経路が無い")
+    if "pageCurl" not in browser:
+        fail("[読む] pageCurl（めくり）が無い")
+    if "isTurning" not in browser:
+        fail("[読む] 端タップめくりアニメ経路が無い")
+    if "pageRevision" not in browser:
+        fail("[読む] ページ再生成 revision が無い")
 
     reader = read(SRC / "Views" / "ReaderView.swift")
     if "PageBrowser(" not in reader:
@@ -106,6 +110,10 @@ def main() -> int:
         fail("[Duo] 不正サイズの無視が無い")
     if "adoptSize" not in reader:
         fail("[Duo] サイズ採用経路が無い")
+    if 'style: appliedLayout == .duo ? .slide' in reader:
+        fail("[読む] Duo 中にめくりをスライドへ落としている")
+    if "pageRevision" not in reader:
+        fail("[読む] pageRevision が無い")
 
     duo = read(SRC / "Services" / "DuoLayout.swift")
     if "isUsable" not in duo:

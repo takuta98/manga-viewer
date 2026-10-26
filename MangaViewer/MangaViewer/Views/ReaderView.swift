@@ -15,6 +15,8 @@ struct ReaderView: View {
     @State private var showSettings = false
     /// 折りたたみ途中の 0 サイズでは更新しない。前回の有効レイアウトを維持する。
     @State private var appliedLayout: PageLayoutMode = .single
+    /// ページ中身の再生成用。めくりアニメを殺さないよう、必要なときだけ増やす。
+    @State private var pageRevision = 0
 
     private let progress = ReadingProgress.shared
 
@@ -53,18 +55,18 @@ struct ReaderView: View {
                 PageBrowser(
                     pageCount: max(totalSpreads, 1),
                     index: $spreadIndex,
-                    // 見開き合成ページは pageCurl と相性が悪いので Duo 中はスライドにする。
-                    style: appliedLayout == .duo ? .slide : prefs.turnStyle,
+                    style: prefs.turnStyle,
                     rtl: direction == .rtl,
                     reduceMotion: reduceMotion,
+                    pageRevision: pageRevision,
                     onToggleChrome: {
                         withAnimation(.easeInOut(duration: 0.2)) { showChrome.toggle() }
                     }
                 ) { index in
                     AnyView(spreadPage(index))
                 }
-                // Duo 切替で木を破棄しない。送り方と方向の変更時だけ再生成。
-                .id("\(direction.rawValue)-\(appliedLayout == .duo ? "slide" : prefs.turnStyle.rawValue)")
+                // めくりスタイル／方向が変わったときだけ UIPageViewController を作り直す。
+                .id("turn-\(prefs.turnStyle.rawValue)-dir-\(direction.rawValue)")
                 .opacity(prefs.brightness)
             }
 
@@ -91,10 +93,18 @@ struct ReaderView: View {
             progress.setPageIndex(currentPageIndex, for: volume.id)
         }
         .onChange(of: prefs.layoutMode) { _, _ in
+            pageRevision += 1
             rematerializeFromProgress(layout: appliedLayout)
         }
         .onChange(of: prefs.coverAlone) { _, _ in
+            pageRevision += 1
             rematerializeFromProgress(layout: appliedLayout)
+        }
+        .onChange(of: prefs.fitMode) { _, _ in
+            pageRevision += 1
+        }
+        .onChange(of: appliedLayout) { _, _ in
+            pageRevision += 1
         }
         .onChange(of: direction) { _, value in
             library.updateDirection(volume, direction: value)
