@@ -1,3 +1,4 @@
-AppIcon uses Phosphor Icons "book-open-fill" (MIT License).
-https://phosphoricons.com/
-https://github.com/phosphor-icons/core
+AppIcon uses Tabler Icons "book" (MIT License).
+https://tabler.io/icons
+https://github.com/tabler/tabler-icons
+User selected catalog #35 tabler-book.
