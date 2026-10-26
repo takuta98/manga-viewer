@@ -55,7 +55,20 @@
 		304A842F15474FEBB5D8A9C4 /* AMSMB2 in Frameworks */ = {isa = PBXBuildFile; productRef = 6BF2BC4368614CBE8D045E91 /* AMSMB2 */; };
 		A8F3C1D2E4B64A7F9C2E5D10 /* AMSMB2 in Embed Frameworks */ = {isa = PBXBuildFile; productRef = 6BF2BC4368614CBE8D045E91 /* AMSMB2 */; settings = {ATTRIBUTES = (CodeSignOnCopy, RemoveHeadersOnCopy); }; };
 		D4D291BF632A49B38E9010C0 /* Citadel in Frameworks */ = {isa = PBXBuildFile; productRef = D668BA979A7A4CE5AC753D35 /* Citadel */; };
+		E1A2B3C4D5E6F708192A3B4C /* AMSMB2 in Frameworks */ = {isa = PBXBuildFile; productRef = 6BF2BC4368614CBE8D045E91 /* AMSMB2 */; };
+		E2A2B3C4D5E6F708192A3B4D /* Citadel in Frameworks */ = {isa = PBXBuildFile; productRef = D668BA979A7A4CE5AC753D35 /* Citadel */; };
 /* End PBXBuildFile section */
+
+
+/* Begin PBXContainerItemProxy section */
+		D8D94F8902524F82B535F342 /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = A10000000000000000000003 /* Project object */;
+			proxyType = 1;
+			remoteGlobalIDString = A1000000000000000000000A;
+			remoteInfo = MangaViewer;
+		};
+/* End PBXContainerItemProxy section */
 
 /* Begin PBXFileReference section */
 		CB3E48D4B9BABC5FB05CF463 /* ContentView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ContentView.swift; sourceTree = "<group>"; };
@@ -118,6 +131,15 @@
 			files = (
 				304A842F15474FEBB5D8A9C4 /* AMSMB2 in Frameworks */,
 				D4D291BF632A49B38E9010C0 /* Citadel in Frameworks */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		7AD48B3D58C64617AB8FA394 /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				E1A2B3C4D5E6F708192A3B4C /* AMSMB2 in Frameworks */,
+				E2A2B3C4D5E6F708192A3B4D /* Citadel in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -283,12 +305,18 @@
 			buildConfigurationList = A10000000000000000000014 /* Build configuration list for PBXNativeTarget "MangaViewerTests" */;
 			buildPhases = (
 				A10000000000000000000007 /* Sources */,
+				7AD48B3D58C64617AB8FA394 /* Frameworks */,
 			);
 			buildRules = (
 			);
 			dependencies = (
+				FE25095B412A4E86BD5202A0 /* PBXTargetDependency */,
 			);
 			name = MangaViewerTests;
+			packageProductDependencies = (
+				6BF2BC4368614CBE8D045E91 /* AMSMB2 */,
+				D668BA979A7A4CE5AC753D35 /* Citadel */,
+			);
 			productName = MangaViewerTests;
 			productReference = A10000000000000000000005 /* MangaViewerTests.xctest */;
 			productType = "com.apple.product-type.bundle.unit-test";
@@ -414,6 +442,15 @@
 		};
 /* End PBXSourcesBuildPhase section */
 
+
+/* Begin PBXTargetDependency section */
+		FE25095B412A4E86BD5202A0 /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			target = A1000000000000000000000A /* MangaViewer */;
+			targetProxy = D8D94F8902524F82B535F342 /* PBXContainerItemProxy */;
+		};
+/* End PBXTargetDependency section */
+
 /* Begin XCBuildConfiguration section */
 		B10000000000000000000001 /* Debug */ = {
 			isa = XCBuildConfiguration;
@@ -490,6 +527,7 @@
 			isa = XCBuildConfiguration;
 			baseConfigurationReference = A10000000000000000000020 /* Debug.xcconfig */;
 			buildSettings = {
+				BUNDLE_LOADER = "$(TEST_HOST)";
 				CURRENT_PROJECT_VERSION = 1;
 				GENERATE_INFOPLIST_FILE = YES;
 				MARKETING_VERSION = 0.3.0;
@@ -497,6 +535,7 @@
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SWIFT_VERSION = 5.0;
 				TARGETED_DEVICE_FAMILY = "1,2";
+				TEST_HOST = "$(BUILT_PRODUCTS_DIR)/MangaViewer.app/$(BUNDLE_EXECUTABLE_FOLDER_PATH)/MangaViewer";
 			};
 			name = Debug;
 		};
@@ -504,6 +543,7 @@
 			isa = XCBuildConfiguration;
 			baseConfigurationReference = A10000000000000000000021 /* Release.xcconfig */;
 			buildSettings = {
+				BUNDLE_LOADER = "$(TEST_HOST)";
 				CURRENT_PROJECT_VERSION = 1;
 				GENERATE_INFOPLIST_FILE = YES;
 				MARKETING_VERSION = 0.3.0;
@@ -511,6 +551,7 @@
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SWIFT_VERSION = 5.0;
 				TARGETED_DEVICE_FAMILY = "1,2";
+				TEST_HOST = "$(BUILT_PRODUCTS_DIR)/MangaViewer.app/$(BUNDLE_EXECUTABLE_FOLDER_PATH)/MangaViewer";
 			};
 			name = Release;
 		};
