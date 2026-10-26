@@ -100,6 +100,12 @@ def main() -> int:
         fail("[読む] Chrome 中央のヒット無効化が無い")
     if "containerSize = geo.size" in reader or "let _ = { containerSize" in reader:
         fail("[読む] GeometryReader 内で @State を書き換えている（起動／表示で落ちる）")
+    if "onChange(of: geo.size)" in reader:
+        fail("[読む] geo.size の onChange で State を書いている（View update 中警告）")
+    if "DispatchQueue.main.async" not in reader:
+        fail("[読む] サイズ変化時の State 更新遅延が無い")
+    if "publishIndex" not in browser:
+        fail("[読む] PageBrowser の Binding 更新遅延が無い")
     if "DuoLayout.resolve" not in reader:
         fail("[Duo] ReaderView が DuoLayout を使っていない")
     if "DuoFrameView" not in reader:

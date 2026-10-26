@@ -34,7 +34,7 @@ struct PageBrowser: UIViewControllerRepresentable {
         tap.delegate = context.coordinator
         controller.view.addGestureRecognizer(tap)
 
-        context.coordinator.jump(to: index, animated: false)
+        context.coordinator.jump(to: index, animated: false, publish: false)
         return controller
     }
 
@@ -46,8 +46,7 @@ struct PageBrowser: UIViewControllerRepresentable {
             coordinator.cachedCount = pageCount
         }
 
-        // スワイプ／めくり中に SwiftUI から setViewControllers するとアニメが消え、
-        // scroll では方向判定例外で落ちることがある。同期は静止時のみ・非アニメ。
+        // View update 中に Binding を書かない。スワイプ中も触らない。
         guard !coordinator.isInteractivelyAnimating else { return }
         if coordinator.displayedIndex == index {
             if let current = controller.viewControllers?.first as? PageHostController,
@@ -56,7 +55,9 @@ struct PageBrowser: UIViewControllerRepresentable {
             }
             return
         }
-        coordinator.jump(to: index, animated: false)
+        coordinator.isApplyingFromSwiftUI = true
+        coordinator.jump(to: index, animated: false, publish: false)
+        coordinator.isApplyingFromSwiftUI = false
     }
 
     final class Coordinator: NSObject, UIPageViewControllerDataSource, UIPageViewControllerDelegate, UIGestureRecognizerDelegate {
@@ -66,10 +67,22 @@ struct PageBrowser: UIViewControllerRepresentable {
         var cachedCount = -1
         var displayedIndex = -1
         var isInteractivelyAnimating = false
+        var isApplyingFromSwiftUI = false
 
         init(_ parent: PageBrowser) {
             self.parent = parent
             self.cachedCount = parent.pageCount
+        }
+
+        /// View update 外で Binding を更新する。
+        private func publishIndex(_ index: Int) {
+            guard parent.index != index else { return }
+            DispatchQueue.main.async { [weak self] in
+                guard let self else { return }
+                if self.parent.index != index {
+                    self.parent.index = index
+                }
+            }
         }
 
         @objc func handleTap(_ gesture: UITapGestureRecognizer) {
@@ -90,14 +103,11 @@ struct PageBrowser: UIViewControllerRepresentable {
             let next = forward ? parent.index + 1 : parent.index - 1
             guard next >= 0, next < parent.pageCount else { return }
             let animated = !parent.reduceMotion
-            jump(to: next, animated: animated)
-            if parent.index != next {
-                parent.index = next
-            }
+            jump(to: next, animated: animated, publish: true)
             UIImpactFeedbackGenerator(style: .light).impactOccurred()
         }
 
-        func jump(to index: Int, animated: Bool) {
+        func jump(to index: Int, animated: Bool, publish: Bool) {
             guard let controller = pageController else { return }
             guard index >= 0, index < parent.pageCount else { return }
             guard let next = page(at: index) else { return }
@@ -120,9 +130,8 @@ struct PageBrowser: UIViewControllerRepresentable {
                 direction = .forward
             }
 
-            // 隣接ページ以外の animated 移動は scroll で落ちやすいので無効化する。
             let adjacent = from.map { abs($0 - index) == 1 } ?? false
-            let canAnimate = animated && adjacent && !isInteractivelyAnimating
+            let canAnimate = animated && adjacent && !isInteractivelyAnimating && !isApplyingFromSwiftUI
 
             if canAnimate {
                 isInteractivelyAnimating = true
@@ -131,11 +140,17 @@ struct PageBrowser: UIViewControllerRepresentable {
                     self.isInteractivelyAnimating = false
                     if finished {
                         self.displayedIndex = index
+                        if publish {
+                            self.publishIndex(index)
+                        }
                     }
                 }
             } else {
                 controller.setViewControllers([next], direction: direction, animated: false)
                 displayedIndex = index
+                if publish {
+                    publishIndex(index)
+                }
             }
         }
 
@@ -185,10 +200,10 @@ struct PageBrowser: UIViewControllerRepresentable {
             guard finished,
                   let current = pageViewController.viewControllers?.first as? PageHostController else { return }
             displayedIndex = current.pageIndex
-            if completed, parent.index != current.pageIndex {
-                parent.index = current.pageIndex
-                UIImpactFeedbackGenerator(style: .light).impactOccurred()
-            }
+            // SwiftUI update 経路からの同期では Binding を触らない。
+            guard !isApplyingFromSwiftUI, completed else { return }
+            publishIndex(current.pageIndex)
+            UIImpactFeedbackGenerator(style: .light).impactOccurred()
         }
 
         func gestureRecognizer(

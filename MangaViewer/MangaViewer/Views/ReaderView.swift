@@ -50,17 +50,7 @@ struct ReaderView: View {
                 } else {
                     PageBrowser(
                         pageCount: volume.pageCount,
-                        index: Binding(
-                            get: { page },
-                            set: { newPage in
-                                spreadIndex = SpreadIndex.spreadIndex(
-                                    forPage: newPage,
-                                    coverAlone: prefs.coverAlone,
-                                    layout: .single
-                                )
-                                progress.setPageIndex(newPage, for: volume.id)
-                            }
-                        ),
+                        index: pageBinding,
                         style: prefs.turnStyle,
                         rtl: direction == .rtl,
                         reduceMotion: reduceMotion,
@@ -90,10 +80,15 @@ struct ReaderView: View {
                     )
                 }
             }
-            .onChange(of: geo.size) { _, newSize in
-                rematerializeSpread(
-                    for: DuoLayout.resolve(containerSize: newSize, preference: prefs.layoutMode)
-                )
+            .background(
+                Color.clear.preference(key: ReaderSizeKey.self, value: geo.size)
+            )
+        }
+        .onPreferenceChange(ReaderSizeKey.self) { newSize in
+            // View update 中の @State 更新を避ける
+            let nextLayout = DuoLayout.resolve(containerSize: newSize, preference: prefs.layoutMode)
+            DispatchQueue.main.async {
+                rematerializeSpread(for: nextLayout)
             }
         }
         .statusBarHidden(!showChrome)
@@ -103,10 +98,10 @@ struct ReaderView: View {
             UIApplication.shared.isIdleTimerDisabled = false
         }
         .onChange(of: prefs.layoutMode) { _, mode in
-            rematerializeSpread(for: mode)
+            DispatchQueue.main.async { rematerializeSpread(for: mode) }
         }
         .onChange(of: prefs.coverAlone) { _, _ in
-            rematerializeSpread(for: prefs.layoutMode)
+            DispatchQueue.main.async { rematerializeSpread(for: prefs.layoutMode) }
         }
         .onChange(of: direction) { _, value in
             library.updateDirection(volume, direction: value)
@@ -118,6 +113,27 @@ struct ReaderView: View {
         .sheet(isPresented: $showSettings) {
             settingsSheet
         }
+    }
+
+    private var pageBinding: Binding<Int> {
+        Binding(
+            get: {
+                SpreadIndex.pageIndices(
+                    spreadIndex: spreadIndex,
+                    pageCount: volume.pageCount,
+                    coverAlone: prefs.coverAlone,
+                    layout: .single
+                ).0 ?? 0
+            },
+            set: { newPage in
+                spreadIndex = SpreadIndex.spreadIndex(
+                    forPage: newPage,
+                    coverAlone: prefs.coverAlone,
+                    layout: .single
+                )
+                progress.setPageIndex(newPage, for: volume.id)
+            }
+        )
     }
 
     private func duoPages(layout: PageLayoutMode) -> some View {
@@ -202,10 +218,13 @@ struct ReaderView: View {
             coverAlone: prefs.coverAlone,
             layout: layout
         )
-        spreadIndex = clamped(
+        let next = clamped(
             SpreadIndex.spreadIndex(forPage: page, coverAlone: prefs.coverAlone, layout: layout),
             spreads: spreads
         )
+        if spreadIndex != next {
+            spreadIndex = next
+        }
     }
 
     private func clamped(_ index: Int, spreads: Int) -> Int {
@@ -319,5 +338,12 @@ struct ReaderView: View {
             }
         }
         .presentationDetents([.medium, .large])
+    }
+}
+
+private struct ReaderSizeKey: PreferenceKey {
+    static var defaultValue: CGSize = .zero
+    static func reduce(value: inout CGSize, nextValue: () -> CGSize) {
+        value = nextValue()
     }
 }
