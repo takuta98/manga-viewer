@@ -122,7 +122,7 @@ struct PageBrowser: UIViewControllerRepresentable {
         func show(index: Int, animated: Bool, publish: Bool) {
             guard let controller = pageController else { return }
             guard index >= 0, index < parent.pageCount else { return }
-            guard let destination = controller(for: index, refresh: true) else { return }
+            guard let destination = pageHost(for: index, refresh: true) else { return }
 
             if displayedIndex == index,
                let current = controller.viewControllers?.first as? PageHostController,
@@ -178,7 +178,7 @@ struct PageBrowser: UIViewControllerRepresentable {
             }
         }
 
-        func controller(for index: Int, refresh: Bool) -> PageHostController? {
+        func pageHost(for index: Int, refresh: Bool) -> PageHostController? {
             guard index >= 0, index < parent.pageCount else { return nil }
             if let cached = cache[index] {
                 if refresh {
@@ -197,7 +197,7 @@ struct PageBrowser: UIViewControllerRepresentable {
         ) -> UIViewController? {
             guard let current = viewController as? PageHostController else { return nil }
             let next = parent.rtl ? current.pageIndex + 1 : current.pageIndex - 1
-            return controller(for: next, refresh: false)
+            return pageHost(for: next, refresh: false)
         }
 
         func pageViewController(
@@ -206,7 +206,7 @@ struct PageBrowser: UIViewControllerRepresentable {
         ) -> UIViewController? {
             guard let current = viewController as? PageHostController else { return nil }
             let next = parent.rtl ? current.pageIndex - 1 : current.pageIndex + 1
-            return controller(for: next, refresh: false)
+            return pageHost(for: next, refresh: false)
         }
 
         func pageViewController(
