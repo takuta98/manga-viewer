@@ -30,6 +30,7 @@ final class SMBSession {
     private var sessionId: UInt64 = 0
     private var treeId: UInt32 = 0
     private let queue = DispatchQueue(label: "manga.smb")
+    private var inbound = Data()
 
     init(source: RemoteSource) { self.source = source }
 
@@ -278,20 +279,67 @@ final class SMBSession {
         }
     }
 
+    /// NetBIOS ヘッダ＋本体をバッファから切り出す（1回の receive で足りない場合に繰り返す）。
     private func receive() async throws -> Data {
-        guard let connection else { throw RemoteError.message("SMB未接続です") }
-        return try await withCheckedThrowingContinuation { (cont: CheckedContinuation<Data, Error>) in
-            connection.receive(minimumIncompleteLength: 4, maximumLength: 4) { header, _, _, error in
-                if let error { cont.resume(throwing: error); return }
-                guard let header, header.count == 4 else {
-                    cont.resume(throwing: RemoteError.message("SMB応答が不正です")); return
+        while true {
+            if inbound.count >= 4 {
+                let type = inbound[0]
+                let len = (Int(inbound[1]) << 16) | (Int(inbound[2]) << 8) | Int(inbound[3])
+                if type != 0x00 {
+                    inbound.removeAll(keepingCapacity: true)
+                    throw RemoteError.message("SMB応答の形式が不正です")
                 }
-                let len = (Int(header[1]) << 16) | (Int(header[2]) << 8) | Int(header[3])
-                connection.receive(minimumIncompleteLength: len, maximumLength: len) { body, _, _, error in
-                    if let error { cont.resume(throwing: error); return }
-                    cont.resume(returning: body ?? Data())
+                if len <= 0 || len > 8 * 1024 * 1024 {
+                    inbound.removeAll(keepingCapacity: true)
+                    throw RemoteError.message("SMB応答の長さが不正です")
+                }
+                if inbound.count >= 4 + len {
+                    let body = inbound.subdata(in: 4..<(4 + len))
+                    inbound.removeSubrange(0..<(4 + len))
+                    if body.count >= 12 {
+                        let status = u32le(body, 8)
+                        if status != 0 {
+                            throw RemoteError.message(smbStatusMessage(status))
+                        }
+                    }
+                    return body
                 }
             }
+            try await readMore()
+        }
+    }
+
+    private func readMore() async throws {
+        guard let connection else { throw RemoteError.message("SMB未接続です") }
+        let chunk: Data = try await withCheckedThrowingContinuation { cont in
+            connection.receive(minimumIncompleteLength: 1, maximumLength: 64 * 1024) { data, _, isComplete, error in
+                if let error {
+                    cont.resume(throwing: error)
+                    return
+                }
+                if let data, !data.isEmpty {
+                    cont.resume(returning: data)
+                    return
+                }
+                if isComplete {
+                    cont.resume(throwing: RemoteError.message("SMB接続が切断されました"))
+                    return
+                }
+                cont.resume(throwing: RemoteError.message("SMB応答が空です"))
+            }
+        }
+        inbound.append(chunk)
+    }
+
+    private func smbStatusMessage(_ status: UInt32) -> String {
+        switch status {
+        case 0xC0000022: return "SMBアクセスが拒否されました。ユーザー名とパスワードを確認してください"
+        case 0xC000006D, 0xC000006A: return "SMBログオンに失敗しました。ユーザー名とパスワードを確認してください"
+        case 0xC0000001: return "SMB操作が拒否されました"
+        case 0xC00000BB: return "SMB共有が見つかりません。共有フォルダ名を確認してください"
+        case 0x80000005: return "SMB追加の認証情報が必要です"
+        default:
+            return String(format: "SMBエラー（status=0x%08X）", status)
         }
     }
 
