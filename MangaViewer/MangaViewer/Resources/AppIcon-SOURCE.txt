@@ -1,0 +1,3 @@
+AppIcon uses Phosphor Icons "book-open-fill" (MIT License).
+https://phosphoricons.com/
+https://github.com/phosphor-icons/core
