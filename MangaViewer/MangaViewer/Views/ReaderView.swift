@@ -241,7 +241,8 @@ struct ReaderView: View {
                 }
                 .accessibilityLabel("読書設定")
             }
-            .position(x: geo.size.width / 2, y: geo.size.height * 0.38)
+            // カメラ位置が左なのでボタンは右側に出す
+            .position(x: geo.size.width - 110, y: geo.size.height * 0.38)
 
             VStack(spacing: 2) {
                 Text(volume.title)

@@ -26,6 +26,7 @@ struct LibraryView: View {
     @State private var bulkDelete = false
     @State private var bulkNewFolder = false
     @AppStorage("library.sortByTitle") private var sortByTitle = false
+    @AppStorage("library.listMode") private var listMode = false
 
     private var importTypes: [UTType] {
         var types: [UTType] = [.zip, .png, .jpeg, .gif, .heic, .webP, .image]
@@ -92,27 +93,50 @@ struct LibraryView: View {
                 emptyState
             } else {
                 ScrollView {
-                    LazyVGrid(
-                        columns: [GridItem(.adaptive(minimum: 160), spacing: 16)],
-                        spacing: 22
-                    ) {
-                        ForEach(shownFolders, id: \.self) { name in
-                            folderCard(name)
+                    if listMode {
+                        LazyVStack(spacing: 0) {
+                            ForEach(shownFolders, id: \.self) { name in
+                                folderRow(name)
+                                Divider().padding(.leading, 66)
+                            }
+                            ForEach(shownVolumes) { volume in
+                                VolumeRow(
+                                    library: library,
+                                    volume: volume,
+                                    onRead: onRead,
+                                    onMove: { folderTarget = volume },
+                                    showFolderBadge: !needle.isEmpty,
+                                    selecting: selecting,
+                                    isSelected: selected.contains(volume.id),
+                                    onToggleSelect: { toggleSelect(volume) }
+                                )
+                                Divider().padding(.leading, 66)
+                            }
                         }
-                        ForEach(shownVolumes) { volume in
-                            VolumeCard(
-                                library: library,
-                                volume: volume,
-                                onRead: onRead,
-                                onMove: { folderTarget = volume },
-                                showFolderBadge: !needle.isEmpty,
-                                selecting: selecting,
-                                isSelected: selected.contains(volume.id),
-                                onToggleSelect: { toggleSelect(volume) }
-                            )
+                        .padding(.horizontal, 18)
+                    } else {
+                        LazyVGrid(
+                            columns: [GridItem(.adaptive(minimum: 160), spacing: 16)],
+                            spacing: 22
+                        ) {
+                            ForEach(shownFolders, id: \.self) { name in
+                                folderCard(name)
+                            }
+                            ForEach(shownVolumes) { volume in
+                                VolumeCard(
+                                    library: library,
+                                    volume: volume,
+                                    onRead: onRead,
+                                    onMove: { folderTarget = volume },
+                                    showFolderBadge: !needle.isEmpty,
+                                    selecting: selecting,
+                                    isSelected: selected.contains(volume.id),
+                                    onToggleSelect: { toggleSelect(volume) }
+                                )
+                            }
                         }
+                        .padding(18)
                     }
-                    .padding(18)
 
                     Text("build 2026-10-28c")
                         .font(.caption2)
@@ -125,8 +149,16 @@ struct LibraryView: View {
         .background(Color(uiColor: .systemGroupedBackground))
         .navigationTitle("本棚")
         .searchable(text: $query, prompt: "タイトルで検索")
+        // カメラ位置が左なのでボタンは全部右側に出す
         .toolbar {
             ToolbarItem(placement: .topBarLeading) {
+                if selecting {
+                    Text("\(selected.count) 冊選択中")
+                        .font(.callout)
+                        .foregroundStyle(.secondary)
+                }
+            }
+            ToolbarItem(placement: .topBarTrailing) {
                 if selecting {
                     Button("やめる") {
                         selecting = false
@@ -138,15 +170,6 @@ struct LibraryView: View {
                             Image(systemName: "arrow.down.circle")
                         }
                         .accessibilityLabel("ダウンロード進捗")
-                        Button("選択") {
-                            selecting = true
-                        }
-                    }
-                }
-            }
-            ToolbarItem(placement: .topBarTrailing) {
-                if !selecting {
-                    HStack(spacing: 16) {
                         Menu {
                             Button("追加順") { sortByTitle = false }
                             Button("タイトル順") { sortByTitle = true }
@@ -154,6 +177,12 @@ struct LibraryView: View {
                             Image(systemName: "arrow.up.arrow.down")
                         }
                         .accessibilityLabel("並び替え")
+                        Button {
+                            listMode.toggle()
+                        } label: {
+                            Image(systemName: listMode ? "square.grid.2x2" : "list.bullet")
+                        }
+                        .accessibilityLabel("表示を切り替える")
                         importMenu
                     }
                 }
@@ -307,6 +336,40 @@ struct LibraryView: View {
         }
     }
 
+    /// リスト表示用のフォルダー行。
+    private func folderRow(_ name: String) -> some View {
+        let count = library.volumes.filter { $0.folder == name }.count
+        return NavigationLink(value: name) {
+            HStack(spacing: 12) {
+                Image(systemName: "folder.fill")
+                    .font(.title2)
+                    .foregroundStyle(.tint)
+                    .frame(width: 48)
+                VStack(alignment: .leading, spacing: 2) {
+                    Text(name)
+                        .font(.callout.weight(.medium))
+                        .lineLimit(1)
+                        .foregroundStyle(.primary)
+                    Text("\(count) 冊")
+                        .font(.caption)
+                        .foregroundStyle(.secondary)
+                }
+                Spacer()
+            }
+            .padding(.vertical, 8)
+        }
+        .buttonStyle(.plain)
+        .contextMenu {
+            Button("名前を変える", systemImage: "pencil") {
+                renameTarget = name
+                renameText = name
+            }
+            Button("フォルダーを削除", systemImage: "trash", role: .destructive) {
+                folderDeleteTarget = name
+            }
+        }
+    }
+
     // MARK: - フォルダーカード
 
     private func folderCard(_ name: String) -> some View {
@@ -419,6 +482,7 @@ struct LibraryFolderView: View {
     @State private var renaming = false
     @State private var renameText = ""
     @State private var confirmDelete = false
+    @AppStorage("library.listMode") private var listMode = false
 
     private var needle: String {
         query.trimmingCharacters(in: .whitespacesAndNewlines)
@@ -457,23 +521,41 @@ struct LibraryFolderView: View {
 
     var body: some View {
         ScrollView {
-            LazyVGrid(
-                columns: [GridItem(.adaptive(minimum: 160), spacing: 16)],
-                spacing: 22
-            ) {
-                ForEach(volumes) { volume in
-                    VolumeCard(
-                        library: library,
-                        volume: volume,
-                        onRead: onRead,
-                        onMove: { folderTarget = volume },
-                        selecting: selecting,
-                        isSelected: selected.contains(volume.id),
-                        onToggleSelect: { toggleSelect(volume) }
-                    )
+            if listMode {
+                LazyVStack(spacing: 0) {
+                    ForEach(volumes) { volume in
+                        VolumeRow(
+                            library: library,
+                            volume: volume,
+                            onRead: onRead,
+                            onMove: { folderTarget = volume },
+                            selecting: selecting,
+                            isSelected: selected.contains(volume.id),
+                            onToggleSelect: { toggleSelect(volume) }
+                        )
+                        Divider().padding(.leading, 66)
+                    }
                 }
+                .padding(.horizontal, 18)
+            } else {
+                LazyVGrid(
+                    columns: [GridItem(.adaptive(minimum: 160), spacing: 16)],
+                    spacing: 22
+                ) {
+                    ForEach(volumes) { volume in
+                        VolumeCard(
+                            library: library,
+                            volume: volume,
+                            onRead: onRead,
+                            onMove: { folderTarget = volume },
+                            selecting: selecting,
+                            isSelected: selected.contains(volume.id),
+                            onToggleSelect: { toggleSelect(volume) }
+                        )
+                    }
+                }
+                .padding(18)
             }
-            .padding(18)
         }
         .navigationTitle(name)
         .searchable(text: $query, prompt: "このフォルダーの中を検索")
@@ -487,6 +569,12 @@ struct LibraryFolderView: View {
                 } else {
                     HStack(spacing: 16) {
                         Button("選択") { selecting = true }
+                        Button {
+                            listMode.toggle()
+                        } label: {
+                            Image(systemName: listMode ? "square.grid.2x2" : "list.bullet")
+                        }
+                        .accessibilityLabel("表示を切り替える")
                         Menu {
                             Button("名前を変える", systemImage: "pencil") {
                                 renameText = name
@@ -617,6 +705,131 @@ struct LibraryFolderView: View {
         } message: {
             Text(folderTarget?.title ?? "")
         }
+    }
+}
+
+/// リスト表示用の巻の行。巻カードと同じ操作ができる。
+struct VolumeRow: View {
+    @ObservedObject var library: LibraryStore
+    let volume: MangaVolume
+    let onRead: (MangaVolume) -> Void
+    var onMove: (() -> Void)? = nil
+    var showFolderBadge = false
+    var selecting = false
+    var isSelected = false
+    var onToggleSelect: (() -> Void)? = nil
+
+    @State private var confirmDelete = false
+    @State private var renaming = false
+    @State private var renameText = ""
+
+    private let progress = ReadingProgress.shared
+
+    var body: some View {
+        Button {
+            if selecting {
+                onToggleSelect?()
+            } else {
+                onRead(volume)
+            }
+        } label: {
+            HStack(spacing: 12) {
+                cover
+                    .resizable()
+                    .scaledToFill()
+                    .frame(width: 40, height: 60)
+                    .clipped()
+                    .clipShape(RoundedRectangle(cornerRadius: 4, style: .continuous))
+                VStack(alignment: .leading, spacing: 2) {
+                    Text(volume.title)
+                        .font(.callout.weight(.medium))
+                        .lineLimit(2)
+                        .foregroundStyle(.primary)
+                    HStack(spacing: 8) {
+                        Text("\(volume.pageCount) ページ")
+                        if showFolderBadge, let folder = volume.folder {
+                            Label(folder, systemImage: "folder")
+                                .lineLimit(1)
+                        }
+                    }
+                    .font(.caption)
+                    .foregroundStyle(.secondary)
+                    GeometryReader { geo in
+                        let fraction = progress.fraction(for: volume)
+                        Capsule()
+                            .fill(Color.gray.opacity(0.25))
+                            .overlay(alignment: .leading) {
+                                Capsule()
+                                    .fill(Color.accentColor)
+                                    .frame(width: geo.size.width * fraction)
+                            }
+                    }
+                    .frame(height: 3)
+                    .opacity(progress.fraction(for: volume) > 0 ? 1 : 0)
+                }
+                Spacer()
+                if selecting {
+                    Image(systemName: isSelected ? "checkmark.circle.fill" : "circle")
+                        .font(.title3)
+                        .foregroundStyle(isSelected ? .blue : .secondary)
+                }
+            }
+            .padding(.vertical, 6)
+        }
+        .buttonStyle(.plain)
+        .contextMenu {
+            Button("読む", systemImage: "book") { onRead(volume) }
+            Button("名前を変える", systemImage: "pencil") {
+                renameText = volume.title
+                renaming = true
+            }
+            Button("最初から読む", systemImage: "arrow.counterclockwise") {
+                progress.clear(for: volume.id)
+            }
+            Menu {
+                ForEach(ReadingDirection.allCases) { d in
+                    Button(d.label) { library.updateDirection(volume, direction: d) }
+                }
+            } label: {
+                Label("開き方向", systemImage: "arrow.left.arrow.right")
+            }
+            if let onMove {
+                Button("フォルダーへ移動", systemImage: "folder") { onMove() }
+            }
+            if volume.folder != nil {
+                Button("フォルダーから出す", systemImage: "arrow.uturn.backward") {
+                    library.move(volume, toFolder: nil)
+                }
+            }
+            if !volume.isBundledSample {
+                Button("削除", systemImage: "trash", role: .destructive) {
+                    confirmDelete = true
+                }
+            }
+        }
+        .alert("削除しますか？", isPresented: $confirmDelete) {
+            Button("削除", role: .destructive) { library.delete(volume) }
+            Button("キャンセル", role: .cancel) {}
+        } message: {
+            Text(volume.title)
+        }
+        .alert("名前を変える", isPresented: $renaming) {
+            TextField("タイトル", text: $renameText)
+            Button("変更") {
+                library.rename(volume, to: renameText)
+                renameText = ""
+            }
+            Button("キャンセル", role: .cancel) { renameText = "" }
+        }
+    }
+
+    private var cover: Image {
+        if let url = volume.coverURL(),
+           let data = try? Data(contentsOf: url),
+           let uiImage = UIImage(data: data) {
+            return Image(uiImage: uiImage)
+        }
+        return Image("sample-cover")
     }
 }
 

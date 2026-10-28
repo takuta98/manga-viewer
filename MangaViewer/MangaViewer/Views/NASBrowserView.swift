@@ -39,11 +39,9 @@ struct NASBrowserView: View {
             .navigationTitle("SMB")
             .navigationBarTitleDisplayMode(.inline)
             .toolbar {
-                ToolbarItem(placement: .cancellationAction) {
-                    Button("閉じる") { dismiss() }
-                }
+                // カメラ位置が左なのでボタンは全部右側に出す
                 if client != nil {
-                    ToolbarItem(placement: .topBarLeading) {
+                    ToolbarItem(placement: .topBarTrailing) {
                         Button {
                             Task { await reset() }
                         } label: {
@@ -52,7 +50,7 @@ struct NASBrowserView: View {
                         .accessibilityLabel("接続し直す")
                     }
                     if client?.share != nil {
-                        ToolbarItem(placement: .topBarLeading) {
+                        ToolbarItem(placement: .topBarTrailing) {
                             Button {
                                 client?.share = nil
                                 entries = []
@@ -70,6 +68,9 @@ struct NASBrowserView: View {
                         }
                         .accessibilityLabel("ダウンロード進捗")
                     }
+                }
+                ToolbarItem(placement: .topBarTrailing) {
+                    Button("閉じる") { dismiss() }
                 }
             }
             .navigationDestination(isPresented: $showDownloads) {
