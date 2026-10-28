@@ -53,27 +53,22 @@ struct ReaderView: View {
         )
     }
 
-    /// Duo curl はスロット（片ページ）単位、それ以外は見開き単位でインデックスが動く。
+    /// インデックスはどのモードでも「画面番号」。Duo curl も1画面=スロット2枚。
     private var indexSpaceMax: Int {
-        if turnsSinglePages {
-            return max(pageSlots.count - 1, 0)
-        }
-        return max(totalSpreads - 1, 0)
+        max(totalSpreads - 1, 0)
     }
 
     private var currentPageIndex: Int {
-        if turnsSinglePages {
-            let i = min(max(spreadIndex, 0), pageSlots.count - 1)
-            guard pageSlots.indices.contains(i) else { return 0 }
-            return pageSlots[i] ?? 0
-        }
-        return SpreadIndex.pageIndices(
+        // 見開きでは読む順の後ろ側（2枚目）のページを「このページ」とする。
+        // spreadIndex は画面番号なのでスロット配列ではなく pageIndices で解く。
+        let pages = SpreadIndex.pageIndices(
             spreadIndex: spreadIndex,
             pageCount: volume.pageCount,
             coverAlone: prefs.coverAlone,
             layout: appliedLayout,
             pairBreakAfter: pairBreak
-        ).0 ?? 0
+        )
+        return pages.1 ?? pages.0 ?? 0
     }
 
     var body: some View {
