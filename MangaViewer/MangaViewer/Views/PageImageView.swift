@@ -24,18 +24,26 @@ struct PageImageView: View {
         return nil
     }
 
+    /// ページを枠に収める表示サイズ。fitWidth/Height はその軸いっぱい（はみ出す側は枠で切れる）。
+    private func fittedSize(_ image: CGSize, in pane: CGSize) -> CGSize {
+        guard image.width > 0, image.height > 0 else { return pane }
+        let scale: CGFloat = switch fitMode {
+        case .fitWidth: pane.width / image.width
+        case .fitHeight: pane.height / image.height
+        default: min(pane.width / image.width, pane.height / image.height)
+        }
+        return CGSize(width: image.width * scale, height: image.height * scale)
+    }
+
     var body: some View {
         GeometryReader { geo in
             ZStack {
                 Color.black
                 if let image {
+                    let fit = fittedSize(image.size, in: geo.size)
                     Image(uiImage: image)
                         .resizable()
-                        .scaledToFit()
-                        .frame(
-                            maxWidth: fitMode == .fitHeight ? nil : geo.size.width,
-                            maxHeight: fitMode == .fitWidth ? nil : geo.size.height
-                        )
+                        .frame(width: fit.width, height: fit.height)
                         // 綴じ目側に寄せる（中央の隙間をなくす）
                         .frame(
                             maxWidth: .infinity,
