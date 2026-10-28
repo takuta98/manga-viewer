@@ -234,7 +234,11 @@ struct NASBrowserView: View {
             }
         }
         .navigationTitle(currentPath.last ?? client?.share ?? "SMB")
-        .searchable(text: $query, prompt: "このフォルダーの中を検索")
+        .searchable(
+            text: $query,
+            placement: .navigationBarDrawer(displayMode: .always),
+            prompt: "共有の中を検索"
+        )
         .task(id: query) {
             await search(query)
         }
@@ -257,7 +261,8 @@ struct NASBrowserView: View {
             return
         }
         do {
-            let all = try await client.filesRecursively(path: pathString)
+            // 共有の先頭から全部見る
+            let all = try await client.filesRecursively(path: "")
             searchResults = all.filter {
                 $0.name.localizedCaseInsensitiveContains(needle)
             }
