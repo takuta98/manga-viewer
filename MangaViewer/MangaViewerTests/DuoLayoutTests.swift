@@ -38,4 +38,21 @@ final class DuoLayoutTests: XCTestCase {
             3
         )
     }
+
+    func testSlotsMatchSpreads() {
+        for coverAlone in [true, false] {
+            for count in 1...6 {
+                let slots = SpreadIndex.slots(pageCount: count, coverAlone: coverAlone)
+                let spreads = SpreadIndex.totalSpreads(pageCount: count, coverAlone: coverAlone, layout: .duo)
+                XCTAssertEqual(slots.count, spreads * 2)
+                for s in 0..<spreads {
+                    let pages = SpreadIndex.pageIndices(
+                        spreadIndex: s, pageCount: count, coverAlone: coverAlone, layout: .duo
+                    )
+                    XCTAssertEqual(slots[2 * s], pages.0)
+                    XCTAssertEqual(slots[2 * s + 1], pages.1)
+                }
+            }
+        }
+    }
 }

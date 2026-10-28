@@ -3,9 +3,15 @@ import UIKit
 
 /// スワイプと端タップでページをめくる。
 /// - 既定は pageCurl（ページめくり）
+/// - 見開き（unitsPerScreen == 2）の curl は中央の綴じ目で1枚ずつめくる
+/// - 右開きの単ページ curl は綴じ目を右端に置き、左端からめくる
 /// - SwiftUI の update で表示中ページの rootView を毎フレーム差し替えない（アニメが消える）
 struct PageBrowser: UIViewControllerRepresentable {
+    /// めくりの単位（単ページ／スライド見開きは画面、curl 見開きは片ページ）の数
     var pageCount: Int
+    /// 1画面に並べる単位の数（1 または 2）
+    var unitsPerScreen: Int = 1
+    /// 画面（見開き）インデックス
     @Binding var index: Int
     var style: PageTurnStyle
     var rtl: Bool
@@ -19,16 +25,22 @@ struct PageBrowser: UIViewControllerRepresentable {
     func makeUIViewController(context: Context) -> UIPageViewController {
         let transition: UIPageViewController.TransitionStyle =
             (style == .curl && !reduceMotion) ? .pageCurl : .scroll
+        let spread = transition == .pageCurl && unitsPerScreen == 2
+        let spine: UIPageViewController.SpineLocation = spread ? .mid : (rtl ? .max : .min)
+        let options: [UIPageViewController.OptionsKey: Any]? = transition == .pageCurl
+            ? [.spineLocation: NSNumber(value: spine.rawValue)]
+            : nil
         let controller = UIPageViewController(
             transitionStyle: transition,
             navigationOrientation: .horizontal,
-            options: nil
+            options: options
         )
         controller.dataSource = context.coordinator
         controller.delegate = context.coordinator
-        controller.isDoubleSided = false
+        controller.isDoubleSided = spread
         context.coordinator.pageController = controller
         context.coordinator.usesCurl = (transition == .pageCurl)
+        context.coordinator.unitsPerScreen = spread ? 2 : 1
 
         let tap = UITapGestureRecognizer(
             target: context.coordinator,
@@ -78,10 +90,27 @@ struct PageBrowser: UIViewControllerRepresentable {
         var pageRevision = -1
         var displayedIndex = -1
         var usesCurl = true
+        var unitsPerScreen = 1
         private var isSwiping = false
         private var isTurning = false
 
         var isBusy: Bool { isSwiping || isTurning }
+
+        /// UIKit の「次（after / forward）」が読む順で何単位進むか。
+        /// 右開きの単ページ curl は綴じ目が右端なので読む順そのまま。
+        /// 右開きのスライドと見開きは画面上で左へ進むので逆向き。
+        private var afterStep: Int {
+            guard parent.rtl else { return 1 }
+            return (usesCurl && unitsPerScreen == 1) ? 1 : -1
+        }
+
+        private var screenCount: Int {
+            (parent.pageCount + unitsPerScreen - 1) / unitsPerScreen
+        }
+
+        private func screenIndex(of controller: UIViewController?) -> Int? {
+            (controller as? PageHostController).map { $0.pageIndex / unitsPerScreen }
+        }
 
         init(_ parent: PageBrowser) {
             self.parent = parent
@@ -113,7 +142,7 @@ struct PageBrowser: UIViewControllerRepresentable {
 
         private func turn(forward: Bool) {
             let next = forward ? parent.index + 1 : parent.index - 1
-            guard next >= 0, next < parent.pageCount else { return }
+            guard next >= 0, next < screenCount else { return }
             let animated = !parent.reduceMotion
             show(index: next, animated: animated, publish: true)
             UIImpactFeedbackGenerator(style: .light).impactOccurred()
@@ -121,42 +150,43 @@ struct PageBrowser: UIViewControllerRepresentable {
 
         func show(index: Int, animated: Bool, publish: Bool) {
             guard let controller = pageController else { return }
-            guard index >= 0, index < parent.pageCount else { return }
-            guard let destination = pageHost(for: index, refresh: true) else { return }
+            guard index >= 0, index < screenCount else { return }
+
+            let first = index * unitsPerScreen
+            var hosts: [PageHostController] = []
+            for unit in first..<(first + unitsPerScreen) {
+                guard let host = pageHost(for: unit, refresh: true) else { return }
+                hosts.append(host)
+            }
+            // 見開きは [左, 右] で渡す。右開きは読む順の先頭が右。
+            if unitsPerScreen == 2, parent.rtl {
+                hosts.reverse()
+            }
 
             if displayedIndex == index,
-               let current = controller.viewControllers?.first as? PageHostController,
-               current.pageIndex == index {
+               screenIndex(of: controller.viewControllers?.first) == index {
                 return
             }
 
             let from = displayedIndex >= 0
                 ? displayedIndex
-                : (controller.viewControllers?.first as? PageHostController)?.pageIndex
+                : screenIndex(of: controller.viewControllers?.first)
             let direction: UIPageViewController.NavigationDirection
             if let from {
-                let goingForward = parent.rtl ? index < from : index > from
-                direction = goingForward ? .forward : .reverse
+                let readingForward = index > from
+                direction = (readingForward == (afterStep > 0)) ? .forward : .reverse
             } else {
                 direction = .forward
             }
 
             let adjacent = from.map { abs($0 - index) == 1 } ?? true
-            // curl は animated set が安定。scroll は隣接のみアニメにする。
-            let canAnimate: Bool
-            if !animated || isBusy {
-                canAnimate = false
-            } else if usesCurl {
-                canAnimate = adjacent
-            } else {
-                canAnimate = adjacent
-            }
+            let canAnimate = animated && !isBusy && adjacent
 
             if canAnimate {
                 isTurning = true
                 // アニメ中に dataSource が干渉しないよう一時的に外す
                 controller.dataSource = nil
-                controller.setViewControllers([destination], direction: direction, animated: true) { [weak self] finished in
+                controller.setViewControllers(hosts, direction: direction, animated: true) { [weak self] finished in
                     guard let self else { return }
                     controller.dataSource = self
                     self.isTurning = false
@@ -165,12 +195,12 @@ struct PageBrowser: UIViewControllerRepresentable {
                         if publish {
                             self.publishIndex(index)
                         }
-                    } else if let current = controller.viewControllers?.first as? PageHostController {
-                        self.displayedIndex = current.pageIndex
+                    } else if let current = self.screenIndex(of: controller.viewControllers?.first) {
+                        self.displayedIndex = current
                     }
                 }
             } else {
-                controller.setViewControllers([destination], direction: direction, animated: false)
+                controller.setViewControllers(hosts, direction: direction, animated: false)
                 displayedIndex = index
                 if publish {
                     publishIndex(index)
@@ -196,8 +226,7 @@ struct PageBrowser: UIViewControllerRepresentable {
             viewControllerBefore viewController: UIViewController
         ) -> UIViewController? {
             guard let current = viewController as? PageHostController else { return nil }
-            let next = parent.rtl ? current.pageIndex + 1 : current.pageIndex - 1
-            return pageHost(for: next, refresh: false)
+            return pageHost(for: current.pageIndex - afterStep, refresh: false)
         }
 
         func pageViewController(
@@ -205,8 +234,7 @@ struct PageBrowser: UIViewControllerRepresentable {
             viewControllerAfter viewController: UIViewController
         ) -> UIViewController? {
             guard let current = viewController as? PageHostController else { return nil }
-            let next = parent.rtl ? current.pageIndex - 1 : current.pageIndex + 1
-            return pageHost(for: next, refresh: false)
+            return pageHost(for: current.pageIndex + afterStep, refresh: false)
         }
 
         func pageViewController(
@@ -224,10 +252,10 @@ struct PageBrowser: UIViewControllerRepresentable {
         ) {
             isSwiping = false
             guard finished,
-                  let current = pageViewController.viewControllers?.first as? PageHostController else { return }
-            displayedIndex = current.pageIndex
+                  let current = screenIndex(of: pageViewController.viewControllers?.first) else { return }
+            displayedIndex = current
             if completed {
-                publishIndex(current.pageIndex)
+                publishIndex(current)
                 UIImpactFeedbackGenerator(style: .light).impactOccurred()
             }
         }

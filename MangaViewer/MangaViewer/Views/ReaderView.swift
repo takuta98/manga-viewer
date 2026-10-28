@@ -34,6 +34,15 @@ struct ReaderView: View {
         )
     }
 
+    /// 見開きの curl は綴じ目で1枚ずつめくるので、片ページ単位で渡す。
+    private var turnsSinglePages: Bool {
+        prefs.turnStyle == .curl && !reduceMotion && appliedLayout == .duo
+    }
+
+    private var pageSlots: [Int?] {
+        SpreadIndex.slots(pageCount: volume.pageCount, coverAlone: prefs.coverAlone)
+    }
+
     private var currentPageIndex: Int {
         SpreadIndex.pageIndices(
             spreadIndex: spreadIndex,
@@ -52,8 +61,10 @@ struct ReaderView: View {
                 ContentUnavailableView("ページがありません", systemImage: "doc.questionmark")
                     .foregroundStyle(.white)
             } else {
+                let slots = pageSlots
                 PageBrowser(
-                    pageCount: max(totalSpreads, 1),
+                    pageCount: turnsSinglePages ? max(slots.count, 2) : max(totalSpreads, 1),
+                    unitsPerScreen: turnsSinglePages ? 2 : 1,
                     index: $spreadIndex,
                     style: prefs.turnStyle,
                     rtl: direction == .rtl,
@@ -63,10 +74,13 @@ struct ReaderView: View {
                         withAnimation(.easeInOut(duration: 0.2)) { showChrome.toggle() }
                     }
                 ) { index in
-                    AnyView(spreadPage(index))
+                    if turnsSinglePages {
+                        return AnyView(slotPage(index < slots.count ? slots[index] : nil))
+                    }
+                    return AnyView(spreadPage(index))
                 }
-                // めくりスタイル／方向が変わったときだけ UIPageViewController を作り直す。
-                .id("turn-\(prefs.turnStyle.rawValue)-dir-\(direction.rawValue)")
+                // めくりスタイル／方向／綴じ目が変わったときだけ UIPageViewController を作り直す。
+                .id("turn-\(prefs.turnStyle.rawValue)-dir-\(direction.rawValue)-spread-\(turnsSinglePages)")
                 .opacity(prefs.brightness)
             }
 
@@ -145,29 +159,40 @@ struct ReaderView: View {
         }
     }
 
+    /// 見開き curl の片ページ。UIPageViewController が画面の半分に敷く。
+    private func slotPage(_ index: Int?) -> some View {
+        DuoFrameView {
+            GeometryReader { geo in
+                pagePane(index, width: geo.size.width, height: geo.size.height)
+            }
+        }
+    }
+
     /// 将来の reservedRegions(.division) 用。SDK が無い環境では 0。
     private func hingeGutter(in geo: GeometryProxy) -> CGFloat {
         0
     }
 
-    @ViewBuilder
     private func pagePane(_ index: Int?, size: CGSize) -> some View {
+        pagePane(
+            index,
+            width: appliedLayout == .duo ? size.width / 2 : size.width,
+            height: size.height
+        )
+    }
+
+    @ViewBuilder
+    private func pagePane(_ index: Int?, width: CGFloat, height: CGFloat) -> some View {
         if let index {
             PageImageView(
                 url: volume.pageURL(at: index),
                 pageNumber: index + 1,
                 fitMode: prefs.fitMode
             )
-            .frame(
-                width: appliedLayout == .duo ? size.width / 2 : size.width,
-                height: size.height
-            )
+            .frame(width: width, height: height)
         } else {
             Color.black
-                .frame(
-                    width: appliedLayout == .duo ? size.width / 2 : size.width,
-                    height: size.height
-                )
+                .frame(width: width, height: height)
         }
     }
 

@@ -38,7 +38,8 @@ enum SpreadIndex {
             return (i, nil)
         }
         if coverAlone {
-            if spreadIndex == 0 { return (0, nil) }
+            // 表紙は見開きの読む順で2枚目（左開きは右側、右開きは左側）に置く。
+            if spreadIndex == 0 { return (nil, 0) }
             let start = 1 + (spreadIndex - 1) * 2
             let left = start < pageCount ? start : nil
             let right = start + 1 < pageCount ? start + 1 : nil
@@ -48,6 +49,16 @@ enum SpreadIndex {
         let left = start < pageCount ? start : nil
         let right = start + 1 < pageCount ? start + 1 : nil
         return (left, right)
+    }
+
+    /// 見開きを片ページ単位に並べた読む順の列。偶数長、空きは nil。
+    /// slots[2s], slots[2s+1] が見開き s の (1枚目, 2枚目)。
+    static func slots(pageCount: Int, coverAlone: Bool) -> [Int?] {
+        guard pageCount > 0 else { return [] }
+        var result: [Int?] = coverAlone ? [nil] : []
+        result.append(contentsOf: (0..<pageCount).map { Optional($0) })
+        if result.count % 2 == 1 { result.append(nil) }
+        return result
     }
 
     static func totalSpreads(pageCount: Int, coverAlone: Bool, layout: PageLayoutMode) -> Int {
