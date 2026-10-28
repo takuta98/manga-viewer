@@ -13,7 +13,11 @@ struct LibraryView: View {
     private let progress = ReadingProgress.shared
 
     private var importTypes: [UTType] {
-        [.zip, .cbz, .image]
+        var types: [UTType] = [.zip, .png, .jpeg, .gif, .heic, .webP, .image]
+        if let cbz = UTType(filenameExtension: "cbz") {
+            types.append(cbz)
+        }
+        return types
     }
 
     var body: some View {
