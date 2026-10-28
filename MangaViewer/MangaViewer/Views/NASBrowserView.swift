@@ -296,7 +296,7 @@ struct NASBrowserView: View {
                             .foregroundStyle(.secondary)
                     } else {
                         Text(ByteCountFormatter.string(
-                            fromByteCount: entry.size,
+                            fromByteCount: entry.size ?? 0,
                             countStyle: .file
                         ))
                         .font(.caption)
