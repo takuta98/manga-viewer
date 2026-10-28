@@ -39,10 +39,12 @@ struct LibraryView: View {
         query.trimmingCharacters(in: .whitespaces)
     }
 
-    /// ルートに並べるフォルダー。
+    /// ルートに並べるフォルダー。並びは名前順で安定させる。
     private var shownFolders: [String] {
-        if needle.isEmpty { return library.folders }
-        return library.folders.filter { $0.localizedCaseInsensitiveContains(needle) }
+        let list = needle.isEmpty
+            ? library.folders
+            : library.folders.filter { $0.localizedCaseInsensitiveContains(needle) }
+        return list.sorted { $0.localizedStandardCompare($1) == .orderedAscending }
     }
 
     /// ルートに並べる巻。検索中はフォルダーの中も含めて全部探す。
@@ -256,7 +258,8 @@ struct LibraryView: View {
         .alert("\(selected.count) 冊を削除しますか？", isPresented: $bulkDelete) {
             Button("削除", role: .destructive) {
                 for id in selected {
-                    if let volume = library.volumes.first(where: { $0.id == id }) {
+                    if let volume = library.volumes.first(where: { $0.id == id }),
+                       !volume.isBundledSample {
                         library.delete(volume)
                     }
                 }
@@ -402,6 +405,8 @@ struct LibraryFolderView: View {
     let name: String
     let onRead: (MangaVolume) -> Void
 
+    @Environment(\.dismiss) private var dismiss
+
     @State private var folderTarget: MangaVolume?
     @State private var selecting = false
     @State private var selected = Set<UUID>()
@@ -410,11 +415,22 @@ struct LibraryFolderView: View {
     @State private var bulkNewFolder = false
     @State private var showNewFolder = false
     @State private var newFolderName = ""
+    @State private var query = ""
+    @State private var renaming = false
+    @State private var renameText = ""
+    @State private var confirmDelete = false
+
+    private var needle: String {
+        query.trimmingCharacters(in: .whitespacesAndNewlines)
+    }
 
     /// シリーズの巻はタイトル順（数字は数値として）が自然。
     private var volumes: [MangaVolume] {
         library.volumes
             .filter { $0.folder == name }
+            .filter {
+                needle.isEmpty || $0.title.localizedCaseInsensitiveContains(needle)
+            }
             .sorted {
                 $0.title.localizedStandardCompare($1.title) == .orderedAscending
             }
@@ -460,6 +476,7 @@ struct LibraryFolderView: View {
             .padding(18)
         }
         .navigationTitle(name)
+        .searchable(text: $query, prompt: "このフォルダーの中を検索")
         .toolbar {
             ToolbarItem(placement: .topBarTrailing) {
                 if selecting {
@@ -468,14 +485,48 @@ struct LibraryFolderView: View {
                         selected = []
                     }
                 } else {
-                    Button("選択") { selecting = true }
+                    HStack(spacing: 16) {
+                        Button("選択") { selecting = true }
+                        Menu {
+                            Button("名前を変える", systemImage: "pencil") {
+                                renameText = name
+                                renaming = true
+                            }
+                            Button("フォルダーを削除", systemImage: "trash", role: .destructive) {
+                                confirmDelete = true
+                            }
+                        } label: {
+                            Image(systemName: "ellipsis.circle")
+                        }
+                    }
                 }
             }
         }
         .overlay {
             if volumes.isEmpty {
-                ContentUnavailableView("巻がありません", systemImage: "folder")
+                if !needle.isEmpty {
+                    ContentUnavailableView.search(text: query)
+                } else {
+                    ContentUnavailableView("巻がありません", systemImage: "folder")
+                }
             }
+        }
+        .alert("フォルダー名を変える", isPresented: $renaming) {
+            TextField("フォルダー名", text: $renameText)
+            Button("変更") {
+                library.renameFolder(name, to: renameText)
+                dismiss()
+            }
+            Button("キャンセル", role: .cancel) { renameText = "" }
+        }
+        .alert("フォルダーを削除しますか？", isPresented: $confirmDelete) {
+            Button("削除", role: .destructive) {
+                library.deleteFolder(name)
+                dismiss()
+            }
+            Button("キャンセル", role: .cancel) {}
+        } message: {
+            Text("中の巻は消えずに本棚へ戻ります")
         }
         .safeAreaInset(edge: .bottom) {
             if selecting {
@@ -512,7 +563,8 @@ struct LibraryFolderView: View {
         .alert("\(selected.count) 冊を削除しますか？", isPresented: $bulkDelete) {
             Button("削除", role: .destructive) {
                 for id in selected {
-                    if let volume = library.volumes.first(where: { $0.id == id }) {
+                    if let volume = library.volumes.first(where: { $0.id == id }),
+                       !volume.isBundledSample {
                         library.delete(volume)
                     }
                 }
@@ -526,7 +578,13 @@ struct LibraryFolderView: View {
             TextField("フォルダー名", text: $newFolderName)
             Button("作成") {
                 library.createFolder(newFolderName)
-                if bulkNewFolder {
+                if let target = folderTarget {
+                    library.move(
+                        target,
+                        toFolder: newFolderName.trimmingCharacters(in: .whitespacesAndNewlines)
+                    )
+                    folderTarget = nil
+                } else if bulkNewFolder {
                     moveSelected(to: newFolderName.trimmingCharacters(in: .whitespacesAndNewlines))
                 }
                 newFolderName = ""
@@ -550,6 +608,9 @@ struct LibraryFolderView: View {
                 Button("フォルダーから出す") {
                     library.move(target, toFolder: nil)
                     folderTarget = nil
+                }
+                Button("新しいフォルダー") {
+                    showNewFolder = true
                 }
                 Button("キャンセル", role: .cancel) { folderTarget = nil }
             }

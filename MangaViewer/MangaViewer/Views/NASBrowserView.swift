@@ -260,6 +260,22 @@ struct NASBrowserView: View {
             }
         }
         .navigationTitle(currentPath.last ?? client?.share ?? "SMB")
+        .navigationBarTitleDisplayMode(.inline)
+        .toolbar {
+            ToolbarItem(placement: .principal) {
+                VStack(spacing: 0) {
+                    Text(currentPath.last ?? client?.share ?? "SMB")
+                        .font(.headline)
+                    if !pathString.isEmpty {
+                        Text("\(client?.share ?? "")/\(pathString)")
+                            .font(.caption2)
+                            .foregroundStyle(.secondary)
+                            .lineLimit(1)
+                            .truncationMode(.head)
+                    }
+                }
+            }
+        }
         .searchable(
             text: $query,
             placement: .navigationBarDrawer(displayMode: .always),
@@ -445,10 +461,19 @@ struct DownloadsView: View {
         .navigationTitle("ダウンロード")
         .toolbar {
             ToolbarItem(placement: .topBarTrailing) {
-                Button("完了を消す") {
-                    manager.clearFinished()
+                HStack(spacing: 16) {
+                    if manager.jobs.contains(where: { !$0.finished && $0.failed == nil }) {
+                        Button("すべて中止") {
+                            for job in manager.jobs where !job.finished && job.failed == nil {
+                                manager.cancel(job)
+                            }
+                        }
+                    }
+                    Button("完了を消す") {
+                        manager.clearFinished()
+                    }
+                    .disabled(!manager.jobs.contains { $0.finished || $0.failed != nil })
                 }
-                .disabled(!manager.jobs.contains { $0.finished || $0.failed != nil })
             }
         }
         .overlay {
