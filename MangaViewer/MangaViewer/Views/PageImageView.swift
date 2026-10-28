@@ -6,6 +6,8 @@ struct PageImageView: View {
     let url: URL?
     let pageNumber: Int
     let fitMode: PageFitMode
+    /// 見開きで綴じ目に触れる辺。指定すると画像をその辺に寄せて中央の隙間をなくす。
+    var spineEdge: HorizontalEdge? = nil
 
     private var image: UIImage? {
         guard let url else { return nil }
@@ -34,7 +36,13 @@ struct PageImageView: View {
                             maxWidth: fitMode == .fitHeight ? nil : geo.size.width,
                             maxHeight: fitMode == .fitWidth ? nil : geo.size.height
                         )
-                        .frame(width: geo.size.width, height: geo.size.height)
+                        .frame(
+                            width: geo.size.width,
+                            height: geo.size.height,
+                            alignment: spineEdge == .leading
+                                ? .leading
+                                : (spineEdge == .trailing ? .trailing : .center)
+                        )
                 } else {
                     Text("\(pageNumber)")
                         .font(.caption)

@@ -89,7 +89,7 @@ struct ReaderView: View {
                     }
                 ) { index in
                     if turnsSinglePages {
-                        return AnyView(slotPage(index < slots.count ? slots[index] : nil))
+                        return AnyView(slotPage(index < slots.count ? index : nil))
                     }
                     return AnyView(spreadPage(index))
                 }
@@ -158,12 +158,13 @@ struct ReaderView: View {
             GeometryReader { geo in
                 HStack(spacing: 0) {
                     if appliedLayout == .duo {
+                        // 左ペインは綴じ目（右辺）へ、右ペインは綴じ目（左辺）へ寄せる
                         if direction == .rtl {
-                            pagePane(pages.1, size: geo.size)
-                            pagePane(pages.0, size: geo.size)
+                            pagePane(pages.1, size: geo.size, spineEdge: .trailing)
+                            pagePane(pages.0, size: geo.size, spineEdge: .leading)
                         } else {
-                            pagePane(pages.0, size: geo.size)
-                            pagePane(pages.1, size: geo.size)
+                            pagePane(pages.0, size: geo.size, spineEdge: .trailing)
+                            pagePane(pages.1, size: geo.size, spineEdge: .leading)
                         }
                     } else {
                         pagePane(pages.0, size: geo.size)
@@ -175,29 +176,44 @@ struct ReaderView: View {
     }
 
     /// Duo curl の片ページ。UIPageViewController が画面半分に敷く。
-    private func slotPage(_ index: Int?) -> some View {
+    /// slot は並び順の片ページ番号。左半分に出る slot は右辺を綴じ目に寄せる。
+    private func slotPage(_ slot: Int?) -> some View {
         DuoFrameView {
             GeometryReader { geo in
-                pagePane(index, width: geo.size.width, height: geo.size.height)
+                if let slot {
+                    // 左開き: 偶数が左。右開き: 奇数が左（左右を入れ替えて渡すため）
+                    let onLeft = (slot % 2 == 1) == (direction == .rtl)
+                    let edge: HorizontalEdge = onLeft ? .trailing : .leading
+                    pagePane(
+                        slot < pageSlots.count ? pageSlots[slot] : nil,
+                        width: geo.size.width,
+                        height: geo.size.height,
+                        spineEdge: edge
+                    )
+                } else {
+                    pagePane(nil, width: geo.size.width, height: geo.size.height)
+                }
             }
         }
     }
 
-    private func pagePane(_ index: Int?, size: CGSize) -> some View {
+    private func pagePane(_ index: Int?, size: CGSize, spineEdge: HorizontalEdge? = nil) -> some View {
         pagePane(
             index,
             width: appliedLayout == .duo ? size.width / 2 : size.width,
-            height: size.height
+            height: size.height,
+            spineEdge: spineEdge
         )
     }
 
     @ViewBuilder
-    private func pagePane(_ index: Int?, width: CGFloat, height: CGFloat) -> some View {
+    private func pagePane(_ index: Int?, width: CGFloat, height: CGFloat, spineEdge: HorizontalEdge? = nil) -> some View {
         if let index {
             PageImageView(
                 url: volume.pageURL(at: index),
                 pageNumber: index + 1,
-                fitMode: prefs.fitMode
+                fitMode: prefs.fitMode,
+                spineEdge: spineEdge
             )
             .frame(width: width, height: height)
         } else {
