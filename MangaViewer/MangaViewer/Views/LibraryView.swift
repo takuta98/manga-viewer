@@ -94,48 +94,9 @@ struct LibraryView: View {
             } else {
                 ScrollView {
                     if listMode {
-                        LazyVStack(spacing: 0) {
-                            ForEach(shownFolders, id: \.self) { name in
-                                folderRow(name)
-                                Divider().padding(.leading, 66)
-                            }
-                            ForEach(shownVolumes) { volume in
-                                VolumeRow(
-                                    library: library,
-                                    volume: volume,
-                                    onRead: onRead,
-                                    onMove: { folderTarget = volume },
-                                    showFolderBadge: !needle.isEmpty,
-                                    selecting: selecting,
-                                    isSelected: selected.contains(volume.id),
-                                    onToggleSelect: { toggleSelect(volume) }
-                                )
-                                Divider().padding(.leading, 66)
-                            }
-                        }
-                        .padding(.horizontal, 18)
+                        listShelf
                     } else {
-                        LazyVGrid(
-                            columns: [GridItem(.adaptive(minimum: 160), spacing: 16)],
-                            spacing: 22
-                        ) {
-                            ForEach(shownFolders, id: \.self) { name in
-                                folderCard(name)
-                            }
-                            ForEach(shownVolumes) { volume in
-                                VolumeCard(
-                                    library: library,
-                                    volume: volume,
-                                    onRead: onRead,
-                                    onMove: { folderTarget = volume },
-                                    showFolderBadge: !needle.isEmpty,
-                                    selecting: selecting,
-                                    isSelected: selected.contains(volume.id),
-                                    onToggleSelect: { toggleSelect(volume) }
-                                )
-                            }
-                        }
-                        .padding(18)
+                        gridShelf
                     }
 
                     Text("build 2026-10-28c")
@@ -368,6 +329,64 @@ struct LibraryView: View {
                 folderDeleteTarget = name
             }
         }
+    }
+
+    /// リスト表示の中身。型チェック負荷を下げるため式を分割する。
+    private var listShelf: some View {
+        LazyVStack(spacing: 0) {
+            ForEach(shownFolders, id: \.self) { name in
+                folderRow(name)
+                Divider().padding(.leading, 66)
+            }
+            ForEach(shownVolumes) { volume in
+                volumeRow(volume)
+                Divider().padding(.leading, 66)
+            }
+        }
+        .padding(.horizontal, 18)
+    }
+
+    /// グリッド表示の中身。
+    private var gridShelf: some View {
+        LazyVGrid(
+            columns: [GridItem(.adaptive(minimum: 160), spacing: 16)],
+            spacing: 22
+        ) {
+            ForEach(shownFolders, id: \.self) { name in
+                folderCard(name)
+            }
+            ForEach(shownVolumes) { volume in
+                volumeCard(volume)
+            }
+        }
+        .padding(18)
+    }
+
+    private func volumeRow(_ volume: MangaVolume) -> VolumeRow {
+        VolumeRow(
+            library: library,
+            volume: volume,
+            onRead: onRead,
+            onMove: { folderTarget = volume },
+            showFolderBadge: !needle.isEmpty,
+            selecting: selecting,
+            isSelected: selected.contains(volume.id),
+            onToggleSelect: { toggleSelect(volume) }
+        )
+    }
+
+    /// グリッド表示用の巻カード。型チェック負荷を下げるため呼び出しを関数に分ける。
+    private func volumeCard(_ volume: MangaVolume) -> VolumeCard {
+        VolumeCard(
+            library: library,
+            volume: volume,
+            onRead: onRead,
+            onMove: { folderTarget = volume },
+            showFolderBadge: !needle.isEmpty,
+            selecting: selecting,
+            isSelected: selected.contains(volume.id),
+            onToggleSelect: { toggleSelect(volume) }
+        )
     }
 
     // MARK: - フォルダーカード
