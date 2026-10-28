@@ -137,8 +137,11 @@ def main() -> int:
             fail(f"[pbx] {path.relative_to(SRC)} が project.pbxproj に無い")
     if "SampleManga" not in pbx:
         fail("[pbx] SampleManga が無い")
-    if "AMSMB2" in pbx or "Citadel" in pbx or "FeedKit" in pbx:
+    # AMSMB2 は NAS (SMB) 対応で許可。それ以外のリモート用 SPM は引き続き禁止。
+    if "Citadel" in pbx or "FeedKit" in pbx:
         fail("[範囲] リモート用 SPM が残っている")
+    if "AMSMB2" not in pbx:
+        fail("[NAS] AMSMB2 が project.pbxproj に無い")
 
     if failures:
         print("QUALITY GATE FAILED")

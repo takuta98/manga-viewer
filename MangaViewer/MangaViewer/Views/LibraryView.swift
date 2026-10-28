@@ -7,6 +7,7 @@ struct LibraryView: View {
     var onOpen: (MangaVolume) -> Void
 
     @State private var showImporter = false
+    @State private var showNAS = false
     @State private var importError: String?
 
     var body: some View {
@@ -58,13 +59,25 @@ struct LibraryView: View {
         .navigationTitle("本棚")
         .toolbar {
             ToolbarItem(placement: .topBarTrailing) {
-                Button {
-                    showImporter = true
+                Menu {
+                    Button {
+                        showImporter = true
+                    } label: {
+                        Label("ファイルから", systemImage: "folder")
+                    }
+                    Button {
+                        showNAS = true
+                    } label: {
+                        Label("NAS から入手", systemImage: "server.rack")
+                    }
                 } label: {
                     Label("作品を入手", systemImage: "plus")
                 }
                 .accessibilityLabel("作品を入手")
             }
+        }
+        .sheet(isPresented: $showNAS) {
+            NASBrowserView(library: library)
         }
         .fileImporter(
             isPresented: $showImporter,

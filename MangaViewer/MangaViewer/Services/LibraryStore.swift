@@ -33,6 +33,15 @@ final class LibraryStore: ObservableObject {
         save()
     }
 
+    /// フォルダー内の画像をまとめて1巻にする（NAS フォルダーDL 用）。
+    @discardableResult
+    func importImageDirectory(_ url: URL, title: String) throws -> MangaVolume {
+        let volume = try VolumeImporter.importImageDirectory(at: url, titleHint: title)
+        volumes.insert(volume, at: 0)
+        save()
+        return volume
+    }
+
     @discardableResult
     func importURL(_ url: URL) throws -> MangaVolume {
         let accessed = url.startAccessingSecurityScopedResource()

@@ -28,6 +28,13 @@
 		A1000013 /* DuoLayout.swift in Sources */ = {isa = PBXBuildFile; fileRef = B1000019 /* DuoLayout.swift */; };
 		A1000014 /* DuoFrameView.swift in Sources */ = {isa = PBXBuildFile; fileRef = B100001A /* DuoFrameView.swift */; };
 		A1000015 /* DuoLayoutTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = B100001B /* DuoLayoutTests.swift */; };
+		A1000016 /* KeychainStore.swift in Sources */ = {isa = PBXBuildFile; fileRef = B100001C /* KeychainStore.swift */; };
+		A1000017 /* SMBServerStore.swift in Sources */ = {isa = PBXBuildFile; fileRef = B100001D /* SMBServerStore.swift */; };
+		A1000018 /* SMBClient.swift in Sources */ = {isa = PBXBuildFile; fileRef = B100001E /* SMBClient.swift */; };
+		A1000019 /* NASImporter.swift in Sources */ = {isa = PBXBuildFile; fileRef = B100001F /* NASImporter.swift */; };
+		A100001A /* NASBrowserView.swift in Sources */ = {isa = PBXBuildFile; fileRef = B1000020 /* NASBrowserView.swift */; };
+		A1000021 /* AMSMB2 in Frameworks */ = {isa = PBXBuildFile; productRef = P1000001 /* AMSMB2 */; };
+		A1000022 /* AMSMB2 in Embed Frameworks */ = {isa = PBXBuildFile; productRef = P1000001 /* AMSMB2 */; settings = {ATTRIBUTES = (CodeSignOnCopy, RemoveHeadersOnCopy); }; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -39,6 +46,20 @@
 			remoteInfo = MangaViewer;
 		};
 /* End PBXContainerItemProxy section */
+
+/* Begin PBXCopyFilesBuildPhase section */
+		E1000003 /* Embed Frameworks */ = {
+			isa = PBXCopyFilesBuildPhase;
+			buildActionMask = 2147483647;
+			dstPath = "";
+			dstSubfolderSpec = 10;
+			files = (
+				A1000022 /* AMSMB2 in Embed Frameworks */,
+			);
+			name = "Embed Frameworks";
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXCopyFilesBuildPhase section */
 
 /* Begin PBXFileReference section */
 		B1000001 /* MangaViewerApp.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MangaViewerApp.swift; sourceTree = "<group>"; };
@@ -68,6 +89,11 @@
 		B1000016 /* Debug.xcconfig */ = {isa = PBXFileReference; lastKnownFileType = text.xcconfig; path = Debug.xcconfig; sourceTree = "<group>"; };
 		B1000017 /* Release.xcconfig */ = {isa = PBXFileReference; lastKnownFileType = text.xcconfig; path = Release.xcconfig; sourceTree = "<group>"; };
 		B1000018 /* Shared.xcconfig */ = {isa = PBXFileReference; lastKnownFileType = text.xcconfig; path = Shared.xcconfig; sourceTree = "<group>"; };
+		B100001C /* KeychainStore.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = KeychainStore.swift; sourceTree = "<group>"; };
+		B100001D /* SMBServerStore.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SMBServerStore.swift; sourceTree = "<group>"; };
+		B100001E /* SMBClient.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SMBClient.swift; sourceTree = "<group>"; };
+		B100001F /* NASImporter.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NASImporter.swift; sourceTree = "<group>"; };
+		B1000020 /* NASBrowserView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NASBrowserView.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -75,6 +101,7 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				A1000021 /* AMSMB2 in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -161,6 +188,10 @@
 				B1000009 /* ReadingProgress.swift */,
 				B100000A /* LibraryStore.swift */,
 				B1000019 /* DuoLayout.swift */,
+				B100001C /* KeychainStore.swift */,
+				B100001D /* SMBServerStore.swift */,
+				B100001E /* SMBClient.swift */,
+				B100001F /* NASImporter.swift */,
 			);
 			path = Services;
 			sourceTree = "<group>";
@@ -173,6 +204,7 @@
 				B100000D /* ReaderView.swift */,
 				B100000E /* LibraryView.swift */,
 				B100001A /* DuoFrameView.swift */,
+				B1000020 /* NASBrowserView.swift */,
 			);
 			path = Views;
 			sourceTree = "<group>";
@@ -187,12 +219,16 @@
 				I1000001 /* Sources */,
 				F1000001 /* Frameworks */,
 				J1000001 /* Resources */,
+				E1000003 /* Embed Frameworks */,
 			);
 			buildRules = (
 			);
 			dependencies = (
 			);
 			name = MangaViewer;
+			packageProductDependencies = (
+				P1000001 /* AMSMB2 */,
+			);
 			productName = MangaViewer;
 			productReference = B1000014 /* MangaViewer.app */;
 			productType = "com.apple.product-type.application";
@@ -234,6 +270,9 @@
 				Base,
 			);
 			mainGroup = G1000001;
+			packageReferences = (
+				P1000002 /* XCRemoteSwiftPackageReference "AMSMB2" */,
+			);
 			productRefGroup = G1000005 /* Products */;
 			projectDirPath = "";
 			projectRoot = "";
@@ -277,6 +316,11 @@
 				A100000E /* LibraryView.swift in Sources */,
 				A1000013 /* DuoLayout.swift in Sources */,
 				A1000014 /* DuoFrameView.swift in Sources */,
+				A1000016 /* KeychainStore.swift in Sources */,
+				A1000017 /* SMBServerStore.swift in Sources */,
+				A1000018 /* SMBClient.swift in Sources */,
+				A1000019 /* NASImporter.swift in Sources */,
+				A100001A /* NASBrowserView.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -291,6 +335,25 @@
 			runOnlyForDeploymentPostprocessing = 0;
 		};
 /* End PBXSourcesBuildPhase section */
+
+/* Begin XCRemoteSwiftPackageReference section */
+		P1000002 /* XCRemoteSwiftPackageReference "AMSMB2" */ = {
+			isa = XCRemoteSwiftPackageReference;
+			repositoryURL = "https://github.com/amosavian/AMSMB2";
+			requirement = {
+				kind = upToNextMajorVersion;
+				minimumVersion = 4.0.3;
+			};
+		};
+/* End XCRemoteSwiftPackageReference section */
+
+/* Begin XCSwiftPackageProductDependency section */
+		P1000001 /* AMSMB2 */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = P1000002 /* XCRemoteSwiftPackageReference "AMSMB2" */;
+			productName = AMSMB2;
+		};
+/* End XCSwiftPackageProductDependency section */
 
 /* Begin PBXTargetDependency section */
 		K1000001 /* PBXTargetDependency */ = {

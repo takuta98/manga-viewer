@@ -21,6 +21,40 @@ enum VolumeImporter {
             )
         }
 
+        return try makeVolume(pages: pages, directoryName: directoryName, titleHint: titleHint)
+    }
+
+    /// ディレクトリ内の画像をすべて1巻にまとめる（再帰・名前順）。
+    static func importImageDirectory(at url: URL, titleHint: String) throws -> MangaVolume {
+        let fm = FileManager.default
+        guard let enumerator = fm.enumerator(
+            at: url,
+            includingPropertiesForKeys: [.isRegularFileKey],
+            options: [.skipsHiddenFiles]
+        ) else {
+            throw NSError(domain: "VolumeImporter", code: 2,
+                          userInfo: [NSLocalizedDescriptionKey: "画像ページが見つかりません"])
+        }
+        var files: [URL] = []
+        for case let file as URL in enumerator {
+            if ZipExtractor.imageExtensions.contains(file.pathExtension.lowercased()) {
+                files.append(file)
+            }
+        }
+        files.sort { $0.path.localizedStandardCompare($1.path) == .orderedAscending }
+
+        let directoryName = UUID().uuidString
+        let dest = LibraryPaths.volumeDirectory(directoryName)
+        var pages: [String] = []
+        for (i, file) in files.enumerated() {
+            let name = String(format: "%04d.%@", i + 1, file.pathExtension.lowercased())
+            try fm.copyItem(at: file, to: dest.appendingPathComponent(name))
+            pages.append(name)
+        }
+        return try makeVolume(pages: pages, directoryName: directoryName, titleHint: titleHint)
+    }
+
+    private static func makeVolume(pages: [String], directoryName: String, titleHint: String) throws -> MangaVolume {
         guard !pages.isEmpty else {
             throw NSError(
                 domain: "VolumeImporter",
@@ -28,7 +62,6 @@ enum VolumeImporter {
                 userInfo: [NSLocalizedDescriptionKey: "画像ページが見つかりません"]
             )
         }
-
         return MangaVolume(
             id: UUID(),
             title: TitleCleaner.clean(titleHint),
