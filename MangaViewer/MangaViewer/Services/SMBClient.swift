@@ -107,11 +107,21 @@ final class SMBClient {
     }
 
     /// フォルダー配下を再帰で列挙（ファイルのみ）。
+    /// 読めないフォルダーは飛ばす。先頭が読めないときだけ失敗する。
     func filesRecursively(path: String) async throws -> [SMBEntry] {
         var out: [SMBEntry] = []
         var queue = [path]
+        var first = true
         while let dir = queue.popLast() {
-            for entry in try await list(path: dir) {
+            let items: [SMBEntry]
+            do {
+                items = try await list(path: dir)
+            } catch {
+                if first { throw error }
+                continue
+            }
+            first = false
+            for entry in items {
                 if entry.isDirectory {
                     queue.append(entry.path)
                 } else {

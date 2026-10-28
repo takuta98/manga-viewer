@@ -19,6 +19,7 @@ struct NASBrowserView: View {
     @State private var entries: [SMBEntry] = []
     @State private var query = ""
     @State private var searchResults: [SMBEntry]?
+    @State private var searching = false
 
     @State private var busy = false
     @State private var status = ""
@@ -246,28 +247,41 @@ struct NASBrowserView: View {
             if entries.isEmpty && query.isEmpty && !busy {
                 ContentUnavailableView("空のフォルダー", systemImage: "folder")
             }
-            if !query.isEmpty && (searchResults ?? []).isEmpty && !busy {
-                ContentUnavailableView.search(text: query)
+            if !query.isEmpty && !busy {
+                if searching {
+                    ProgressView("探しています…")
+                } else if (searchResults ?? []).isEmpty {
+                    ContentUnavailableView.search(text: query)
+                }
             }
         }
     }
 
-    /// 検索は今いるフォルダー配下を再帰で探す。
+    /// 共有全体を再帰で探す。入力が止まってから走査し、結果が出るまで「探しています」を出す。
     private func search(_ text: String) async {
         guard let client else { return }
         let needle = text.trimmingCharacters(in: .whitespaces)
         guard !needle.isEmpty else {
             searchResults = nil
+            searching = false
             return
         }
+        searching = true
+        defer { searching = false }
+        // 打つたびに全走査しないよう少し待つ
+        try? await Task.sleep(for: .milliseconds(500))
+        guard !Task.isCancelled else { return }
         do {
-            // 共有の先頭から全部見る
             let all = try await client.filesRecursively(path: "")
+            guard !Task.isCancelled else { return }
             searchResults = all.filter {
                 $0.name.localizedCaseInsensitiveContains(needle)
             }
         } catch {
-            searchResults = []
+            if !Task.isCancelled {
+                searchResults = []
+                errorMessage = error.localizedDescription
+            }
         }
     }
 
