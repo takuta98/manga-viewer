@@ -1,6 +1,6 @@
 import Foundation
 
-/// NAS からの取り込み。ファイル1本か、フォルダー再帰DL を既存の取り込み経路に乗せる。
+/// NAS からの取り込み。ファイル1本か、フォルダー再帰DL を取り込み経路に乗せる。
 enum NASImporter {
     static let archiveExtensions: Set<String> = ["cbz", "zip"]
 

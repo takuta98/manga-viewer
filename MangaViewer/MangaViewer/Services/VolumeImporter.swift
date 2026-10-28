@@ -20,11 +20,10 @@ enum VolumeImporter {
                 userInfo: [NSLocalizedDescriptionKey: "未対応の形式です"]
             )
         }
-
         return try makeVolume(pages: pages, directoryName: directoryName, titleHint: titleHint)
     }
 
-    /// ディレクトリ内の画像をすべて1巻にまとめる（再帰・名前順）。
+    /// ディレクトリ内の画像をまとめて1巻にする（再帰・名前順）。
     static func importImageDirectory(at url: URL, titleHint: String) throws -> MangaVolume {
         let fm = FileManager.default
         guard let enumerator = fm.enumerator(

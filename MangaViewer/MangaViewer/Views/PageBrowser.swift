@@ -1,17 +1,16 @@
 import SwiftUI
 import UIKit
 
-/// スワイプでページをめくる。タップは操作UIの表示切替のみ（ページ送りはしない）。
-/// - 既定は pageCurl（ページめくり）
-/// - 見開き（unitsPerScreen == 2）の curl は中央の綴じ目で1枚ずつめくる
+/// ページをスワイプでめくる器。タップは操作 UI の切替だけ（ページ送りしない）。
+/// - pageCurl が既定。見開き（unitsPerScreen == 2）の curl は中央の綴じ目で1枚ずつめくる
 /// - 右開きの単ページ curl は綴じ目を右端に置き、左端からめくる
-/// - SwiftUI の update で表示中ページの rootView を毎フレーム差し替えない（アニメが消える）
+/// - めくり中は SwiftUI 側から表示中ページを書き換えない（アニメが消えるので）
 struct PageBrowser: UIViewControllerRepresentable {
-    /// めくりの単位（単ページ／スライド見開きは画面、curl 見開きは片ページ）の数
+    /// めくり単位（画面 or 片ページ）の総数
     var pageCount: Int
     /// 1画面に並べる単位の数（1 または 2）
     var unitsPerScreen: Int = 1
-    /// 画面（見開き）インデックス
+    /// 表示中の画面インデックス
     @Binding var index: Int
     var style: PageTurnStyle
     var rtl: Bool
@@ -42,12 +41,12 @@ struct PageBrowser: UIViewControllerRepresentable {
         context.coordinator.usesCurl = (transition == .pageCurl)
         context.coordinator.unitsPerScreen = spread ? 2 : 1
 
-        // ページ送りはスワイプだけ。UIPageViewController 付属のタップめくりを無効化する。
+        // UIPageViewController 標準のタップめくりは使わない。
         for recognizer in controller.gestureRecognizers where recognizer is UITapGestureRecognizer {
             recognizer.isEnabled = false
         }
 
-        // 画面のどこをタップしても操作UIの表示を切り替える。
+        // どこをタップしても操作 UI を切り替えるだけ。
         let tap = UITapGestureRecognizer(
             target: context.coordinator,
             action: #selector(Coordinator.handleTap(_:))
@@ -69,21 +68,18 @@ struct PageBrowser: UIViewControllerRepresentable {
             coordinator.cache.removeAll(keepingCapacity: true)
             coordinator.cachedCount = pageCount
             coordinator.pageRevision = pageRevision
-            // 中身だけ変わったときは今のページを張り直す（アニメなし）
+            // 中身が変わっただけなら今のページをアニメなしで張り直す
             if !coordinator.isBusy {
                 coordinator.show(index: index, animated: false, publish: false)
             }
             return
         }
 
-        // めくり／スワイプ中は SwiftUI から触らない（アニメを殺す・クラッシュの元）
+        // めくり／スワイプ中は SwiftUI から触らない
         guard !coordinator.isBusy else { return }
+        guard coordinator.displayedIndex != index else { return }
 
-        if coordinator.displayedIndex == index {
-            return
-        }
-
-        // 外部（スライダー等）からの移動。隣接ならめくりアニメ、飛ページは瞬時。
+        // スライダー等からの移動。隣接だけめくりアニメ、飛ページは瞬時。
         let animated = !reduceMotion && abs(coordinator.displayedIndex - index) == 1
         coordinator.show(index: index, animated: animated, publish: false)
     }
@@ -102,8 +98,8 @@ struct PageBrowser: UIViewControllerRepresentable {
 
         var isBusy: Bool { isSwiping || isTurning }
 
-        /// UIKit の「次（after / forward）」が読む順で何単位進むか。
-        /// 右開きは常に逆方向: spine .max の before が「左端を右へめくる」進む動作になる。
+        /// UIKit の after（進む向き）が読む順で何単位進むか。
+        /// 右開きは逆方向: spine .max では UIKit の before が「左端を右へめくる」進む動作。
         private var afterStep: Int {
             parent.rtl ? -1 : 1
         }
@@ -133,7 +129,6 @@ struct PageBrowser: UIViewControllerRepresentable {
 
         @objc func handleTap(_ gesture: UITapGestureRecognizer) {
             guard !isBusy else { return }
-            // ページ送りはスワイプのみ。タップはどこでも操作UIの切替。
             parent.onToggleChrome()
         }
 
@@ -260,7 +255,6 @@ struct PageBrowser: UIViewControllerRepresentable {
             _ gestureRecognizer: UIGestureRecognizer,
             shouldRequireFailureOf otherGestureRecognizer: UIGestureRecognizer
         ) -> Bool {
-            // ページめくりパンを優先し、タップはパンが失敗したときだけ
             false
         }
     }

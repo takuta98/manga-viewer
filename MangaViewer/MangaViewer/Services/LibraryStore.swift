@@ -9,10 +9,6 @@ final class LibraryStore: ObservableObject {
     @Published var loadError: String?
     private var blockSave = false
 
-    var sortedVolumes: [MangaVolume] {
-        volumes.sorted { $0.importedAt > $1.importedAt }
-    }
-
     init() {
         load()
         ensureSample()

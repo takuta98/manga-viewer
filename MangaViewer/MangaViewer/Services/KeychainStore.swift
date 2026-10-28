@@ -1,7 +1,7 @@
 import Foundation
 import Security
 
-/// NAS パスワードだけを Keychain に置く簡易ラッパー。
+/// NAS パスワード用の簡易 Keychain ラッパー。
 enum KeychainStore {
     private static let service = "manga-viewer.smb-password"
 

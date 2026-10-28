@@ -1,7 +1,7 @@
 import Foundation
 import Compression
 
-/// CBZ/ZIP から画像だけ取り出す。Stored と Deflate のみ。
+/// CBZ/ZIP から画像だけ取り出す。Stored と Deflate に対応。
 enum ZipExtractor {
     static let imageExtensions: Set<String> = ["jpg", "jpeg", "png", "webp", "gif", "heic"]
 

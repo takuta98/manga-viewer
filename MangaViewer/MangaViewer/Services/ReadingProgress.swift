@@ -33,6 +33,11 @@ final class ReadingProgress {
         return min(100, Int((Double(current + 1) / Double(volume.pageCount) * 100).rounded()))
     }
 
+    func fraction(for volume: MangaVolume) -> Double {
+        guard volume.pageCount > 0 else { return 0 }
+        return Double(pageIndex(for: volume.id) + 1) / Double(volume.pageCount)
+    }
+
     private func persist() {
         if let data = try? JSONEncoder().encode(pages) {
             UserDefaults.standard.set(data, forKey: key)

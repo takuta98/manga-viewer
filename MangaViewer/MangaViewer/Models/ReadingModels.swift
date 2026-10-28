@@ -44,7 +44,7 @@ struct ReaderPreferences: Codable, Equatable {
     var direction: ReadingDirection = .rtl
     var turnStyle: PageTurnStyle = .curl
     var fitMode: PageFitMode = .fitScreen
-    /// Duo を許可する。縦では常に単ページ、横に広いときだけ見開き。
+    /// Duo 専用: 広いときだけ見開き、それ以外は単ページ。
     var layoutMode: PageLayoutMode = .duo
     var coverAlone: Bool = true
     var brightness: Double = 1

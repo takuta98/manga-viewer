@@ -1,7 +1,7 @@
 import SwiftUI
 import UIKit
 
-/// ページ画像の表示だけ。ジェスチャは付けない。
+/// ページ画像1枚。ジェスチャは付けない（ページ送りは PageBrowser の管轄）。
 struct PageImageView: View {
     let url: URL?
     let pageNumber: Int

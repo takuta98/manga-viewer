@@ -1,289 +1,283 @@
 import SwiftUI
 
-/// NAS (SMB) へ接続して共有を選び、フォルダーを辿ってファイル・フォルダーを取り込む画面。
+/// NAS (SMB) から作品を持ってくる画面。
+/// IP アドレスだけで接続し、共有フォルダーを選んで中を辿る。
 struct NASBrowserView: View {
     @ObservedObject var library: LibraryStore
-
     @Environment(\.dismiss) private var dismiss
 
-    @State private var settings = SMBServerStore.load()
-    @State private var shares: [String] = []
-    @State private var path: [String] = []
-    @State private var entries: [SMBEntry] = []
-    @State private var client: SMBClient?
-    @State private var loading = false
-    @State private var working = false
-    @State private var statusText: String?
-    @State private var errorText: String?
-    @State private var editingServer = false
-    @State private var form = SMBServerSettings()
-    @State private var formPassword = ""
+    // 入力は画面が持つ。再描画で消えないように View 直下の @State。
+    @State private var host = ""
+    @State private var username = ""
+    @State private var password = ""
 
-    private var settingsReady: Bool { !settings.host.isEmpty }
+    @State private var client: SMBClient?
+    @State private var shares: [String] = []
+    @State private var currentPath: [String] = []
+    @State private var entries: [SMBEntry] = []
+
+    @State private var busy = false
+    @State private var status = ""
+    @State private var errorMessage: String?
+    @State private var doneCount = 0
 
     var body: some View {
-        NavigationStack(path: $path) {
+        NavigationStack {
             Group {
-                if !settingsReady {
-                    serverForm
-                } else {
+                if client == nil {
+                    connectForm
+                } else if client?.share == nil {
                     shareList
+                } else {
+                    browser
                 }
             }
             .navigationTitle("NAS から入手")
+            .navigationBarTitleDisplayMode(.inline)
             .toolbar {
                 ToolbarItem(placement: .cancellationAction) {
                     Button("閉じる") { dismiss() }
                 }
-                if settingsReady {
-                    ToolbarItem(placement: .topBarTrailing) {
-                        Button { editingServer = true } label: {
-                            Image(systemName: "server.rack")
+                if client != nil {
+                    ToolbarItem(placement: .topBarLeading) {
+                        Button {
+                            Task { await reset() }
+                        } label: {
+                            Image(systemName: "arrow.uturn.backward")
                         }
-                        .accessibilityLabel("サーバー設定")
+                        .accessibilityLabel("接続し直す")
                     }
                 }
             }
-            .navigationDestination(for: String.self) { dir in
-                browserList(path: dir)
-                    .navigationTitle(dir.isEmpty ? (client?.share ?? "共有") : (dir.split(separator: "/").last.map(String.init) ?? dir))
+            .alert("エラー", isPresented: .constant(errorMessage != nil)) {
+                Button("OK") { errorMessage = nil }
+            } message: {
+                Text(errorMessage ?? "")
             }
-        }
-        .sheet(isPresented: $editingServer) {
-            NavigationStack { serverForm }
         }
         .onAppear {
-            if settingsReady { Task { await loadShares() } }
-        }
-    }
-
-    // MARK: - 共有一覧
-
-    private var shareList: some View {
-        List {
-            ForEach(shares, id: \.self) { name in
-                Button {
-                    Task { await selectShare(name) }
-                } label: {
-                    Label(name, systemImage: "externaldrive.connected.to.line.below")
-                        .foregroundStyle(.primary)
-                }
-            }
-            if !loading && shares.isEmpty && errorText == nil {
-                Text("共有が見つかりません").foregroundStyle(.secondary)
-            }
+            let saved = SMBServerStore.load()
+            host = saved.host
+            username = saved.username
         }
         .overlay {
-            if loading { ProgressView("共有を取得しています…") }
-        }
-        .alert("エラー", isPresented: Binding(
-            get: { errorText != nil },
-            set: { if !$0 { errorText = nil } }
-        )) {
-            Button("閉じる", role: .cancel) { errorText = nil }
-        } message: {
-            Text(errorText ?? "")
+            if busy {
+                Color.black.opacity(0.3).ignoresSafeArea()
+                VStack(spacing: 10) {
+                    ProgressView()
+                    Text(status)
+                        .font(.caption)
+                        .multilineTextAlignment(.center)
+                        .padding(.horizontal, 32)
+                }
+                .padding(20)
+                .background(.regularMaterial, in: RoundedRectangle(cornerRadius: 16))
+            }
         }
     }
 
-    // MARK: - フォルダーブラウザ
+    // MARK: - 接続
 
-    @ViewBuilder
-    private func browserList(path dir: String) -> some View {
-        List {
-            if let statusText {
-                HStack(spacing: 8) {
-                    if working { ProgressView() }
-                    Text(statusText).font(.footnote)
-                }
-                .foregroundStyle(.secondary)
-            }
-            ForEach(entries.filter { $0.isDirectory || isImportable($0) }) { entry in
-                if entry.isDirectory {
-                    NavigationLink(value: entry.path) {
-                        Label(entry.name, systemImage: "folder")
-                    }
-                } else {
-                    HStack {
-                        Label(entry.name, systemImage: icon(for: entry))
-                            .lineLimit(1)
-                        Spacer(minLength: 8)
-                        Button("ダウンロード") { downloadFile(entry) }
-                            .buttonStyle(.bordered)
-                            .disabled(working)
-                    }
-                }
-            }
-            if !loading && entries.isEmpty && errorText == nil {
-                Text("ファイルがありません").foregroundStyle(.secondary)
-            }
-        }
-        .overlay {
-            if loading { ProgressView("読み込み中…") }
-        }
-        .toolbar {
-            ToolbarItem(placement: .bottomBar) {
-                Button {
-                    downloadFolder(dir)
-                } label: {
-                    Label("このフォルダーをダウンロード", systemImage: "arrow.down.doc")
-                }
-                .disabled(working || loading)
-            }
-        }
-        .alert("エラー", isPresented: Binding(
-            get: { errorText != nil },
-            set: { if !$0 { errorText = nil } }
-        )) {
-            Button("閉じる", role: .cancel) { errorText = nil }
-        } message: {
-            Text(errorText ?? "")
-        }
-        .onAppear { Task { await open(path: dir) } }
-    }
-
-    // MARK: - サーバー設定
-
-    /// 入力欄は @State を View 本体に持たせる。computed property 内の @State は
-    /// 再描画ごとに作り直され、フォーカス移動で入力が消える（実害で指摘済み）。
-    private var serverForm: some View {
+    private var connectForm: some View {
         Form {
             Section("サーバー") {
-                TextField("IPアドレス / ホスト名（例: 192.168.1.10）", text: $form.host)
+                TextField("IP アドレス", text: $host)
+                    .keyboardType(.numbersAndPunctuation)
                     .textInputAutocapitalization(.never)
                     .autocorrectionDisabled()
-            }
-            Section("アカウント（省略可）") {
-                TextField("ユーザー", text: $form.username)
+                TextField("ユーザー名（空ならゲスト）", text: $username)
                     .textInputAutocapitalization(.never)
                     .autocorrectionDisabled()
-                SecureField("パスワード", text: $formPassword)
+                SecureField("パスワード", text: $password)
             }
             Section {
-                Button("保存して接続") {
-                    saveServer(form, password: formPassword)
+                Button {
+                    Task { await connect() }
+                } label: {
+                    HStack {
+                        Spacer()
+                        Text("接続")
+                        Spacer()
+                    }
                 }
-                .disabled(form.host.isEmpty)
+                .disabled(host.trimmingCharacters(in: .whitespaces).isEmpty)
             }
-        }
-        .navigationTitle("NAS サーバー")
-        .toolbar {
-            ToolbarItem(placement: .cancellationAction) {
-                if settingsReady {
-                    Button("閉じる") { editingServer = false }
+            if doneCount > 0 {
+                Section {
+                    Text("\(doneCount) 冊を本棚に追加しました")
+                        .font(.footnote)
+                        .foregroundStyle(.secondary)
                 }
             }
-        }
-        .onAppear {
-            form = settings
-            formPassword = SMBServerStore.loadPassword()
         }
     }
 
-    // MARK: - 動作
+    private func connect() async {
+        var settings = SMBServerSettings()
+        settings.host = host
+        settings.username = username
+        SMBServerStore.save(settings, password: password)
+        busy = true
+        status = "接続しています…"
+        do {
+            let c = try SMBClient(settings: settings, password: password)
+            let list = try await c.listShares()
+            client = c
+            shares = list
+            status = ""
+        } catch {
+            errorMessage = error.localizedDescription
+        }
+        busy = false
+    }
 
-    private func saveServer(_ form: SMBServerSettings, password: String) {
-        settings = form
-        SMBServerStore.save(form, password: password)
+    private func reset() async {
+        await client?.disconnect()
         client = nil
         shares = []
-        path = []
-        editingServer = false
-        Task { await loadShares() }
+        entries = []
+        currentPath = []
     }
 
-    private func makeClient() throws -> SMBClient {
-        if let client { return client }
-        let c = try SMBClient(settings: settings, password: SMBServerStore.loadPassword())
-        client = c
-        return c
-    }
+    // MARK: - 共有の選択
 
-    private func loadShares() async {
-        loading = true
-        errorText = nil
-        do {
-            shares = try await makeClient().listShares()
-        } catch {
-            shares = []
-            errorText = error.localizedDescription
-        }
-        loading = false
-    }
-
-    private func selectShare(_ name: String) async {
-        loading = true
-        errorText = nil
-        do {
-            try await makeClient().useShare(name)
-            path.append("")
-        } catch {
-            errorText = error.localizedDescription
-        }
-        loading = false
-    }
-
-    private func open(path dir: String) async {
-        loading = true
-        errorText = nil
-        do {
-            entries = try await makeClient().list(path: dir)
-        } catch {
-            entries = []
-            errorText = error.localizedDescription
-        }
-        loading = false
-    }
-
-    private func downloadFile(_ entry: SMBEntry) {
-        working = true
-        statusText = "\(entry.name) をダウンロード中…"
-        Task {
-            do {
-                _ = try await NASImporter.downloadFile(client: makeClient(), entry: entry, library: library)
-                statusText = "\(entry.name) を取り込みました"
-            } catch {
-                statusText = nil
-                errorText = error.localizedDescription
+    private var shareList: some View {
+        List(shares, id: \.self) { share in
+            Button {
+                Task { await pick(share) }
+            } label: {
+                Label(share, systemImage: "folder.badge.gearshape")
             }
-            working = false
+        }
+        .overlay {
+            if shares.isEmpty && !busy {
+                ContentUnavailableView("共有フォルダーがありません", systemImage: "externaldrive.badge.questionmark")
+            }
         }
     }
 
-    private func downloadFolder(_ dir: String) {
-        let folder = SMBEntry(
-            name: dir.split(separator: "/").last.map(String.init) ?? (client?.share ?? "NAS"),
-            path: dir,
-            isDirectory: true,
-            size: nil
-        )
-        working = true
-        Task {
-            do {
-                let count = try await NASImporter.downloadFolder(
-                    client: makeClient(),
-                    entry: folder,
-                    library: library
-                ) { text in
-                    Task { @MainActor in statusText = text }
+    private func pick(_ share: String) async {
+        guard let client else { return }
+        busy = true
+        status = "\(share) を開いています…"
+        do {
+            try await client.useShare(share)
+            currentPath = []
+            try await reload()
+        } catch {
+            errorMessage = error.localizedDescription
+        }
+        busy = false
+    }
+
+    // MARK: - フォルダーの中
+
+    private var browser: some View {
+        List {
+            if !currentPath.isEmpty {
+                Button {
+                    Task { await goUp() }
+                } label: {
+                    Label("ひとつ上へ", systemImage: "arrow.up")
                 }
-                statusText = "\(count) 巻を取り込みました"
-            } catch {
-                statusText = nil
-                errorText = error.localizedDescription
             }
-            working = false
+            ForEach(entries) { entry in
+                row(entry)
+            }
+        }
+        .navigationTitle(currentPath.last ?? client?.share ?? "NAS")
+        .overlay {
+            if entries.isEmpty && !busy {
+                ContentUnavailableView("空のフォルダー", systemImage: "folder")
+            }
         }
     }
 
-    private func isImportable(_ entry: SMBEntry) -> Bool {
-        let ext = (entry.name as NSString).pathExtension.lowercased()
-        return ZipExtractor.imageExtensions.contains(ext) || NASImporter.archiveExtensions.contains(ext)
+    @ViewBuilder
+    private func row(_ entry: SMBEntry) -> some View {
+        HStack {
+            Button {
+                if entry.isDirectory {
+                    Task { await goInto(entry) }
+                } else {
+                    Task { await downloadFile(entry) }
+                }
+            } label: {
+                Label(entry.name, systemImage: entry.isDirectory ? "folder" : "doc")
+                    .frame(maxWidth: .infinity, alignment: .leading)
+            }
+            .buttonStyle(.plain)
+
+            Button {
+                Task {
+                    if entry.isDirectory {
+                        await downloadFolder(entry)
+                    } else {
+                        await downloadFile(entry)
+                    }
+                }
+            } label: {
+                Image(systemName: "arrow.down.circle")
+                    .font(.title3)
+            }
+            .buttonStyle(.plain)
+            .accessibilityLabel(entry.isDirectory ? "フォルダーごとダウンロード" : "ダウンロード")
+        }
     }
 
-    private func icon(for entry: SMBEntry) -> String {
-        let ext = (entry.name as NSString).pathExtension.lowercased()
-        if NASImporter.archiveExtensions.contains(ext) { return "books.vertical" }
-        return "photo"
+    private var pathString: String {
+        currentPath.joined(separator: "/")
+    }
+
+    private func goInto(_ entry: SMBEntry) async {
+        currentPath.append(entry.name)
+        do { try await reload() } catch { errorMessage = error.localizedDescription }
+    }
+
+    private func goUp() async {
+        _ = currentPath.popLast()
+        do { try await reload() } catch { errorMessage = error.localizedDescription }
+    }
+
+    private func reload() async throws {
+        guard let client else { return }
+        busy = true
+        defer { busy = false }
+        entries = try await client.list(path: pathString)
+    }
+
+    // MARK: - ダウンロード
+
+    private func downloadFile(_ entry: SMBEntry) async {
+        guard let client else { return }
+        busy = true
+        status = "\(entry.name) をダウンロードしています…"
+        do {
+            _ = try await NASImporter.downloadFile(client: client, entry: entry, library: library)
+            doneCount += 1
+            status = ""
+        } catch {
+            errorMessage = error.localizedDescription
+        }
+        busy = false
+    }
+
+    private func downloadFolder(_ entry: SMBEntry) async {
+        guard let client else { return }
+        busy = true
+        do {
+            let count = try await NASImporter.downloadFolder(
+                client: client,
+                entry: entry,
+                library: library
+            ) { text in
+                Task { @MainActor in status = text }
+            }
+            doneCount += count
+            status = ""
+        } catch {
+            errorMessage = error.localizedDescription
+        }
+        busy = false
     }
 }

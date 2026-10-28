@@ -1,6 +1,8 @@
 import SwiftUI
 import UIKit
 
+/// 読書画面。普段はページだけを表示し、タップで操作を呼び出す。
+/// 「閉じる」が一番大きく画面中央の少し上、その下に小さな設定。
 struct ReaderView: View {
     @ObservedObject var library: LibraryStore
     let volume: MangaVolume
@@ -15,7 +17,7 @@ struct ReaderView: View {
     @State private var showSettings = false
     /// 折りたたみ途中の 0 サイズでは更新しない。前回の有効レイアウトを維持する。
     @State private var appliedLayout: PageLayoutMode = .single
-    /// ページ中身の再生成用。めくりアニメを殺さないよう、必要なときだけ増やす。
+    /// ページ中身の再生成用。めくりアニメを殺さないよう必要なときだけ増やす。
     @State private var pageRevision = 0
 
     private let progress = ReadingProgress.shared
@@ -34,7 +36,7 @@ struct ReaderView: View {
         )
     }
 
-    /// 見開きの curl は綴じ目で1枚ずつめくるので、片ページ単位で渡す。
+    /// Duo の見開き curl は綴じ目で1枚ずつめくるので片ページ単位で渡す。
     private var turnsSinglePages: Bool {
         prefs.turnStyle == .curl && !reduceMotion && appliedLayout == .duo
     }
@@ -53,7 +55,6 @@ struct ReaderView: View {
     }
 
     var body: some View {
-        // Duo 指針: 単ページ／見開きで別の View 木に切り替えない（状態と UIPageViewController を壊す）。
         ZStack {
             Color.black.ignoresSafeArea()
 
@@ -79,13 +80,12 @@ struct ReaderView: View {
                     }
                     return AnyView(spreadPage(index))
                 }
-                // めくりスタイル／方向／綴じ目が変わったときだけ UIPageViewController を作り直す。
                 .id("turn-\(prefs.turnStyle.rawValue)-dir-\(direction.rawValue)-spread-\(turnsSinglePages)")
                 .opacity(prefs.brightness)
             }
 
             if showChrome {
-                chromeOverlay
+                controls
             }
         }
         .background {
@@ -132,6 +132,8 @@ struct ReaderView: View {
         }
     }
 
+    // MARK: - ページ
+
     private func spreadPage(_ index: Int) -> some View {
         let pages = SpreadIndex.pageIndices(
             spreadIndex: index,
@@ -141,7 +143,7 @@ struct ReaderView: View {
         )
         return DuoFrameView {
             GeometryReader { geo in
-                HStack(spacing: hingeGutter(in: geo)) {
+                HStack(spacing: 0) {
                     if appliedLayout == .duo {
                         if direction == .rtl {
                             pagePane(pages.1, size: geo.size)
@@ -159,18 +161,13 @@ struct ReaderView: View {
         }
     }
 
-    /// 見開き curl の片ページ。UIPageViewController が画面の半分に敷く。
+    /// Duo curl の片ページ。UIPageViewController が画面半分に敷く。
     private func slotPage(_ index: Int?) -> some View {
         DuoFrameView {
             GeometryReader { geo in
                 pagePane(index, width: geo.size.width, height: geo.size.height)
             }
         }
-    }
-
-    /// 将来の reservedRegions(.division) 用。SDK が無い環境では 0。
-    private func hingeGutter(in geo: GeometryProxy) -> CGFloat {
-        0
     }
 
     private func pagePane(_ index: Int?, size: CGSize) -> some View {
@@ -196,31 +193,67 @@ struct ReaderView: View {
         }
     }
 
-    private var chromeOverlay: some View {
+    // MARK: - タップで出る操作
+
+    private var controls: some View {
         GeometryReader { geo in
-            VStack(spacing: 0) {
-                // 作品名は小さく上部に
-                VStack(spacing: 2) {
-                    Text(volume.title)
-                        .font(.footnote.weight(.semibold))
-                        .lineLimit(1)
-                    Text("\(currentPageIndex + 1) / \(volume.pageCount) · \(appliedLayout == .duo ? "Duo" : "単ページ")")
-                        .font(.caption.monospacedDigit())
+            Color.black.opacity(0.35)
+                .ignoresSafeArea()
+                .allowsHitTesting(false)
+
+            VStack(spacing: 22) {
+                Button { dismiss() } label: {
+                    VStack(spacing: 8) {
+                        Image(systemName: "xmark")
+                            .font(.title.weight(.bold))
+                        Text("閉じる")
+                            .font(.title3.weight(.semibold))
+                    }
+                    .foregroundStyle(.white)
+                    .frame(width: 168, height: 132)
+                    .background(
+                        .black.opacity(0.8),
+                        in: RoundedRectangle(cornerRadius: 24, style: .continuous)
+                    )
                 }
-                .foregroundStyle(.white)
-                .frame(maxWidth: .infinity)
-                .padding(.horizontal, 12)
-                .padding(.top, geo.safeAreaInsets.top + 4)
-                .padding(.bottom, 12)
-                .background(
-                    LinearGradient(colors: [.black.opacity(0.85), .clear], startPoint: .top, endPoint: .bottom)
+                .accessibilityLabel("本を閉じる")
+
+                Button { showSettings = true } label: {
+                    Label("設定", systemImage: "gearshape")
+                        .font(.callout.weight(.medium))
+                        .foregroundStyle(.white.opacity(0.9))
+                        .padding(.horizontal, 18)
+                        .padding(.vertical, 10)
+                        .background(.black.opacity(0.6), in: Capsule())
+                }
+                .accessibilityLabel("読書設定")
+            }
+            .position(x: geo.size.width / 2, y: geo.size.height * 0.38)
+
+            VStack(spacing: 2) {
+                Text(volume.title)
+                    .font(.footnote.weight(.semibold))
+                    .lineLimit(1)
+                Text("\(currentPageIndex + 1) / \(volume.pageCount)")
+                    .font(.caption.monospacedDigit())
+            }
+            .foregroundStyle(.white.opacity(0.9))
+            .padding(.top, geo.safeAreaInsets.top + 6)
+            .padding(.bottom, 10)
+            .frame(maxWidth: .infinity)
+            .background(
+                LinearGradient(
+                    colors: [.black.opacity(0.85), .clear],
+                    startPoint: .top,
+                    endPoint: .bottom
                 )
+            )
+            .frame(maxHeight: .infinity, alignment: .top)
+            .ignoresSafeArea(edges: .top)
+            .allowsHitTesting(false)
 
-                Color.clear
-                    .frame(maxWidth: .infinity, maxHeight: .infinity)
-                    .allowsHitTesting(false)
-
-                // ページ送りスライダーは下部に
+            VStack(spacing: 0) {
+                Spacer(minLength: 0)
                 let maxSpread = max(totalSpreads - 1, 0)
                 Slider(
                     value: Binding(
@@ -230,47 +263,23 @@ struct ReaderView: View {
                     in: 0...Double(maxSpread),
                     step: 1
                 )
-                .padding(.horizontal, 20)
-                .padding(.bottom, geo.safeAreaInsets.bottom + 12)
+                .padding(.horizontal, 24)
+                .padding(.bottom, geo.safeAreaInsets.bottom + 14)
                 .background(
-                    LinearGradient(colors: [.clear, .black.opacity(0.85)], startPoint: .top, endPoint: .bottom)
+                    LinearGradient(
+                        colors: [.clear, .black.opacity(0.85)],
+                        startPoint: .top,
+                        endPoint: .bottom
+                    )
                 )
             }
-            .ignoresSafeArea()
-            .overlay(alignment: .top) {
-                // 画面中央より少し上: 大きな「本を閉じる」ボタン + 小さな設定ボタン
-                VStack(spacing: 18) {
-                    Button { dismiss() } label: {
-                        VStack(spacing: 6) {
-                            Image(systemName: "xmark")
-                                .font(.title.weight(.bold))
-                            Text("閉じる")
-                                .font(.callout.weight(.semibold))
-                        }
-                        .foregroundStyle(.white)
-                        .frame(width: 140, height: 96)
-                        .background(.black.opacity(0.65), in: RoundedRectangle(cornerRadius: 48, style: .continuous))
-                    }
-                    .accessibilityLabel("本を閉じる")
-
-                    Button { showSettings = true } label: {
-                        Image(systemName: "gearshape")
-                            .font(.title3)
-                            .foregroundStyle(.white)
-                            .frame(width: 44, height: 44)
-                            .background(.black.opacity(0.5), in: Circle())
-                    }
-                    .accessibilityLabel("読書設定")
-                }
-                .padding(.top, geo.size.height * 0.33)
-            }
+            .ignoresSafeArea(edges: .bottom)
         }
-        // Chrome の中央以外は PageBrowser のスワイプを妨げないよう、オーバーレイ全体は通す。
-        // 上下バーはデフォルトでヒットを受ける。
     }
 
+    // MARK: - 状態
+
     private func adoptSize(_ size: CGSize) {
-        // 高さ0などの過渡フレームではレイアウトを切り替えない（Duo で固まる主因）。
         guard DuoLayout.isUsable(size) else { return }
         let next = DuoLayout.resolve(containerSize: size, preference: prefs.layoutMode)
         guard next != appliedLayout else { return }
@@ -302,6 +311,8 @@ struct ReaderView: View {
             spreadIndex = next
         }
     }
+
+    // MARK: - 設定
 
     private var settingsSheet: some View {
         NavigationStack {

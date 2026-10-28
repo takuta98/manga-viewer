@@ -1,7 +1,6 @@
 import SwiftUI
 
-/// Duo 見開きの枠。中身のサイズを変えず、親から与えられた領域いっぱいに敷く。
-/// （aspectRatio で自分の高さを変えると GeometryReader 計測ループの原因になる）
+/// ページを敷く枠。親から与えられた範囲をそのまま埋めるだけ。
 struct DuoFrameView<Content: View>: View {
     @ViewBuilder var content: () -> Content
 

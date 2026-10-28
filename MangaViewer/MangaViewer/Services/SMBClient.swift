@@ -1,7 +1,7 @@
 import Foundation
 import AMSMB2
 
-/// NAS (SMB) の1接続先。ホストへ接続し、共有名を列挙して選んでからブラウズする。
+/// NAS (SMB) の1接続先。IP/ホストへ接続し、共有を列挙して選んでからブラウズする。
 struct SMBEntry: Identifiable, Hashable {
     var id: String { path }
     var name: String
@@ -17,6 +17,8 @@ final class SMBClient {
     private var manager: SMB2Manager?
     private var connected = false
 
+    var share: String?
+
     init(settings: SMBServerSettings, password: String) throws {
         let host = settings.host.trimmingCharacters(in: .whitespacesAndNewlines)
         guard !host.isEmpty else { throw SMBError.notConfigured }
@@ -28,7 +30,7 @@ final class SMBClient {
 
     // MARK: - 共有
 
-    /// 接続先が公開している共有名の一覧（隠し共有は除く）。
+    /// 公開されている共有名の一覧（隠し共有は除く）。
     func listShares() async throws -> [String] {
         let manager = try await connection()
         do {
@@ -54,8 +56,6 @@ final class SMBClient {
         }
         share = name
     }
-
-    var share: String?
 
     // MARK: - 一覧
 
