@@ -31,7 +31,7 @@ struct PageImageView: View {
                 if let image {
                     Image(uiImage: image)
                         .resizable()
-                        .aspectRatio(contentMode: spineEdge == nil ? .fit : .fill)
+                        .scaledToFit()
                         .frame(
                             maxWidth: fitMode == .fitHeight ? nil : geo.size.width,
                             maxHeight: fitMode == .fitWidth ? nil : geo.size.height
@@ -43,7 +43,6 @@ struct PageImageView: View {
                                 ? .leading
                                 : (spineEdge == .trailing ? .trailing : .center)
                         )
-                        .clipped()
                 } else {
                     Text("\(pageNumber)")
                         .font(.caption)
