@@ -199,26 +199,16 @@ struct ReaderView: View {
     private var chromeOverlay: some View {
         GeometryReader { geo in
             VStack(spacing: 0) {
-                HStack(spacing: 12) {
-                    Button { dismiss() } label: {
-                        Image(systemName: "chevron.down").frame(width: 36, height: 36)
-                    }
-                    .accessibilityLabel("本棚に戻る")
-
-                    VStack(spacing: 2) {
-                        Text(volume.title)
-                            .font(.footnote.weight(.semibold))
-                            .lineLimit(1)
-                        Text("\(currentPageIndex + 1) / \(volume.pageCount) · \(appliedLayout == .duo ? "Duo" : "単ページ")")
-                            .font(.caption.monospacedDigit())
-                    }
-                    Spacer(minLength: 0)
-                    Button { showSettings = true } label: {
-                        Image(systemName: "slider.horizontal.3").frame(width: 36, height: 36)
-                    }
-                    .accessibilityLabel("読書設定")
+                // 作品名は小さく上部に
+                VStack(spacing: 2) {
+                    Text(volume.title)
+                        .font(.footnote.weight(.semibold))
+                        .lineLimit(1)
+                    Text("\(currentPageIndex + 1) / \(volume.pageCount) · \(appliedLayout == .duo ? "Duo" : "単ページ")")
+                        .font(.caption.monospacedDigit())
                 }
                 .foregroundStyle(.white)
+                .frame(maxWidth: .infinity)
                 .padding(.horizontal, 12)
                 .padding(.top, geo.safeAreaInsets.top + 4)
                 .padding(.bottom, 12)
@@ -229,11 +219,8 @@ struct ReaderView: View {
                 Color.clear
                     .frame(maxWidth: .infinity, maxHeight: .infinity)
                     .allowsHitTesting(false)
-                    .contentShape(Rectangle())
-                    .onTapGesture {
-                        withAnimation(.easeInOut(duration: 0.2)) { showChrome.toggle() }
-                    }
 
+                // ページ送りスライダーは下部に
                 let maxSpread = max(totalSpreads - 1, 0)
                 Slider(
                     value: Binding(
@@ -250,6 +237,33 @@ struct ReaderView: View {
                 )
             }
             .ignoresSafeArea()
+            .overlay(alignment: .top) {
+                // 画面中央より少し上: 大きな「本を閉じる」ボタン + 小さな設定ボタン
+                VStack(spacing: 18) {
+                    Button { dismiss() } label: {
+                        VStack(spacing: 6) {
+                            Image(systemName: "xmark")
+                                .font(.title.weight(.bold))
+                            Text("閉じる")
+                                .font(.callout.weight(.semibold))
+                        }
+                        .foregroundStyle(.white)
+                        .frame(width: 140, height: 96)
+                        .background(.black.opacity(0.65), in: RoundedRectangle(cornerRadius: 48, style: .continuous))
+                    }
+                    .accessibilityLabel("本を閉じる")
+
+                    Button { showSettings = true } label: {
+                        Image(systemName: "gearshape")
+                            .font(.title3)
+                            .foregroundStyle(.white)
+                            .frame(width: 44, height: 44)
+                            .background(.black.opacity(0.5), in: Circle())
+                    }
+                    .accessibilityLabel("読書設定")
+                }
+                .padding(.top, geo.size.height * 0.33)
+            }
         }
         // Chrome の中央以外は PageBrowser のスワイプを妨げないよう、オーバーレイ全体は通す。
         // 上下バーはデフォルトでヒットを受ける。

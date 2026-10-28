@@ -1,7 +1,7 @@
 import SwiftUI
 import UIKit
 
-/// スワイプと端タップでページをめくる。
+/// スワイプでページをめくる。タップは操作UIの表示切替のみ（ページ送りはしない）。
 /// - 既定は pageCurl（ページめくり）
 /// - 見開き（unitsPerScreen == 2）の curl は中央の綴じ目で1枚ずつめくる
 /// - 右開きの単ページ curl は綴じ目を右端に置き、左端からめくる
@@ -42,6 +42,12 @@ struct PageBrowser: UIViewControllerRepresentable {
         context.coordinator.usesCurl = (transition == .pageCurl)
         context.coordinator.unitsPerScreen = spread ? 2 : 1
 
+        // ページ送りはスワイプだけ。UIPageViewController 付属のタップめくりを無効化する。
+        for recognizer in controller.gestureRecognizers where recognizer is UITapGestureRecognizer {
+            recognizer.isEnabled = false
+        }
+
+        // 画面のどこをタップしても操作UIの表示を切り替える。
         let tap = UITapGestureRecognizer(
             target: context.coordinator,
             action: #selector(Coordinator.handleTap(_:))
@@ -126,24 +132,9 @@ struct PageBrowser: UIViewControllerRepresentable {
         }
 
         @objc func handleTap(_ gesture: UITapGestureRecognizer) {
-            guard let view = gesture.view, !isBusy else { return }
-            let x = gesture.location(in: view).x
-            let width = max(view.bounds.width, 1)
-            if x <= width * 0.28 {
-                turn(forward: parent.rtl)
-            } else if x >= width * 0.72 {
-                turn(forward: !parent.rtl)
-            } else {
-                parent.onToggleChrome()
-            }
-        }
-
-        private func turn(forward: Bool) {
-            let next = forward ? parent.index + 1 : parent.index - 1
-            guard next >= 0, next < screenCount else { return }
-            let animated = !parent.reduceMotion
-            show(index: next, animated: animated, publish: true)
-            UIImpactFeedbackGenerator(style: .light).impactOccurred()
+            guard !isBusy else { return }
+            // ページ送りはスワイプのみ。タップはどこでも操作UIの切替。
+            parent.onToggleChrome()
         }
 
         func show(index: Int, animated: Bool, publish: Bool) {
