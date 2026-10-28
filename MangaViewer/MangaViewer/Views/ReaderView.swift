@@ -292,11 +292,14 @@ struct ReaderView: View {
                     if let k = pairBreak {
                         HStack(spacing: 10) {
                             Text("空白は \(k + 1) ページの後")
-                                .font(.caption2)
+                                .font(.caption)
                                 .foregroundStyle(.white.opacity(0.7))
                             Button("消す") { pairBreak = nil }
-                                .font(.caption2.weight(.semibold))
-                                .foregroundStyle(.white.opacity(0.9))
+                                .font(.footnote.weight(.semibold))
+                                .foregroundStyle(.white)
+                                .padding(.horizontal, 10)
+                                .padding(.vertical, 4)
+                                .background(.white.opacity(0.25), in: Capsule())
                         }
                         .padding(.horizontal, 12)
                         .padding(.vertical, 5)
