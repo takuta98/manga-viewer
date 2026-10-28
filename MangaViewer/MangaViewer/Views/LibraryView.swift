@@ -36,7 +36,7 @@ struct LibraryView: View {
                     }
                     .padding(18)
 
-                    Text("build 2ab4106")
+                    Text("build a47efa0")
                         .font(.caption2)
                         .foregroundStyle(.tertiary)
                         .frame(maxWidth: .infinity)
@@ -74,9 +74,12 @@ struct LibraryView: View {
         Button { onRead(volume) } label: {
             VStack(alignment: .leading, spacing: 6) {
                 cover(for: volume)
+                    .resizable()
+                    .scaledToFill()
                     .aspectRatio(2 / 3, contentMode: .fit)
                     .frame(maxWidth: .infinity)
                     .background(Color.black)
+                    .clipped()
                     .clipShape(RoundedRectangle(cornerRadius: 8, style: .continuous))
                     .overlay(alignment: .bottom) { progressBar(volume) }
 
