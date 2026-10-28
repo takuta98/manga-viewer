@@ -110,6 +110,13 @@ final class SMBClient {
     /// 読めないフォルダーは飛ばす。先頭が読めないときだけ失敗する。
     func filesRecursively(path: String) async throws -> [SMBEntry] {
         var out: [SMBEntry] = []
+        try await enumerateFiles(path: path) { out.append($0) }
+        return out.sorted { $0.path.localizedStandardCompare($1.path) == .orderedAscending }
+    }
+
+    /// 見つかったファイルを1つずつ通知しながら再帰で辿る（検索の途中経過用）。
+    /// visit は呼び出し側と同じ実行コンテキストで同期に呼ばれる。
+    func enumerateFiles(path: String, visit: (SMBEntry) -> Void) async throws {
         var queue = [path]
         var first = true
         while let dir = queue.popLast() {
@@ -125,11 +132,10 @@ final class SMBClient {
                 if entry.isDirectory {
                     queue.append(entry.path)
                 } else {
-                    out.append(entry)
+                    visit(entry)
                 }
             }
         }
-        return out.sorted { $0.path.localizedStandardCompare($1.path) == .orderedAscending }
     }
 
     func disconnect() async {

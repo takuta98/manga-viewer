@@ -87,7 +87,8 @@ struct LibraryView: View {
                 catch { importError = error.localizedDescription }
             }
         }
-        .sheet(isPresented: $showNAS) {
+        // カード表示だと外タップで閉じてしまうのでフルスクリーンにする
+        .fullScreenCover(isPresented: $showNAS) {
             NASBrowserView(library: library)
         }
         .alert("取り込みに失敗しました", isPresented: .constant(importError != nil)) {

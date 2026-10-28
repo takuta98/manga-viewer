@@ -18,8 +18,6 @@ struct NASBrowserView: View {
     @State private var currentPath: [String] = []
     @State private var entries: [SMBEntry] = []
     @State private var query = ""
-    @State private var searchResults: [SMBEntry]?
-    @State private var searching = false
 
     @State private var busy = false
     @State private var status = ""
@@ -171,7 +169,6 @@ struct NASBrowserView: View {
         entries = []
         currentPath = []
         query = ""
-        searchResults = nil
         saved = SMBServerStore.all()
     }
 
@@ -200,7 +197,6 @@ struct NASBrowserView: View {
             try await client.useShare(share)
             currentPath = []
             query = ""
-            searchResults = nil
             try await reload()
         } catch {
             errorMessage = error.localizedDescription
@@ -210,77 +206,45 @@ struct NASBrowserView: View {
 
     // MARK: - フォルダーの中
 
+    /// 今見ている階層だけを名前で絞る（ネットワークに行かないので瞬時）。
+    private var shownEntries: [SMBEntry] {
+        let needle = query.trimmingCharacters(in: .whitespaces)
+        guard !needle.isEmpty else { return entries }
+        return entries.filter {
+            $0.name.localizedCaseInsensitiveContains(needle)
+        }
+    }
+
     private var browser: some View {
         List {
-            if query.isEmpty {
-                if !currentPath.isEmpty {
-                    Button {
-                        Task { await goUp() }
-                    } label: {
-                        Label("ひとつ上へ", systemImage: "arrow.up")
-                    }
-                    Button {
-                        Task { await downloadCurrentFolder() }
-                    } label: {
-                        Label("このフォルダーごとダウンロード", systemImage: "square.and.arrow.down.on.square")
-                    }
+            if !currentPath.isEmpty && query.isEmpty {
+                Button {
+                    Task { await goUp() }
+                } label: {
+                    Label("ひとつ上へ", systemImage: "arrow.up")
                 }
-                ForEach(entries) { entry in
-                    row(entry)
+                Button {
+                    Task { await downloadCurrentFolder() }
+                } label: {
+                    Label("このフォルダーごとダウンロード", systemImage: "square.and.arrow.down.on.square")
                 }
-            } else {
-                ForEach(searchResults ?? []) { entry in
-                    searchRow(entry)
-                }
+            }
+            ForEach(shownEntries) { entry in
+                row(entry)
             }
         }
         .navigationTitle(currentPath.last ?? client?.share ?? "SMB")
         .searchable(
             text: $query,
             placement: .navigationBarDrawer(displayMode: .always),
-            prompt: "共有の中を検索"
+            prompt: "このフォルダーの中を検索"
         )
-        .task(id: query) {
-            await search(query)
-        }
         .overlay {
             if entries.isEmpty && query.isEmpty && !busy {
                 ContentUnavailableView("空のフォルダー", systemImage: "folder")
             }
-            if !query.isEmpty && !busy {
-                if searching {
-                    ProgressView("探しています…")
-                } else if (searchResults ?? []).isEmpty {
-                    ContentUnavailableView.search(text: query)
-                }
-            }
-        }
-    }
-
-    /// 共有全体を再帰で探す。入力が止まってから走査し、結果が出るまで「探しています」を出す。
-    private func search(_ text: String) async {
-        guard let client else { return }
-        let needle = text.trimmingCharacters(in: .whitespaces)
-        guard !needle.isEmpty else {
-            searchResults = nil
-            searching = false
-            return
-        }
-        searching = true
-        defer { searching = false }
-        // 打つたびに全走査しないよう少し待つ
-        try? await Task.sleep(for: .milliseconds(500))
-        guard !Task.isCancelled else { return }
-        do {
-            let all = try await client.filesRecursively(path: "")
-            guard !Task.isCancelled else { return }
-            searchResults = all.filter {
-                $0.name.localizedCaseInsensitiveContains(needle)
-            }
-        } catch {
-            if !Task.isCancelled {
-                searchResults = []
-                errorMessage = error.localizedDescription
+            if !query.isEmpty && shownEntries.isEmpty && !busy {
+                ContentUnavailableView.search(text: query)
             }
         }
     }
@@ -317,33 +281,6 @@ struct NASBrowserView: View {
         }
     }
 
-    @ViewBuilder
-    private func searchRow(_ entry: SMBEntry) -> some View {
-        HStack {
-            Label {
-                VStack(alignment: .leading) {
-                    Text(entry.name)
-                    Text(entry.path)
-                        .font(.caption2)
-                        .foregroundStyle(.secondary)
-                        .lineLimit(1)
-                }
-            } icon: {
-                Image(systemName: "doc")
-            }
-            .frame(maxWidth: .infinity, alignment: .leading)
-
-            Button {
-                Task { await downloadFile(entry) }
-            } label: {
-                Image(systemName: "arrow.down.circle")
-                    .font(.title3)
-            }
-            .buttonStyle(.plain)
-            .accessibilityLabel("ダウンロード")
-        }
-    }
-
     private var pathString: String {
         currentPath.joined(separator: "/")
     }
@@ -351,14 +288,12 @@ struct NASBrowserView: View {
     private func goInto(_ entry: SMBEntry) async {
         currentPath.append(entry.name)
         query = ""
-        searchResults = nil
         do { try await reload() } catch { errorMessage = error.localizedDescription }
     }
 
     private func goUp() async {
         _ = currentPath.popLast()
         query = ""
-        searchResults = nil
         do { try await reload() } catch { errorMessage = error.localizedDescription }
     }
 
