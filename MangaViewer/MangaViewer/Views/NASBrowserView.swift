@@ -201,13 +201,17 @@ struct NASBrowserView: View {
     // MARK: - 共有の選択
 
     private var shareList: some View {
-        List(shares, id: \.self) { share in
+        List(
+            shares.sorted { $0.localizedCaseInsensitiveCompare($1) == .orderedAscending },
+            id: \.self
+        ) { share in
             Button {
                 Task { await pick(share) }
             } label: {
                 Label(share, systemImage: "folder.badge.gearshape")
             }
         }
+        .navigationTitle("共有フォルダーを選ぶ")
         .overlay {
             if shares.isEmpty && !busy {
                 ContentUnavailableView("共有フォルダーがありません", systemImage: "externaldrive.badge.questionmark")
@@ -419,6 +423,8 @@ struct DownloadsView: View {
     var body: some View {
         List(manager.jobs) { job in
             HStack {
+                Image(systemName: job.isFolder ? "folder" : "doc.zipper")
+                    .foregroundStyle(.secondary)
                 VStack(alignment: .leading, spacing: 2) {
                     Text(job.name)
                         .lineLimit(1)
