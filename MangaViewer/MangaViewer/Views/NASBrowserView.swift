@@ -16,6 +16,8 @@ struct NASBrowserView: View {
     @State private var statusText: String?
     @State private var errorText: String?
     @State private var editingServer = false
+    @State private var form = SMBServerSettings()
+    @State private var formPassword = ""
 
     private var settingsReady: Bool { !settings.host.isEmpty }
 
@@ -142,10 +144,10 @@ struct NASBrowserView: View {
 
     // MARK: - サーバー設定
 
+    /// 入力欄は @State を View 本体に持たせる。computed property 内の @State は
+    /// 再描画ごとに作り直され、フォーカス移動で入力が消える（実害で指摘済み）。
     private var serverForm: some View {
-        @State var form = settings
-        @State var formPassword = ""
-        return Form {
+        Form {
             Section("サーバー") {
                 TextField("IPアドレス / ホスト名（例: 192.168.1.10）", text: $form.host)
                     .textInputAutocapitalization(.never)
@@ -172,7 +174,10 @@ struct NASBrowserView: View {
                 }
             }
         }
-        .onAppear { formPassword = SMBServerStore.loadPassword() }
+        .onAppear {
+            form = settings
+            formPassword = SMBServerStore.loadPassword()
+        }
     }
 
     // MARK: - 動作
