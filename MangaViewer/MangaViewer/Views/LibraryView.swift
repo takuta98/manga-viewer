@@ -99,7 +99,7 @@ struct LibraryView: View {
                         gridShelf
                     }
 
-                    Text("build 2026-10-28d")
+                    Text("build 2026-10-28e")
                         .font(.caption2)
                         .foregroundStyle(.tertiary)
                         .frame(maxWidth: .infinity)
@@ -110,7 +110,8 @@ struct LibraryView: View {
         .background(Color(uiColor: .systemGroupedBackground))
         .navigationTitle("本棚")
         .searchable(text: $query, prompt: "タイトルで検索")
-        // カメラ位置が左なのでボタンは全部右側に出す
+        // Duo ではシステムがツールバーを右側の縦バーに配置する。項目ごとに
+        // 分けてアイコン＋タイトルを付けると、縦バーではアイコンで出る。
         .toolbar {
             ToolbarItem(placement: .topBarLeading) {
                 if selecting {
@@ -119,35 +120,55 @@ struct LibraryView: View {
                         .foregroundStyle(.secondary)
                 }
             }
-            ToolbarItem(placement: .topBarTrailing) {
-                if selecting {
+            if selecting {
+                ToolbarItem(placement: .cancellationAction) {
                     Button("やめる") {
                         selecting = false
                         selected = []
                     }
-                } else {
-                    HStack(spacing: 16) {
-                        Button("選択") { selecting = true }
-                            .disabled(shownVolumes.isEmpty)
-                        Button { showDownloads = true } label: {
-                            Image(systemName: "arrow.down.circle")
-                        }
-                        .accessibilityLabel("ダウンロード進捗")
-                        Menu {
-                            Button("追加順") { sortByTitle = false }
-                            Button("タイトル順") { sortByTitle = true }
-                        } label: {
-                            Image(systemName: "arrow.up.arrow.down")
-                        }
-                        .accessibilityLabel("並び替え")
-                        Button {
-                            listMode.toggle()
-                        } label: {
-                            Image(systemName: listMode ? "square.grid.2x2" : "list.bullet")
-                        }
-                        .accessibilityLabel("表示を切り替える")
-                        importMenu
+                }
+                ToolbarItemGroup(placement: .bottomBar) {
+                    Button {
+                        selected = Set(shownVolumes.map(\.id))
+                    } label: {
+                        Label("すべて選ぶ", systemImage: "checkmark.square")
                     }
+                    Button {
+                        bulkMove = true
+                    } label: {
+                        Label("フォルダーへ移動", systemImage: "folder")
+                    }
+                    .disabled(selected.isEmpty)
+                    Button(role: .destructive) {
+                        bulkDelete = true
+                    } label: {
+                        Label("削除", systemImage: "trash")
+                    }
+                    .disabled(selected.isEmpty)
+                }
+            } else {
+                ToolbarItemGroup(placement: .topBarTrailing) {
+                    Button {
+                        selecting = true
+                    } label: {
+                        Label("選択", systemImage: "checkmark.circle")
+                    }
+                    .disabled(shownVolumes.isEmpty)
+                    Button { showDownloads = true } label: {
+                        Label("ダウンロード進捗", systemImage: "arrow.down.circle")
+                    }
+                    Menu {
+                        Button("追加順") { sortByTitle = false }
+                        Button("タイトル順") { sortByTitle = true }
+                    } label: {
+                        Label("並び替え", systemImage: "arrow.up.arrow.down")
+                    }
+                    Button {
+                        listMode.toggle()
+                    } label: {
+                        Label("表示を切り替える", systemImage: listMode ? "square.grid.2x2" : "list.bullet")
+                    }
+                    importMenu
                 }
             }
         }
@@ -260,25 +281,6 @@ struct LibraryView: View {
                 bulkDelete = false
             }
             Button("キャンセル", role: .cancel) { bulkDelete = false }
-        }
-        .safeAreaInset(edge: .bottom) {
-            if selecting {
-                HStack(spacing: 0) {
-                    Button("すべて選ぶ") {
-                        selected = Set(shownVolumes.map(\.id))
-                    }
-                    Spacer()
-                    Button("フォルダーへ移動") { bulkMove = true }
-                        .disabled(selected.isEmpty)
-                    Spacer()
-                    Button("削除", role: .destructive) { bulkDelete = true }
-                        .disabled(selected.isEmpty)
-                }
-                .font(.callout)
-                .padding(.horizontal, 20)
-                .padding(.vertical, 12)
-                .background(.bar)
-            }
         }
         .alert("フォルダーへ移動", isPresented: .constant(folderTarget != nil)) {
             if let target = folderTarget {
@@ -581,32 +583,54 @@ struct LibraryFolderView: View {
         .navigationTitle(name)
         .searchable(text: $query, prompt: "このフォルダーの中を検索")
         .toolbar {
-            ToolbarItem(placement: .topBarTrailing) {
-                if selecting {
+            if selecting {
+                ToolbarItem(placement: .cancellationAction) {
                     Button("やめる") {
                         selecting = false
                         selected = []
                     }
-                } else {
-                    HStack(spacing: 16) {
-                        Button("選択") { selecting = true }
-                        Button {
-                            listMode.toggle()
-                        } label: {
-                            Image(systemName: listMode ? "square.grid.2x2" : "list.bullet")
+                }
+                ToolbarItemGroup(placement: .bottomBar) {
+                    Button {
+                        selected = Set(volumes.map(\.id))
+                    } label: {
+                        Label("すべて選ぶ", systemImage: "checkmark.square")
+                    }
+                    Button {
+                        bulkMove = true
+                    } label: {
+                        Label("フォルダーへ移動", systemImage: "folder")
+                    }
+                    .disabled(selected.isEmpty)
+                    Button(role: .destructive) {
+                        bulkDelete = true
+                    } label: {
+                        Label("削除", systemImage: "trash")
+                    }
+                    .disabled(selected.isEmpty)
+                }
+            } else {
+                ToolbarItemGroup(placement: .topBarTrailing) {
+                    Button {
+                        selecting = true
+                    } label: {
+                        Label("選択", systemImage: "checkmark.circle")
+                    }
+                    Button {
+                        listMode.toggle()
+                    } label: {
+                        Label("表示を切り替える", systemImage: listMode ? "square.grid.2x2" : "list.bullet")
+                    }
+                    Menu {
+                        Button("名前を変える", systemImage: "pencil") {
+                            renameText = name
+                            renaming = true
                         }
-                        .accessibilityLabel("表示を切り替える")
-                        Menu {
-                            Button("名前を変える", systemImage: "pencil") {
-                                renameText = name
-                                renaming = true
-                            }
-                            Button("フォルダーを削除", systemImage: "trash", role: .destructive) {
-                                confirmDelete = true
-                            }
-                        } label: {
-                            Image(systemName: "ellipsis.circle")
+                        Button("フォルダーを削除", systemImage: "trash", role: .destructive) {
+                            confirmDelete = true
                         }
+                    } label: {
+                        Label("その他", systemImage: "ellipsis.circle")
                     }
                 }
             }
@@ -636,25 +660,6 @@ struct LibraryFolderView: View {
             Button("キャンセル", role: .cancel) {}
         } message: {
             Text("中の巻は消えずに本棚へ戻ります")
-        }
-        .safeAreaInset(edge: .bottom) {
-            if selecting {
-                HStack(spacing: 0) {
-                    Button("すべて選ぶ") {
-                        selected = Set(volumes.map(\.id))
-                    }
-                    Spacer()
-                    Button("フォルダーへ移動") { bulkMove = true }
-                        .disabled(selected.isEmpty)
-                    Spacer()
-                    Button("削除", role: .destructive) { bulkDelete = true }
-                        .disabled(selected.isEmpty)
-                }
-                .font(.callout)
-                .padding(.horizontal, 20)
-                .padding(.vertical, 12)
-                .background(.bar)
-            }
         }
         .alert("\(selected.count) 冊をフォルダーへ移動", isPresented: $bulkMove) {
             ForEach(library.folders, id: \.self) { other in

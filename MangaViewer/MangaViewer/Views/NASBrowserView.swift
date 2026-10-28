@@ -38,39 +38,33 @@ struct NASBrowserView: View {
             }
             .navigationTitle("SMB")
             .navigationBarTitleDisplayMode(.inline)
+            // Duo ではシステムがツールバーを右側の縦バーに配置する。
+            // 項目ごとに分け、アイコン＋タイトルにすると縦バーではアイコンで出る。
             .toolbar {
-                // カメラ位置が左なのでボタンは全部右側に出す
+                ToolbarItem(placement: .cancellationAction) {
+                    Button("閉じる") { dismiss() }
+                }
                 if client != nil {
-                    ToolbarItem(placement: .topBarTrailing) {
+                    ToolbarItemGroup(placement: .topBarTrailing) {
                         Button {
                             Task { await reset() }
                         } label: {
-                            Image(systemName: "arrow.uturn.backward")
+                            Label("接続し直す", systemImage: "arrow.uturn.backward")
                         }
-                        .accessibilityLabel("接続し直す")
-                    }
-                    if client?.share != nil {
-                        ToolbarItem(placement: .topBarTrailing) {
+                        if client?.share != nil {
                             Button {
                                 client?.share = nil
                                 entries = []
                                 currentPath = []
                                 query = ""
                             } label: {
-                                Image(systemName: "externaldrive")
+                                Label("共有を選び直す", systemImage: "externaldrive")
                             }
-                            .accessibilityLabel("共有を選び直す")
                         }
-                    }
-                    ToolbarItem(placement: .topBarTrailing) {
                         Button { showDownloads = true } label: {
-                            Image(systemName: "arrow.down.circle")
+                            Label("ダウンロード進捗", systemImage: "arrow.down.circle")
                         }
-                        .accessibilityLabel("ダウンロード進捗")
                     }
-                }
-                ToolbarItem(placement: .topBarTrailing) {
-                    Button("閉じる") { dismiss() }
                 }
             }
             .navigationDestination(isPresented: $showDownloads) {
@@ -475,20 +469,18 @@ struct DownloadsView: View {
         }
         .navigationTitle("ダウンロード")
         .toolbar {
-            ToolbarItem(placement: .topBarTrailing) {
-                HStack(spacing: 16) {
-                    if manager.jobs.contains(where: { !$0.finished && $0.failed == nil }) {
-                        Button("すべて中止") {
-                            for job in manager.jobs where !job.finished && job.failed == nil {
-                                manager.cancel(job)
-                            }
+            ToolbarItemGroup(placement: .topBarTrailing) {
+                if manager.jobs.contains(where: { !$0.finished && $0.failed == nil }) {
+                    Button("すべて中止") {
+                        for job in manager.jobs where !job.finished && job.failed == nil {
+                            manager.cancel(job)
                         }
                     }
-                    Button("完了を消す") {
-                        manager.clearFinished()
-                    }
-                    .disabled(!manager.jobs.contains { $0.finished || $0.failed != nil })
                 }
+                Button("完了を消す") {
+                    manager.clearFinished()
+                }
+                .disabled(!manager.jobs.contains { $0.finished || $0.failed != nil })
             }
         }
         .overlay {
