@@ -36,9 +36,10 @@ struct PageImageView: View {
                             maxWidth: fitMode == .fitHeight ? nil : geo.size.width,
                             maxHeight: fitMode == .fitWidth ? nil : geo.size.height
                         )
+                        // 綴じ目側に寄せる（中央の隙間をなくす）
                         .frame(
-                            width: geo.size.width,
-                            height: geo.size.height,
+                            maxWidth: .infinity,
+                            maxHeight: .infinity,
                             alignment: spineEdge == .leading
                                 ? .leading
                                 : (spineEdge == .trailing ? .trailing : .center)

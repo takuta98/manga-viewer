@@ -93,6 +93,8 @@ struct ReaderView: View {
                     }
                     return AnyView(spreadPage(index))
                 }
+                // ページャー自身がセーフエリアに収まり画面より小さく敷かれるのを防ぐ
+                .ignoresSafeArea()
                 .id("turn-\(prefs.turnStyle.rawValue)-dir-\(direction.rawValue)-spread-\(turnsSinglePages)")
                 .opacity(prefs.brightness)
             }
