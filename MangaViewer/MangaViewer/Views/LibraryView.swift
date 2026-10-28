@@ -146,10 +146,13 @@ struct LibraryView: View {
             } label: {
                 Label("ファイルから追加", systemImage: "doc.badge.plus")
             }
-            Button {
-                showNAS = true
-            } label: {
-                Label("SMB から入手", systemImage: "externaldrive.connected.to.line.below")
+            // 入手元はここに並べる。Google ドライブ・iCloud はここに追加する。
+            Section("サーバー・クラウド") {
+                Button {
+                    showNAS = true
+                } label: {
+                    Label("SMB サーバー", systemImage: "externaldrive.connected.to.line.below")
+                }
             }
         } label: {
             Label("作品を入手", systemImage: "plus")
@@ -168,7 +171,7 @@ struct LibraryView: View {
                 .font(.headline)
             VStack(spacing: 10) {
                 Button { showNAS = true } label: {
-                    Label("SMB から入手", systemImage: "externaldrive.connected.to.line.below")
+                    Label("SMB サーバー", systemImage: "externaldrive.connected.to.line.below")
                         .frame(maxWidth: 240)
                 }
                 .buttonStyle(.borderedProminent)
