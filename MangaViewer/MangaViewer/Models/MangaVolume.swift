@@ -9,6 +9,8 @@ struct MangaVolume: Identifiable, Hashable, Codable {
     var direction: ReadingDirection
     var importedAt: Date
     var isBundledSample: Bool
+    /// 本棚フォルダー名。nil はフォルダー無し。
+    var folder: String? = nil
 
     var pageCount: Int { pageFileNames.count }
 
