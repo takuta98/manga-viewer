@@ -209,7 +209,13 @@ struct NASBrowserView: View {
             Button {
                 Task { await pick(share) }
             } label: {
-                Label(share, systemImage: "folder.badge.gearshape")
+                HStack {
+                    Label(share, systemImage: "folder.badge.gearshape")
+                        .frame(maxWidth: .infinity, alignment: .leading)
+                    Image(systemName: "chevron.right")
+                        .font(.caption.weight(.semibold))
+                        .foregroundStyle(.secondary)
+                }
             }
         }
         .navigationTitle("共有フォルダーを選ぶ")
@@ -253,11 +259,13 @@ struct NASBrowserView: View {
                     Task { await goUp() }
                 } label: {
                     Label("ひとつ上へ", systemImage: "arrow.up")
+                        .foregroundStyle(.tint)
                 }
                 Button {
                     downloadCurrentFolder()
                 } label: {
                     Label("このフォルダーごとダウンロード", systemImage: "square.and.arrow.down.on.square")
+                        .foregroundStyle(.tint)
                 }
             }
             ForEach(shownEntries) { entry in

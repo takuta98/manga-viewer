@@ -99,7 +99,7 @@ struct LibraryView: View {
                         gridShelf
                     }
 
-                    Text("build 2026-10-28c")
+                    Text("build 2026-10-28d")
                         .font(.caption2)
                         .foregroundStyle(.tertiary)
                         .frame(maxWidth: .infinity)
@@ -127,6 +127,8 @@ struct LibraryView: View {
                     }
                 } else {
                     HStack(spacing: 16) {
+                        Button("選択") { selecting = true }
+                            .disabled(shownVolumes.isEmpty)
                         Button { showDownloads = true } label: {
                             Image(systemName: "arrow.down.circle")
                         }

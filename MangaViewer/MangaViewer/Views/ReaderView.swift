@@ -276,6 +276,8 @@ struct ReaderView: View {
                     .accessibilityLabel("読書設定")
 
                     // 見開きペアずらし: 見ているページの直後に空白を挿す/移す/消す
+                    // 見開きでしか意味がないので単ページ表示では出さない
+                    if appliedLayout == .duo {
                     Button {
                         pairBreak = (pairBreak == currentPageIndex) ? nil : currentPageIndex
                     } label: {
@@ -290,6 +292,7 @@ struct ReaderView: View {
                         .readerControlStyle()
                     }
                     .accessibilityLabel("見開きのペアをずらす")
+                    }
 
                     if let k = pairBreak {
                         HStack(spacing: 10) {
