@@ -28,52 +28,47 @@ enum SpreadIndex {
         spreadIndex: Int,
         pageCount: Int,
         coverAlone: Bool,
-        layout: PageLayoutMode
+        layout: PageLayoutMode,
+        pairBreakAfter: Int? = nil
     ) -> (Int?, Int?) {
         guard pageCount > 0 else { return (nil, nil) }
         if layout != .duo {
             let i = min(max(spreadIndex, 0), pageCount - 1)
             return (i, nil)
         }
-        if coverAlone {
-            // 表紙は読む順で2枚目（右開きは左側）に置く
-            if spreadIndex == 0 { return (nil, 0) }
-            let start = 1 + (spreadIndex - 1) * 2
-            let left = start < pageCount ? start : nil
-            let right = start + 1 < pageCount ? start + 1 : nil
-            return (left, right)
-        }
-        let start = spreadIndex * 2
-        let left = start < pageCount ? start : nil
-        let right = start + 1 < pageCount ? start + 1 : nil
-        return (left, right)
+        let s = slots(pageCount: pageCount, coverAlone: coverAlone, pairBreakAfter: pairBreakAfter)
+        let left = spreadIndex * 2
+        let right = left + 1
+        return (
+            left < s.count ? s[left] : nil,
+            right < s.count ? s[right] : nil
+        )
     }
 
     /// 見開きを片ページ単位に並べた読む順の列。偶数長、空きは nil。
-    static func slots(pageCount: Int, coverAlone: Bool) -> [Int?] {
+    /// pairBreakAfter: そのページ番号の直後に空白を1枚挿してペアをずらす。
+    static func slots(pageCount: Int, coverAlone: Bool, pairBreakAfter: Int? = nil) -> [Int?] {
         guard pageCount > 0 else { return [] }
         var result: [Int?] = coverAlone ? [nil] : []
-        result.append(contentsOf: (0..<pageCount).map { Optional($0) })
+        result.reserveCapacity(pageCount + 3)
+        for i in 0..<pageCount {
+            result.append(i)
+            if i == pairBreakAfter { result.append(nil) }
+        }
         if result.count % 2 == 1 { result.append(nil) }
         return result
     }
 
-    static func totalSpreads(pageCount: Int, coverAlone: Bool, layout: PageLayoutMode) -> Int {
+    static func totalSpreads(pageCount: Int, coverAlone: Bool, layout: PageLayoutMode, pairBreakAfter: Int? = nil) -> Int {
         guard pageCount > 0 else { return 0 }
         if layout != .duo { return pageCount }
-        if coverAlone {
-            let rest = max(pageCount - 1, 0)
-            return 1 + (rest + 1) / 2
-        }
-        return (pageCount + 1) / 2
+        return slots(pageCount: pageCount, coverAlone: coverAlone, pairBreakAfter: pairBreakAfter).count / 2
     }
 
-    static func spreadIndex(forPage page: Int, coverAlone: Bool, layout: PageLayoutMode) -> Int {
+    static func spreadIndex(forPage page: Int, coverAlone: Bool, layout: PageLayoutMode, pairBreakAfter: Int? = nil) -> Int {
         if layout != .duo { return page }
-        if coverAlone {
-            if page <= 0 { return 0 }
-            return 1 + (page - 1) / 2
-        }
-        return page / 2
+        var position = (coverAlone ? 1 : 0) + page
+        if let k = pairBreakAfter, page > k { position += 1 }
+        return position / 2
     }
 }

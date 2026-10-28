@@ -12,6 +12,8 @@ struct ReaderView: View {
 
     @State private var prefs = AppSettingsStore.load()
     @State private var direction: ReadingDirection
+    /// 見開きペアずらし: このページの直後に空白を1枚挿す。巻ごとに保存。
+    @State private var pairBreak: Int?
     @State private var spreadIndex = 0
     @State private var showChrome = false
     @State private var showSettings = false
@@ -26,13 +28,15 @@ struct ReaderView: View {
         self.library = library
         self.volume = volume
         _direction = State(initialValue: volume.direction)
+        _pairBreak = State(initialValue: volume.pairBreakAfter)
     }
 
     private var totalSpreads: Int {
         SpreadIndex.totalSpreads(
             pageCount: volume.pageCount,
             coverAlone: prefs.coverAlone,
-            layout: appliedLayout
+            layout: appliedLayout,
+            pairBreakAfter: pairBreak
         )
     }
 
@@ -42,7 +46,11 @@ struct ReaderView: View {
     }
 
     private var pageSlots: [Int?] {
-        SpreadIndex.slots(pageCount: volume.pageCount, coverAlone: prefs.coverAlone)
+        SpreadIndex.slots(
+            pageCount: volume.pageCount,
+            coverAlone: prefs.coverAlone,
+            pairBreakAfter: pairBreak
+        )
     }
 
     /// Duo curl はスロット（片ページ）単位、それ以外は見開き単位でインデックスが動く。
@@ -63,7 +71,8 @@ struct ReaderView: View {
             spreadIndex: spreadIndex,
             pageCount: volume.pageCount,
             coverAlone: prefs.coverAlone,
-            layout: appliedLayout
+            layout: appliedLayout,
+            pairBreakAfter: pairBreak
         ).0 ?? 0
     }
 
@@ -129,6 +138,11 @@ struct ReaderView: View {
             pageRevision += 1
             rematerializeFromProgress(layout: appliedLayout)
         }
+        .onChange(of: pairBreak) { _, value in
+            library.setPairBreak(volume, after: value)
+            pageRevision += 1
+            rematerializeFromProgress(layout: appliedLayout)
+        }
         .onChange(of: prefs.fitMode) { _, _ in
             pageRevision += 1
         }
@@ -154,7 +168,8 @@ struct ReaderView: View {
             spreadIndex: index,
             pageCount: volume.pageCount,
             coverAlone: prefs.coverAlone,
-            layout: appliedLayout
+            layout: appliedLayout,
+            pairBreakAfter: pairBreak
         )
         return DuoFrameView {
             GeometryReader { geo in
@@ -258,6 +273,40 @@ struct ReaderView: View {
                         .background(.black.opacity(0.6), in: Capsule())
                 }
                 .accessibilityLabel("読書設定")
+
+                // 見開きペアずらし: 見ているページの直後に空白を挿す/移す/消す
+                VStack(spacing: 6) {
+                    Button {
+                        pairBreak = (pairBreak == currentPageIndex) ? nil : currentPageIndex
+                    } label: {
+                        Text(
+                            pairBreak == nil
+                                ? "このページの後に空白を入れる"
+                                : (pairBreak == currentPageIndex
+                                    ? "この空白を消す"
+                                    : "このページの後に空白を移す")
+                        )
+                        .font(.footnote.weight(.medium))
+                        .foregroundStyle(.white.opacity(0.9))
+                        .padding(.horizontal, 16)
+                        .padding(.vertical, 9)
+                        .background(.black.opacity(0.6), in: Capsule())
+                    }
+                    .accessibilityLabel("見開きのペアをずらす")
+                    if let k = pairBreak, k != currentPageIndex {
+                        HStack(spacing: 10) {
+                            Text("空白は \(k + 1) ページの後")
+                                .font(.caption2)
+                                .foregroundStyle(.white.opacity(0.7))
+                            Button("消す") { pairBreak = nil }
+                                .font(.caption2.weight(.semibold))
+                                .foregroundStyle(.white.opacity(0.9))
+                        }
+                        .padding(.horizontal, 12)
+                        .padding(.vertical, 5)
+                        .background(.black.opacity(0.6), in: Capsule())
+                    }
+                }
             }
             // カメラ位置が左なのでボタンは右側に出す
             .position(x: geo.size.width - 110, y: geo.size.height * 0.38)
@@ -336,10 +385,11 @@ struct ReaderView: View {
         let spreads = SpreadIndex.totalSpreads(
             pageCount: volume.pageCount,
             coverAlone: prefs.coverAlone,
-            layout: layout
+            layout: layout,
+            pairBreakAfter: pairBreak
         )
         let next = min(
-            max(SpreadIndex.spreadIndex(forPage: page, coverAlone: prefs.coverAlone, layout: layout), 0),
+            max(SpreadIndex.spreadIndex(forPage: page, coverAlone: prefs.coverAlone, layout: layout, pairBreakAfter: pairBreak), 0),
             max(spreads - 1, 0)
         )
         if spreadIndex != next {

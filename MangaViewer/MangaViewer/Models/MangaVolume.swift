@@ -11,6 +11,8 @@ struct MangaVolume: Identifiable, Hashable, Codable {
     var isBundledSample: Bool
     /// 本棚フォルダー名。nil はフォルダー無し。
     var folder: String? = nil
+    /// 見開きのペアずらし。このページ番号（0始まり）の直後に空白ページを1枚挿す。nil は無し。
+    var pairBreakAfter: Int? = nil
 
     var pageCount: Int { pageFileNames.count }
 

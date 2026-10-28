@@ -67,6 +67,13 @@ final class LibraryStore: ObservableObject {
         save()
     }
 
+    /// 見開きペアずらし: 指定ページの直後に空白を挿す位置を保存。nil で解除。
+    func setPairBreak(_ volume: MangaVolume, after pageIndex: Int?) {
+        guard let i = volumes.firstIndex(where: { $0.id == volume.id }) else { return }
+        volumes[i].pairBreakAfter = pageIndex
+        save()
+    }
+
     func delete(_ volume: MangaVolume) {
         volumes.removeAll { $0.id == volume.id }
         if !volume.isBundledSample {
