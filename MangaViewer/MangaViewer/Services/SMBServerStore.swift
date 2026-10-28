@@ -1,9 +1,9 @@
 import Foundation
 
-/// NAS (SMB) 接続先。ホスト・共有名・ユーザーは UserDefaults、パスワードは Keychain。
+/// NAS (SMB) 接続先。ホスト・ユーザーは UserDefaults、パスワードは Keychain。
+/// 共有名は保存せず、接続後に列挙して選ぶ。
 struct SMBServerSettings: Codable, Equatable {
     var host: String = ""
-    var share: String = ""
     var username: String = ""
 }
 
@@ -33,7 +33,6 @@ enum SMBServerStore {
 
     /// 保存済みの接続先とパスワードからクライアントを作る。
     static func makeClient() throws -> SMBClient {
-        let settings = load()
-        return try SMBClient(settings: settings, password: loadPassword())
+        try SMBClient(settings: load(), password: loadPassword())
     }
 }

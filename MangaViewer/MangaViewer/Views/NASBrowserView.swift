@@ -1,12 +1,13 @@
 import SwiftUI
 
-/// NAS (SMB) のフォルダーを辿ってファイル・フォルダーを取り込む画面。
+/// NAS (SMB) へ接続して共有を選び、フォルダーを辿ってファイル・フォルダーを取り込む画面。
 struct NASBrowserView: View {
     @ObservedObject var library: LibraryStore
 
     @Environment(\.dismiss) private var dismiss
 
     @State private var settings = SMBServerStore.load()
+    @State private var shares: [String] = []
     @State private var path: [String] = []
     @State private var entries: [SMBEntry] = []
     @State private var client: SMBClient?
@@ -24,7 +25,7 @@ struct NASBrowserView: View {
                 if !settingsReady {
                     serverForm
                 } else {
-                    browserList(path: "")
+                    shareList
                 }
             }
             .navigationTitle("NAS から入手")
@@ -43,18 +44,47 @@ struct NASBrowserView: View {
             }
             .navigationDestination(for: String.self) { dir in
                 browserList(path: dir)
-                    .navigationTitle(dir.split(separator: "/").last.map(String.init) ?? dir)
+                    .navigationTitle(dir.isEmpty ? (client?.share ?? "共有") : (dir.split(separator: "/").last.map(String.init) ?? dir))
             }
         }
         .sheet(isPresented: $editingServer) {
             NavigationStack { serverForm }
         }
         .onAppear {
-            if settingsReady { Task { await open(path: "") } }
+            if settingsReady { Task { await loadShares() } }
         }
     }
 
-    // MARK: - ブラウザ
+    // MARK: - 共有一覧
+
+    private var shareList: some View {
+        List {
+            ForEach(shares, id: \.self) { name in
+                Button {
+                    Task { await selectShare(name) }
+                } label: {
+                    Label(name, systemImage: "externaldrive.connected.to.line.below")
+                        .foregroundStyle(.primary)
+                }
+            }
+            if !loading && shares.isEmpty && errorText == nil {
+                Text("共有が見つかりません").foregroundStyle(.secondary)
+            }
+        }
+        .overlay {
+            if loading { ProgressView("共有を取得しています…") }
+        }
+        .alert("エラー", isPresented: Binding(
+            get: { errorText != nil },
+            set: { if !$0 { errorText = nil } }
+        )) {
+            Button("閉じる", role: .cancel) { errorText = nil }
+        } message: {
+            Text(errorText ?? "")
+        }
+    }
+
+    // MARK: - フォルダーブラウザ
 
     @ViewBuilder
     private func browserList(path dir: String) -> some View {
@@ -110,8 +140,6 @@ struct NASBrowserView: View {
         .onAppear { Task { await open(path: dir) } }
     }
 
-    private var currentDir: String { path.last ?? "" }
-
     // MARK: - サーバー設定
 
     private var serverForm: some View {
@@ -119,14 +147,11 @@ struct NASBrowserView: View {
         @State var formPassword = ""
         return Form {
             Section("サーバー") {
-                TextField("ホスト（例: 192.168.1.10）", text: $form.host)
-                    .textInputAutocapitalization(.never)
-                    .autocorrectionDisabled()
-                TextField("共有名（例: manga）", text: $form.share)
+                TextField("IPアドレス / ホスト名（例: 192.168.1.10）", text: $form.host)
                     .textInputAutocapitalization(.never)
                     .autocorrectionDisabled()
             }
-            Section("アカウント") {
+            Section("アカウント（省略可）") {
                 TextField("ユーザー", text: $form.username)
                     .textInputAutocapitalization(.never)
                     .autocorrectionDisabled()
@@ -136,7 +161,7 @@ struct NASBrowserView: View {
                 Button("保存して接続") {
                     saveServer(form, password: formPassword)
                 }
-                .disabled(form.host.isEmpty || form.share.isEmpty)
+                .disabled(form.host.isEmpty)
             }
         }
         .navigationTitle("NAS サーバー")
@@ -156,8 +181,10 @@ struct NASBrowserView: View {
         settings = form
         SMBServerStore.save(form, password: password)
         client = nil
+        shares = []
+        path = []
         editingServer = false
-        Task { await open(path: currentDir) }
+        Task { await loadShares() }
     }
 
     private func makeClient() throws -> SMBClient {
@@ -165,6 +192,30 @@ struct NASBrowserView: View {
         let c = try SMBClient(settings: settings, password: SMBServerStore.loadPassword())
         client = c
         return c
+    }
+
+    private func loadShares() async {
+        loading = true
+        errorText = nil
+        do {
+            shares = try await makeClient().listShares()
+        } catch {
+            shares = []
+            errorText = error.localizedDescription
+        }
+        loading = false
+    }
+
+    private func selectShare(_ name: String) async {
+        loading = true
+        errorText = nil
+        do {
+            try await makeClient().useShare(name)
+            path.append("")
+        } catch {
+            errorText = error.localizedDescription
+        }
+        loading = false
     }
 
     private func open(path dir: String) async {
@@ -195,10 +246,12 @@ struct NASBrowserView: View {
     }
 
     private func downloadFolder(_ dir: String) {
-        let folder = SMBEntry(name: dir.split(separator: "/").last.map(String.init) ?? settings.share,
-                              path: dir,
-                              isDirectory: true,
-                              size: nil)
+        let folder = SMBEntry(
+            name: dir.split(separator: "/").last.map(String.init) ?? (client?.share ?? "NAS"),
+            path: dir,
+            isDirectory: true,
+            size: nil
+        )
         working = true
         Task {
             do {
