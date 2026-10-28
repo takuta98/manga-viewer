@@ -1,7 +1,8 @@
 import SwiftUI
 
-/// NAS (SMB) から作品を持ってくる画面。
+/// SMB サーバーから作品を持ってくる画面。
 /// IP アドレスだけで接続し、共有フォルダーを選んで中を辿る。
+/// 一度接続したサーバーは保存され、次はタップだけで繋がる。
 struct NASBrowserView: View {
     @ObservedObject var library: LibraryStore
     @Environment(\.dismiss) private var dismiss
@@ -10,11 +11,14 @@ struct NASBrowserView: View {
     @State private var host = ""
     @State private var username = ""
     @State private var password = ""
+    @State private var saved: [SMBServerSettings] = []
 
     @State private var client: SMBClient?
     @State private var shares: [String] = []
     @State private var currentPath: [String] = []
     @State private var entries: [SMBEntry] = []
+    @State private var query = ""
+    @State private var searchResults: [SMBEntry]?
 
     @State private var busy = false
     @State private var status = ""
@@ -32,7 +36,7 @@ struct NASBrowserView: View {
                     browser
                 }
             }
-            .navigationTitle("NAS から入手")
+            .navigationTitle("SMB")
             .navigationBarTitleDisplayMode(.inline)
             .toolbar {
                 ToolbarItem(placement: .cancellationAction) {
@@ -56,9 +60,11 @@ struct NASBrowserView: View {
             }
         }
         .onAppear {
-            let saved = SMBServerStore.load()
-            host = saved.host
-            username = saved.username
+            saved = SMBServerStore.all()
+            if let last = saved.first {
+                host = last.host
+                username = last.username
+            }
         }
         .overlay {
             if busy {
@@ -80,7 +86,24 @@ struct NASBrowserView: View {
 
     private var connectForm: some View {
         Form {
-            Section("サーバー") {
+            if !saved.isEmpty {
+                Section("保存したサーバー") {
+                    ForEach(saved) { server in
+                        Button {
+                            Task { await connect(server) }
+                        } label: {
+                            Label(server.label, systemImage: "server.rack")
+                        }
+                        .swipeActions {
+                            Button("削除", role: .destructive) {
+                                SMBServerStore.remove(server)
+                                saved = SMBServerStore.all()
+                            }
+                        }
+                    }
+                }
+            }
+            Section("新しく接続") {
                 TextField("IP アドレス", text: $host)
                     .keyboardType(.numbersAndPunctuation)
                     .textInputAutocapitalization(.never)
@@ -92,7 +115,10 @@ struct NASBrowserView: View {
             }
             Section {
                 Button {
-                    Task { await connect() }
+                    var settings = SMBServerSettings()
+                    settings.host = host
+                    settings.username = username
+                    Task { await connect(settings, password: password, remember: true) }
                 } label: {
                     HStack {
                         Spacer()
@@ -112,15 +138,21 @@ struct NASBrowserView: View {
         }
     }
 
-    private func connect() async {
-        var settings = SMBServerSettings()
-        settings.host = host
-        settings.username = username
-        SMBServerStore.save(settings, password: password)
+    /// 保存済みならタップだけで接続。手入力は remember で保存する。
+    private func connect(
+        _ settings: SMBServerSettings,
+        password: String? = nil,
+        remember: Bool = false
+    ) async {
+        let pw = password ?? SMBServerStore.password(for: settings)
+        if remember {
+            SMBServerStore.save(settings, password: pw)
+            saved = SMBServerStore.all()
+        }
         busy = true
         status = "接続しています…"
         do {
-            let c = try SMBClient(settings: settings, password: password)
+            let c = try SMBClient(settings: settings, password: pw)
             let list = try await c.listShares()
             client = c
             shares = list
@@ -137,6 +169,9 @@ struct NASBrowserView: View {
         shares = []
         entries = []
         currentPath = []
+        query = ""
+        searchResults = nil
+        saved = SMBServerStore.all()
     }
 
     // MARK: - 共有の選択
@@ -163,6 +198,8 @@ struct NASBrowserView: View {
         do {
             try await client.useShare(share)
             currentPath = []
+            query = ""
+            searchResults = nil
             try await reload()
         } catch {
             errorMessage = error.localizedDescription
@@ -174,22 +211,58 @@ struct NASBrowserView: View {
 
     private var browser: some View {
         List {
-            if !currentPath.isEmpty {
-                Button {
-                    Task { await goUp() }
-                } label: {
-                    Label("ひとつ上へ", systemImage: "arrow.up")
+            if query.isEmpty {
+                if !currentPath.isEmpty {
+                    Button {
+                        Task { await goUp() }
+                    } label: {
+                        Label("ひとつ上へ", systemImage: "arrow.up")
+                    }
+                    Button {
+                        Task { await downloadCurrentFolder() }
+                    } label: {
+                        Label("このフォルダーごとダウンロード", systemImage: "square.and.arrow.down.on.square")
+                    }
+                }
+                ForEach(entries) { entry in
+                    row(entry)
+                }
+            } else {
+                ForEach(searchResults ?? []) { entry in
+                    searchRow(entry)
                 }
             }
-            ForEach(entries) { entry in
-                row(entry)
-            }
         }
-        .navigationTitle(currentPath.last ?? client?.share ?? "NAS")
+        .navigationTitle(currentPath.last ?? client?.share ?? "SMB")
+        .searchable(text: $query, prompt: "このフォルダーの中を検索")
+        .task(id: query) {
+            await search(query)
+        }
         .overlay {
-            if entries.isEmpty && !busy {
+            if entries.isEmpty && query.isEmpty && !busy {
                 ContentUnavailableView("空のフォルダー", systemImage: "folder")
             }
+            if !query.isEmpty && (searchResults ?? []).isEmpty && !busy {
+                ContentUnavailableView.search(text: query)
+            }
+        }
+    }
+
+    /// 検索は今いるフォルダー配下を再帰で探す。
+    private func search(_ text: String) async {
+        guard let client else { return }
+        let needle = text.trimmingCharacters(in: .whitespaces)
+        guard !needle.isEmpty else {
+            searchResults = nil
+            return
+        }
+        do {
+            let all = try await client.filesRecursively(path: pathString)
+            searchResults = all.filter {
+                $0.name.localizedCaseInsensitiveContains(needle)
+            }
+        } catch {
+            searchResults = []
         }
     }
 
@@ -225,17 +298,48 @@ struct NASBrowserView: View {
         }
     }
 
+    @ViewBuilder
+    private func searchRow(_ entry: SMBEntry) -> some View {
+        HStack {
+            Label {
+                VStack(alignment: .leading) {
+                    Text(entry.name)
+                    Text(entry.path)
+                        .font(.caption2)
+                        .foregroundStyle(.secondary)
+                        .lineLimit(1)
+                }
+            } icon: {
+                Image(systemName: "doc")
+            }
+            .frame(maxWidth: .infinity, alignment: .leading)
+
+            Button {
+                Task { await downloadFile(entry) }
+            } label: {
+                Image(systemName: "arrow.down.circle")
+                    .font(.title3)
+            }
+            .buttonStyle(.plain)
+            .accessibilityLabel("ダウンロード")
+        }
+    }
+
     private var pathString: String {
         currentPath.joined(separator: "/")
     }
 
     private func goInto(_ entry: SMBEntry) async {
         currentPath.append(entry.name)
+        query = ""
+        searchResults = nil
         do { try await reload() } catch { errorMessage = error.localizedDescription }
     }
 
     private func goUp() async {
         _ = currentPath.popLast()
+        query = ""
+        searchResults = nil
         do { try await reload() } catch { errorMessage = error.localizedDescription }
     }
 
@@ -279,5 +383,16 @@ struct NASBrowserView: View {
             errorMessage = error.localizedDescription
         }
         busy = false
+    }
+
+    /// 今開いているフォルダーをまるごと取り込む。
+    private func downloadCurrentFolder() async {
+        guard !currentPath.isEmpty else { return }
+        let entry = SMBEntry(
+            name: currentPath.last ?? "",
+            path: pathString,
+            isDirectory: true
+        )
+        await downloadFolder(entry)
     }
 }

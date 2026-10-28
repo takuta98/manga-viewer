@@ -9,6 +9,15 @@ struct LibraryView: View {
     @State private var showImporter = false
     @State private var showNAS = false
     @State private var importError: String?
+    @State private var query = ""
+
+    private var shownVolumes: [MangaVolume] {
+        let needle = query.trimmingCharacters(in: .whitespaces)
+        guard !needle.isEmpty else { return library.volumes }
+        return library.volumes.filter {
+            $0.title.localizedCaseInsensitiveContains(needle)
+        }
+    }
 
     private let progress = ReadingProgress.shared
 
@@ -27,10 +36,10 @@ struct LibraryView: View {
             } else {
                 ScrollView {
                     LazyVGrid(
-                        columns: [GridItem(.adaptive(minimum: 108), spacing: 14)],
-                        spacing: 18
+                        columns: [GridItem(.adaptive(minimum: 160), spacing: 16)],
+                        spacing: 22
                     ) {
-                        ForEach(library.volumes) { volume in
+                        ForEach(shownVolumes) { volume in
                             volumeCard(volume)
                         }
                     }
@@ -46,6 +55,7 @@ struct LibraryView: View {
         }
         .background(Color(uiColor: .systemGroupedBackground))
         .navigationTitle("本棚")
+        .searchable(text: $query, prompt: "タイトルで検索")
         .toolbar {
             ToolbarItem(placement: .topBarTrailing) { importMenu }
         }
@@ -139,7 +149,7 @@ struct LibraryView: View {
             Button {
                 showNAS = true
             } label: {
-                Label("NAS から入手", systemImage: "externaldrive.connected.to.line.below")
+                Label("SMB から入手", systemImage: "externaldrive.connected.to.line.below")
             }
         } label: {
             Label("作品を入手", systemImage: "plus")
@@ -158,7 +168,7 @@ struct LibraryView: View {
                 .font(.headline)
             VStack(spacing: 10) {
                 Button { showNAS = true } label: {
-                    Label("NAS から入手", systemImage: "externaldrive.connected.to.line.below")
+                    Label("SMB から入手", systemImage: "externaldrive.connected.to.line.below")
                         .frame(maxWidth: 240)
                 }
                 .buttonStyle(.borderedProminent)

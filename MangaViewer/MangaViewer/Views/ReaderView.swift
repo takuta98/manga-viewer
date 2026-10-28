@@ -263,6 +263,8 @@ struct ReaderView: View {
                     in: 0...Double(maxSpread),
                     step: 1
                 )
+                // 右開きは右→左へ進むので、スライダーも右から左にする
+                .scaleEffect(x: direction == .rtl ? -1 : 1, y: 1)
                 .padding(.horizontal, 24)
                 .padding(.bottom, geo.safeAreaInsets.bottom + 14)
                 .background(
