@@ -8,5 +8,7 @@ struct DuoFrameView<Content: View>: View {
         content()
             .frame(maxWidth: .infinity, maxHeight: .infinity)
             .background(Color.black)
+            // ページは端まで敷く（カメラやホームバーの分だけ余白が入るのを防ぐ）
+            .ignoresSafeArea()
     }
 }
