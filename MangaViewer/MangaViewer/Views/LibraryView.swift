@@ -35,6 +35,12 @@ struct LibraryView: View {
                         }
                     }
                     .padding(18)
+
+                    Text("build 2ab4106")
+                        .font(.caption2)
+                        .foregroundStyle(.tertiary)
+                        .frame(maxWidth: .infinity)
+                        .padding(.bottom, 12)
                 }
             }
         }
