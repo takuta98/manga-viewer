@@ -49,6 +49,22 @@ struct ReaderPreferences: Codable, Equatable {
     var coverAlone: Bool = true
     var brightness: Double = 1
     var keepScreenOn: Bool = true
+    var showPageNumber: Bool = true
+
+    /// 古い保存データに後付け項目がなくても読めるようにする。
+    init(from decoder: Decoder) throws {
+        let c = try decoder.container(keyedBy: CodingKeys.self)
+        direction = try c.decodeIfPresent(ReadingDirection.self, forKey: .direction) ?? .rtl
+        turnStyle = try c.decodeIfPresent(PageTurnStyle.self, forKey: .turnStyle) ?? .curl
+        fitMode = try c.decodeIfPresent(PageFitMode.self, forKey: .fitMode) ?? .fitScreen
+        layoutMode = try c.decodeIfPresent(PageLayoutMode.self, forKey: .layoutMode) ?? .duo
+        coverAlone = try c.decodeIfPresent(Bool.self, forKey: .coverAlone) ?? true
+        brightness = try c.decodeIfPresent(Double.self, forKey: .brightness) ?? 1
+        keepScreenOn = try c.decodeIfPresent(Bool.self, forKey: .keepScreenOn) ?? true
+        showPageNumber = try c.decodeIfPresent(Bool.self, forKey: .showPageNumber) ?? true
+    }
+
+    init() {}
 }
 
 enum AppSettingsStore {

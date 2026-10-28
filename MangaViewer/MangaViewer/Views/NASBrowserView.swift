@@ -432,6 +432,13 @@ struct DownloadsView: View {
                         .foregroundStyle(.green)
                 } else {
                     ProgressView()
+                    Button {
+                        manager.cancel(job)
+                    } label: {
+                        Image(systemName: "xmark.circle")
+                    }
+                    .buttonStyle(.plain)
+                    .accessibilityLabel("中止する")
                 }
             }
         }

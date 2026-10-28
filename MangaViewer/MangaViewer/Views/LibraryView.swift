@@ -25,7 +25,7 @@ struct LibraryView: View {
     @State private var bulkMove = false
     @State private var bulkDelete = false
     @State private var bulkNewFolder = false
-    @State private var sortByTitle = false
+    @AppStorage("library.sortByTitle") private var sortByTitle = false
 
     private var importTypes: [UTType] {
         var types: [UTType] = [.zip, .png, .jpeg, .gif, .heic, .webP, .image]
@@ -173,11 +173,23 @@ struct LibraryView: View {
         }
         .fileImporter(
             isPresented: $showImporter,
-            allowedContentTypes: importTypes
+            allowedContentTypes: importTypes,
+            allowsMultipleSelection: true
         ) { result in
-            if case .success(let url) = result {
-                do { _ = try library.importURL(url) }
-                catch { importError = error.localizedDescription }
+            if case .success(let urls) = result {
+                var succeeded = 0
+                var lastError: String?
+                for url in urls {
+                    do {
+                        _ = try library.importURL(url)
+                        succeeded += 1
+                    } catch {
+                        lastError = error.localizedDescription
+                    }
+                }
+                if succeeded == 0, let lastError {
+                    importError = lastError
+                }
             }
         }
         // カード表示だと外タップで閉じてしまうのでフルスクリーンにする
@@ -416,7 +428,7 @@ struct LibraryFolderView: View {
         }
     }
 
-    private func moveSelected(to folder: String) {
+    private func moveSelected(to folder: String?) {
         for id in selected {
             if let volume = library.volumes.first(where: { $0.id == id }) {
                 library.move(volume, toFolder: folder)
@@ -490,6 +502,7 @@ struct LibraryFolderView: View {
                     Button(other) { moveSelected(to: other) }
                 }
             }
+            Button("本棚へ戻す") { moveSelected(to: nil) }
             Button("新しいフォルダー") {
                 bulkNewFolder = true
                 showNewFolder = true
@@ -609,6 +622,10 @@ struct VolumeCard: View {
                         .font(.caption2)
                         .foregroundStyle(.secondary)
                         .lineLimit(1)
+                } else {
+                    Text("\(volume.pageCount) ページ")
+                        .font(.caption2)
+                        .foregroundStyle(.tertiary)
                 }
             }
         }
@@ -622,6 +639,13 @@ struct VolumeCard: View {
             }
             Button("最初から読む", systemImage: "arrow.counterclockwise") {
                 progress.clear(for: volume.id)
+            }
+            Menu {
+                ForEach(ReadingDirection.allCases) { d in
+                    Button(d.label) { library.updateDirection(volume, direction: d) }
+                }
+            } label: {
+                Label("開き方向", systemImage: "arrow.left.arrow.right")
             }
             if let onMove {
                 Button("フォルダーへ移動", systemImage: "folder") { onMove() }

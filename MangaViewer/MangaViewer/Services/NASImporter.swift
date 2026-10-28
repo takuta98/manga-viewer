@@ -119,6 +119,8 @@ final class DownloadManager: ObservableObject {
         var entry: SMBEntry?
         var client: SMBClient?
         var isFolder = false
+        /// 中止用。実行中のタスク。
+        var task: Task<Void, Never>?
         /// 進行中の同じ対象を二重に走らせないためのキー。
         var key: String { entry?.path ?? name }
     }
@@ -145,14 +147,18 @@ final class DownloadManager: ObservableObject {
         )
         jobs.insert(job, at: 0)
         let id = job.id
-        Task {
+        let task = Task {
             do {
+                try Task.checkCancellation()
                 _ = try await NASImporter.downloadFile(client: client, entry: entry, library: library)
                 update(id) { $0.status = "完了"; $0.finished = true }
+            } catch is CancellationError {
+                update(id) { $0.status = ""; $0.failed = "中止しました" }
             } catch {
                 update(id) { $0.status = ""; $0.failed = error.localizedDescription }
             }
         }
+        update(id) { $0.task = task }
         return true
     }
 
@@ -169,8 +175,9 @@ final class DownloadManager: ObservableObject {
         )
         jobs.insert(job, at: 0)
         let id = job.id
-        Task {
+        let task = Task {
             do {
+                try Task.checkCancellation()
                 let count = try await NASImporter.downloadFolder(
                     client: client,
                     entry: entry,
@@ -181,10 +188,13 @@ final class DownloadManager: ObservableObject {
                     }
                 }
                 update(id) { $0.status = "完了（\(count) 冊）"; $0.finished = true }
+            } catch is CancellationError {
+                update(id) { $0.status = ""; $0.failed = "中止しました" }
             } catch {
                 update(id) { $0.status = ""; $0.failed = error.localizedDescription }
             }
         }
+        update(id) { $0.task = task }
         return true
     }
 
@@ -197,6 +207,12 @@ final class DownloadManager: ObservableObject {
         } else {
             _ = startFile(client: client, entry: entry, library: library)
         }
+    }
+
+    /// 実行中のダウンロードを中止する。
+    func cancel(_ job: Job) {
+        job.task?.cancel()
+        update(job.id) { $0.status = ""; $0.failed = "中止しました" }
     }
 
     /// 終わった分（成功・失敗）を一覧から消す。

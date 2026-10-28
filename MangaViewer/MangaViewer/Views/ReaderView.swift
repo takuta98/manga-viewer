@@ -247,8 +247,10 @@ struct ReaderView: View {
                 Text(volume.title)
                     .font(.footnote.weight(.semibold))
                     .lineLimit(1)
-                Text("\(currentPageIndex + 1) / \(volume.pageCount)")
-                    .font(.caption.monospacedDigit())
+                if prefs.showPageNumber {
+                    Text("\(currentPageIndex + 1) / \(volume.pageCount)")
+                        .font(.caption.monospacedDigit())
+                }
             }
             .foregroundStyle(.white.opacity(0.9))
             .padding(.top, geo.safeAreaInsets.top + 6)
@@ -359,6 +361,7 @@ struct ReaderView: View {
                         Slider(value: $prefs.brightness, in: 0.2...1)
                     }
                     Toggle("自動ロックしない", isOn: $prefs.keepScreenOn)
+                    Toggle("ページ番号を表示", isOn: $prefs.showPageNumber)
                 }
             }
             .navigationTitle("読書設定")
