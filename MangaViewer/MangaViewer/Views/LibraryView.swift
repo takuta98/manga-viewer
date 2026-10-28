@@ -98,12 +98,6 @@ struct LibraryView: View {
                     } else {
                         gridShelf
                     }
-
-                    Text("build 2026-10-28e")
-                        .font(.caption2)
-                        .foregroundStyle(.tertiary)
-                        .frame(maxWidth: .infinity)
-                        .padding(.bottom, 12)
                 }
             }
         }
