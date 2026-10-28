@@ -159,6 +159,11 @@ final class DownloadManager: ObservableObject {
         }
     }
 
+    /// 終わった分（成功・失敗）を一覧から消す。
+    func clearFinished() {
+        jobs.removeAll { $0.finished || $0.failed != nil }
+    }
+
     private func update(_ id: UUID, _ change: (inout Job) -> Void) {
         guard let i = jobs.firstIndex(where: { $0.id == id }) else { return }
         change(&jobs[i])

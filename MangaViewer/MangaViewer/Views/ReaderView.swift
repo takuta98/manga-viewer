@@ -45,8 +45,21 @@ struct ReaderView: View {
         SpreadIndex.slots(pageCount: volume.pageCount, coverAlone: prefs.coverAlone)
     }
 
+    /// Duo curl はスロット（片ページ）単位、それ以外は見開き単位でインデックスが動く。
+    private var indexSpaceMax: Int {
+        if turnsSinglePages {
+            return max(pageSlots.count - 1, 0)
+        }
+        return max(totalSpreads - 1, 0)
+    }
+
     private var currentPageIndex: Int {
-        SpreadIndex.pageIndices(
+        if turnsSinglePages {
+            let i = min(max(spreadIndex, 0), pageSlots.count - 1)
+            guard pageSlots.indices.contains(i) else { return 0 }
+            return pageSlots[i] ?? 0
+        }
+        return SpreadIndex.pageIndices(
             spreadIndex: spreadIndex,
             pageCount: volume.pageCount,
             coverAlone: prefs.coverAlone,
@@ -254,13 +267,12 @@ struct ReaderView: View {
 
             VStack(spacing: 0) {
                 Spacer(minLength: 0)
-                let maxSpread = max(totalSpreads - 1, 0)
                 Slider(
                     value: Binding(
-                        get: { Double(min(max(spreadIndex, 0), maxSpread)) },
+                        get: { Double(min(max(spreadIndex, 0), indexSpaceMax)) },
                         set: { spreadIndex = Int($0.rounded()) }
                     ),
-                    in: 0...Double(maxSpread),
+                    in: 0...Double(indexSpaceMax),
                     step: 1
                 )
                 // 右開きは右→左へ進むので、スライダーも右から左にする

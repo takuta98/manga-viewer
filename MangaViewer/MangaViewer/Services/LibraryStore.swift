@@ -24,6 +24,19 @@ final class LibraryStore: ObservableObject {
         save()
     }
 
+    /// フォルダーの名前を変える。中の巻の所属も追従する。
+    func renameFolder(_ name: String, to newName: String) {
+        let newName = newName.trimmingCharacters(in: .whitespacesAndNewlines)
+        guard !newName.isEmpty, newName != name, !folders.contains(newName) else { return }
+        if let i = folders.firstIndex(of: name) {
+            folders[i] = newName
+        }
+        for i in volumes.indices where volumes[i].folder == name {
+            volumes[i].folder = newName
+        }
+        save()
+    }
+
     /// フォルダーを消す。中の巻はフォルダー無しに戻る（巻自体は消さない）。
     func deleteFolder(_ name: String) {
         folders.removeAll { $0 == name }

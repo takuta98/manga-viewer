@@ -14,8 +14,10 @@ struct LibraryView: View {
     @State private var showNewFolder = false
     @State private var newFolderName = ""
     @State private var folderTarget: MangaVolume?
-
-    private let progress = ReadingProgress.shared
+    @State private var renameTarget: String?
+    @State private var renameText = ""
+    @State private var folderDeleteTarget: String?
+    @State private var showDownloads = false
 
     private var importTypes: [UTType] {
         var types: [UTType] = [.zip, .png, .jpeg, .gif, .heic, .webP, .image]
@@ -35,11 +37,14 @@ struct LibraryView: View {
         return library.folders.filter { $0.localizedCaseInsensitiveContains(needle) }
     }
 
-    /// ルートに並べる巻（フォルダー無し）。
+    /// ルートに並べる巻。検索中はフォルダーの中も含めて全部探す。
     private var shownVolumes: [MangaVolume] {
-        let root = library.volumes.filter { $0.folder == nil }
-        guard !needle.isEmpty else { return root }
-        return root.filter { $0.title.localizedCaseInsensitiveContains(needle) }
+        if needle.isEmpty {
+            return library.volumes.filter { $0.folder == nil }
+        }
+        return library.volumes.filter {
+            $0.title.localizedCaseInsensitiveContains(needle)
+        }
     }
 
     var body: some View {
@@ -56,12 +61,18 @@ struct LibraryView: View {
                             folderCard(name)
                         }
                         ForEach(shownVolumes) { volume in
-                            volumeCard(volume)
+                            VolumeCard(
+                                library: library,
+                                volume: volume,
+                                onRead: onRead,
+                                onMove: { folderTarget = volume },
+                                showFolderBadge: !needle.isEmpty
+                            )
                         }
                     }
                     .padding(18)
 
-                    Text("build 71eb219")
+                    Text("build ac9fa5e")
                         .font(.caption2)
                         .foregroundStyle(.tertiary)
                         .frame(maxWidth: .infinity)
@@ -73,10 +84,19 @@ struct LibraryView: View {
         .navigationTitle("本棚")
         .searchable(text: $query, prompt: "タイトルで検索")
         .toolbar {
+            ToolbarItem(placement: .topBarLeading) {
+                Button { showDownloads = true } label: {
+                    Image(systemName: "arrow.down.circle")
+                }
+                .accessibilityLabel("ダウンロード進捗")
+            }
             ToolbarItem(placement: .topBarTrailing) { importMenu }
         }
         .navigationDestination(for: String.self) { name in
             LibraryFolderView(library: library, name: name, onRead: onRead)
+        }
+        .navigationDestination(isPresented: $showDownloads) {
+            DownloadsView()
         }
         .fileImporter(
             isPresented: $showImporter,
@@ -104,6 +124,31 @@ struct LibraryView: View {
             }
             Button("キャンセル", role: .cancel) { newFolderName = "" }
         }
+        .alert("フォルダー名を変える", isPresented: .constant(renameTarget != nil)) {
+            TextField("フォルダー名", text: $renameText)
+            Button("変更") {
+                if let old = renameTarget {
+                    library.renameFolder(old, to: renameText)
+                }
+                renameTarget = nil
+                renameText = ""
+            }
+            Button("キャンセル", role: .cancel) {
+                renameTarget = nil
+                renameText = ""
+            }
+        }
+        .alert("フォルダーを削除しますか？", isPresented: .constant(folderDeleteTarget != nil)) {
+            Button("削除", role: .destructive) {
+                if let name = folderDeleteTarget {
+                    library.deleteFolder(name)
+                }
+                folderDeleteTarget = nil
+            }
+            Button("キャンセル", role: .cancel) { folderDeleteTarget = nil }
+        } message: {
+            Text("中の巻は消えずに本棚へ戻ります")
+        }
         .alert("フォルダーへ移動", isPresented: .constant(folderTarget != nil)) {
             if let target = folderTarget {
                 ForEach(library.folders, id: \.self) { name in
@@ -126,7 +171,8 @@ struct LibraryView: View {
     // MARK: - フォルダーカード
 
     private func folderCard(_ name: String) -> some View {
-        NavigationLink(value: name) {
+        let count = library.volumes.filter { $0.folder == name }.count
+        return NavigationLink(value: name) {
             VStack(alignment: .leading, spacing: 6) {
                 ZStack {
                     RoundedRectangle(cornerRadius: 8, style: .continuous)
@@ -142,74 +188,21 @@ struct LibraryView: View {
                     .font(.caption.weight(.medium))
                     .lineLimit(2)
                     .foregroundStyle(.primary)
+                Text("\(count) 冊")
+                    .font(.caption2)
+                    .foregroundStyle(.secondary)
             }
         }
         .buttonStyle(.plain)
         .contextMenu {
+            Button("名前を変える", systemImage: "pencil") {
+                renameTarget = name
+                renameText = name
+            }
             Button("フォルダーを削除", systemImage: "trash", role: .destructive) {
-                library.deleteFolder(name)
+                folderDeleteTarget = name
             }
         }
-    }
-
-    // MARK: - 巻カード
-
-    private func volumeCard(_ volume: MangaVolume) -> some View {
-        Button { onRead(volume) } label: {
-            VStack(alignment: .leading, spacing: 6) {
-                cover(for: volume)
-                    .resizable()
-                    .scaledToFill()
-                    .aspectRatio(2 / 3, contentMode: .fit)
-                    .frame(maxWidth: .infinity)
-                    .background(Color.black)
-                    .clipped()
-                    .clipShape(RoundedRectangle(cornerRadius: 8, style: .continuous))
-                    .overlay(alignment: .bottom) { progressBar(volume) }
-
-                Text(volume.title)
-                    .font(.caption.weight(.medium))
-                    .lineLimit(2)
-                    .foregroundStyle(.primary)
-            }
-        }
-        .buttonStyle(.plain)
-        .accessibilityLabel("\(volume.title) を読む")
-        .contextMenu {
-            Button("読む", systemImage: "book") { onRead(volume) }
-            Button("フォルダーへ移動", systemImage: "folder") { folderTarget = volume }
-            if !volume.isBundledSample {
-                Button("削除", systemImage: "trash", role: .destructive) {
-                    library.delete(volume)
-                }
-            }
-        }
-    }
-
-    private func cover(for volume: MangaVolume) -> Image {
-        if let url = volume.coverURL(),
-           let data = try? Data(contentsOf: url),
-           let uiImage = UIImage(data: data) {
-            return Image(uiImage: uiImage)
-        }
-        return Image("sample-cover")
-    }
-
-    private func progressBar(_ volume: MangaVolume) -> some View {
-        let fraction = progress.fraction(for: volume)
-        return GeometryReader { geo in
-            ZStack(alignment: .leading) {
-                Color.black.opacity(0.001)
-                Capsule()
-                    .fill(Color.white.opacity(0.9))
-                    .frame(width: max(geo.size.width * fraction, 4), height: 3)
-                    .padding(4)
-            }
-            .frame(maxWidth: .infinity, alignment: .leading)
-        }
-        .frame(height: 11)
-        .opacity(fraction > 0 ? 1 : 0)
-        .allowsHitTesting(false)
     }
 
     // MARK: - 入手
@@ -273,6 +266,8 @@ struct LibraryFolderView: View {
     let name: String
     let onRead: (MangaVolume) -> Void
 
+    @State private var folderTarget: MangaVolume?
+
     private var volumes: [MangaVolume] {
         library.volumes.filter { $0.folder == name }
     }
@@ -284,7 +279,12 @@ struct LibraryFolderView: View {
                 spacing: 22
             ) {
                 ForEach(volumes) { volume in
-                    VolumeCard(library: library, volume: volume, onRead: onRead)
+                    VolumeCard(
+                        library: library,
+                        volume: volume,
+                        onRead: onRead,
+                        onMove: { folderTarget = volume }
+                    )
                 }
             }
             .padding(18)
@@ -295,14 +295,39 @@ struct LibraryFolderView: View {
                 ContentUnavailableView("巻がありません", systemImage: "folder")
             }
         }
+        .alert("フォルダーへ移動", isPresented: .constant(folderTarget != nil)) {
+            if let target = folderTarget {
+                ForEach(library.folders, id: \.self) { other in
+                    if other != name {
+                        Button(other) {
+                            library.move(target, toFolder: other)
+                            folderTarget = nil
+                        }
+                    }
+                }
+                Button("フォルダーから出す") {
+                    library.move(target, toFolder: nil)
+                    folderTarget = nil
+                }
+                Button("キャンセル", role: .cancel) { folderTarget = nil }
+            }
+        } message: {
+            Text(folderTarget?.title ?? "")
+        }
     }
 }
 
-/// 巻カード（フォルダー内でも共用）。
+/// 巻カード。本棚のルートでもフォルダー内でも使う。
 struct VolumeCard: View {
     @ObservedObject var library: LibraryStore
     let volume: MangaVolume
     let onRead: (MangaVolume) -> Void
+    /// 渡すとコンテキストメニューに「フォルダーへ移動」が出る。
+    var onMove: (() -> Void)? = nil
+    /// 検索結果など、どのフォルダーに入っているか見せたいときに true。
+    var showFolderBadge = false
+
+    @State private var confirmDelete = false
 
     private let progress = ReadingProgress.shared
 
@@ -323,20 +348,37 @@ struct VolumeCard: View {
                     .font(.caption.weight(.medium))
                     .lineLimit(2)
                     .foregroundStyle(.primary)
+                if showFolderBadge, let folder = volume.folder {
+                    Label(folder, systemImage: "folder")
+                        .font(.caption2)
+                        .foregroundStyle(.secondary)
+                        .lineLimit(1)
+                }
             }
         }
         .buttonStyle(.plain)
         .accessibilityLabel("\(volume.title) を読む")
         .contextMenu {
             Button("読む", systemImage: "book") { onRead(volume) }
-            Button("フォルダーから出す", systemImage: "folder") {
-                library.move(volume, toFolder: nil)
+            if let onMove {
+                Button("フォルダーへ移動", systemImage: "folder") { onMove() }
+            }
+            if volume.folder != nil {
+                Button("フォルダーから出す", systemImage: "arrow.uturn.backward") {
+                    library.move(volume, toFolder: nil)
+                }
             }
             if !volume.isBundledSample {
                 Button("削除", systemImage: "trash", role: .destructive) {
-                    library.delete(volume)
+                    confirmDelete = true
                 }
             }
+        }
+        .alert("削除しますか？", isPresented: $confirmDelete) {
+            Button("削除", role: .destructive) { library.delete(volume) }
+            Button("キャンセル", role: .cancel) {}
+        } message: {
+            Text(volume.title)
         }
     }
 

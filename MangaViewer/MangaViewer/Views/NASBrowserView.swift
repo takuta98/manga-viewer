@@ -51,6 +51,19 @@ struct NASBrowserView: View {
                         }
                         .accessibilityLabel("接続し直す")
                     }
+                    if client?.share != nil {
+                        ToolbarItem(placement: .topBarLeading) {
+                            Button {
+                                client?.share = nil
+                                entries = []
+                                currentPath = []
+                                query = ""
+                            } label: {
+                                Image(systemName: "externaldrive")
+                            }
+                            .accessibilityLabel("共有を選び直す")
+                        }
+                    }
                     ToolbarItem(placement: .topBarTrailing) {
                         Button { showDownloads = true } label: {
                             Image(systemName: "arrow.down.circle")
@@ -383,6 +396,14 @@ struct DownloadsView: View {
             }
         }
         .navigationTitle("ダウンロード")
+        .toolbar {
+            ToolbarItem(placement: .topBarTrailing) {
+                Button("完了を消す") {
+                    manager.clearFinished()
+                }
+                .disabled(!manager.jobs.contains { $0.finished || $0.failed != nil })
+            }
+        }
         .overlay {
             if manager.jobs.isEmpty {
                 ContentUnavailableView("ダウンロードはありません", systemImage: "arrow.down.circle")
