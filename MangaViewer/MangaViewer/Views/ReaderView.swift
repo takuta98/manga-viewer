@@ -247,7 +247,7 @@ struct ReaderView: View {
                 .ignoresSafeArea()
                 .allowsHitTesting(false)
 
-            VStack(spacing: 22) {
+            VStack(spacing: 16) {
                 Button { dismiss() } label: {
                     VStack(spacing: 8) {
                         Image(systemName: "xmark")
@@ -261,39 +261,37 @@ struct ReaderView: View {
                         .black.opacity(0.8),
                         in: RoundedRectangle(cornerRadius: 24, style: .continuous)
                     )
+                    .overlay(
+                        RoundedRectangle(cornerRadius: 24, style: .continuous)
+                            .strokeBorder(.white.opacity(0.5), lineWidth: 2)
+                    )
                 }
                 .accessibilityLabel("本を閉じる")
 
-                Button { showSettings = true } label: {
-                    Label("設定", systemImage: "gearshape")
-                        .font(.callout.weight(.medium))
-                        .foregroundStyle(.white.opacity(0.9))
-                        .padding(.horizontal, 18)
-                        .padding(.vertical, 10)
-                        .background(.black.opacity(0.6), in: Capsule())
-                }
-                .accessibilityLabel("読書設定")
+                VStack(spacing: 10) {
+                    Button { showSettings = true } label: {
+                        Label("設定", systemImage: "gearshape")
+                            .readerControlStyle()
+                    }
+                    .accessibilityLabel("読書設定")
 
-                // 見開きペアずらし: 見ているページの直後に空白を挿す/移す/消す
-                VStack(spacing: 6) {
+                    // 見開きペアずらし: 見ているページの直後に空白を挿す/移す/消す
                     Button {
                         pairBreak = (pairBreak == currentPageIndex) ? nil : currentPageIndex
                     } label: {
-                        Text(
+                        Label(
                             pairBreak == nil
                                 ? "このページの後に空白を入れる"
                                 : (pairBreak == currentPageIndex
                                     ? "この空白を消す"
-                                    : "このページの後に空白を移す")
+                                    : "このページの後に空白を移す"),
+                            systemImage: "rectangle.portrait.badge.plus"
                         )
-                        .font(.footnote.weight(.medium))
-                        .foregroundStyle(.white.opacity(0.9))
-                        .padding(.horizontal, 16)
-                        .padding(.vertical, 9)
-                        .background(.black.opacity(0.6), in: Capsule())
+                        .readerControlStyle()
                     }
                     .accessibilityLabel("見開きのペアをずらす")
-                    if let k = pairBreak, k != currentPageIndex {
+
+                    if let k = pairBreak {
                         HStack(spacing: 10) {
                             Text("空白は \(k + 1) ページの後")
                                 .font(.caption2)
@@ -308,8 +306,8 @@ struct ReaderView: View {
                     }
                 }
             }
-            // カメラ位置が左なのでボタンは右側に出す
-            .position(x: geo.size.width - 110, y: geo.size.height * 0.38)
+            // 「閉じる」を一番大きく、画面中央の少し上に出す
+            .position(x: geo.size.width / 2, y: geo.size.height * 0.4)
 
             VStack(spacing: 2) {
                 Text(volume.title)
@@ -441,5 +439,17 @@ struct ReaderView: View {
             }
         }
         .presentationDetents([.medium, .large])
+    }
+}
+
+private extension View {
+    /// 読書操作パネルの副ボタン。アイコン＋文字＋枠線で「押せる」と分かる見た目に揃える。
+    func readerControlStyle() -> some View {
+        font(.footnote.weight(.semibold))
+            .foregroundStyle(.white)
+            .padding(.horizontal, 18)
+            .padding(.vertical, 11)
+            .background(.black.opacity(0.7), in: Capsule())
+            .overlay(Capsule().strokeBorder(.white.opacity(0.45), lineWidth: 1.5))
     }
 }
