@@ -22,7 +22,8 @@ struct NASBrowserView: View {
     @State private var busy = false
     @State private var status = ""
     @State private var errorMessage: String?
-    @State private var doneCount = 0
+    @State private var notice = ""
+    @State private var showDownloads = false
 
     var body: some View {
         NavigationStack {
@@ -50,7 +51,16 @@ struct NASBrowserView: View {
                         }
                         .accessibilityLabel("接続し直す")
                     }
+                    ToolbarItem(placement: .topBarTrailing) {
+                        Button { showDownloads = true } label: {
+                            Image(systemName: "arrow.down.circle")
+                        }
+                        .accessibilityLabel("ダウンロード進捗")
+                    }
                 }
+            }
+            .navigationDestination(isPresented: $showDownloads) {
+                DownloadsView()
             }
             .alert("エラー", isPresented: .constant(errorMessage != nil)) {
                 Button("OK") { errorMessage = nil }
@@ -77,6 +87,16 @@ struct NASBrowserView: View {
                 }
                 .padding(20)
                 .background(.regularMaterial, in: RoundedRectangle(cornerRadius: 16))
+            }
+        }
+        .overlay(alignment: .bottom) {
+            if !notice.isEmpty {
+                Text(notice)
+                    .font(.callout)
+                    .padding(.horizontal, 14)
+                    .padding(.vertical, 8)
+                    .background(.regularMaterial, in: Capsule())
+                    .padding(.bottom, 16)
             }
         }
     }
@@ -126,13 +146,6 @@ struct NASBrowserView: View {
                     }
                 }
                 .disabled(host.trimmingCharacters(in: .whitespaces).isEmpty)
-            }
-            if doneCount > 0 {
-                Section {
-                    Text("\(doneCount) 冊を本棚に追加しました")
-                        .font(.footnote)
-                        .foregroundStyle(.secondary)
-                }
             }
         }
     }
@@ -224,7 +237,7 @@ struct NASBrowserView: View {
                     Label("ひとつ上へ", systemImage: "arrow.up")
                 }
                 Button {
-                    Task { await downloadCurrentFolder() }
+                    downloadCurrentFolder()
                 } label: {
                     Label("このフォルダーごとダウンロード", systemImage: "square.and.arrow.down.on.square")
                 }
@@ -256,7 +269,7 @@ struct NASBrowserView: View {
                 if entry.isDirectory {
                     Task { await goInto(entry) }
                 } else {
-                    Task { await downloadFile(entry) }
+                    downloadFile(entry)
                 }
             } label: {
                 Label(entry.name, systemImage: entry.isDirectory ? "folder" : "doc")
@@ -265,12 +278,10 @@ struct NASBrowserView: View {
             .buttonStyle(.plain)
 
             Button {
-                Task {
-                    if entry.isDirectory {
-                        await downloadFolder(entry)
-                    } else {
-                        await downloadFile(entry)
-                    }
+                if entry.isDirectory {
+                    downloadFolder(entry)
+                } else {
+                    downloadFile(entry)
                 }
             } label: {
                 Image(systemName: "arrow.down.circle")
@@ -304,49 +315,78 @@ struct NASBrowserView: View {
         entries = try await client.list(path: pathString)
     }
 
-    // MARK: - ダウンロード
+    // MARK: - ダウンロード（裏で動かす）
 
-    private func downloadFile(_ entry: SMBEntry) async {
+    private func downloadFile(_ entry: SMBEntry) {
         guard let client else { return }
-        busy = true
-        status = "\(entry.name) をダウンロードしています…"
-        do {
-            _ = try await NASImporter.downloadFile(client: client, entry: entry, library: library)
-            doneCount += 1
-            status = ""
-        } catch {
-            errorMessage = error.localizedDescription
-        }
-        busy = false
+        DownloadManager.shared.startFile(client: client, entry: entry, library: library)
+        notify("ダウンロードを開始しました")
     }
 
-    private func downloadFolder(_ entry: SMBEntry) async {
+    private func downloadFolder(_ entry: SMBEntry) {
         guard let client else { return }
-        busy = true
-        do {
-            let count = try await NASImporter.downloadFolder(
-                client: client,
-                entry: entry,
-                library: library
-            ) { text in
-                Task { @MainActor in status = text }
-            }
-            doneCount += count
-            status = ""
-        } catch {
-            errorMessage = error.localizedDescription
-        }
-        busy = false
+        DownloadManager.shared.startFolder(client: client, entry: entry, library: library)
+        notify("ダウンロードを開始しました")
     }
 
     /// 今開いているフォルダーをまるごと取り込む。
-    private func downloadCurrentFolder() async {
+    private func downloadCurrentFolder() {
         guard !currentPath.isEmpty else { return }
         let entry = SMBEntry(
             name: currentPath.last ?? "",
             path: pathString,
             isDirectory: true
         )
-        await downloadFolder(entry)
+        downloadFolder(entry)
+    }
+
+    /// 開始の知らせを短く出す。
+    private func notify(_ text: String) {
+        notice = text
+        Task {
+            try? await Task.sleep(for: .seconds(2))
+            if notice == text { notice = "" }
+        }
+    }
+}
+
+/// ダウンロード進捗の一覧。
+struct DownloadsView: View {
+    @ObservedObject private var manager = DownloadManager.shared
+
+    var body: some View {
+        List(manager.jobs) { job in
+            HStack {
+                VStack(alignment: .leading, spacing: 2) {
+                    Text(job.name)
+                        .lineLimit(1)
+                    if let failed = job.failed {
+                        Text(failed)
+                            .font(.caption)
+                            .foregroundStyle(.red)
+                    } else {
+                        Text(job.status)
+                            .font(.caption)
+                            .foregroundStyle(.secondary)
+                    }
+                }
+                Spacer()
+                if job.failed != nil {
+                    Image(systemName: "exclamationmark.triangle")
+                        .foregroundStyle(.red)
+                } else if job.finished {
+                    Image(systemName: "checkmark.circle.fill")
+                        .foregroundStyle(.green)
+                } else {
+                    ProgressView()
+                }
+            }
+        }
+        .navigationTitle("ダウンロード")
+        .overlay {
+            if manager.jobs.isEmpty {
+                ContentUnavailableView("ダウンロードはありません", systemImage: "arrow.down.circle")
+            }
+        }
     }
 }

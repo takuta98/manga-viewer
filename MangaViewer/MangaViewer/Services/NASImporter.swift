@@ -98,3 +98,64 @@ enum NASImportError: LocalizedError {
     case nothingImportable
     var errorDescription: String? { "取り込めるファイル（画像 / cbz / zip）がありません" }
 }
+
+/// ダウンロードを裏で動かす窓口。開始だけ通知して、進捗は別画面で見る。
+@MainActor
+final class DownloadManager: ObservableObject {
+    static let shared = DownloadManager()
+
+    struct Job: Identifiable {
+        let id = UUID()
+        var name: String
+        var status: String
+        var failed: String?
+        var finished = false
+    }
+
+    @Published private(set) var jobs: [Job] = []
+
+    private init() {}
+
+    /// ファイル1本を裏でダウンロード。
+    func startFile(client: SMBClient, entry: SMBEntry, library: LibraryStore) {
+        let job = Job(name: entry.name, status: "ダウンロードしています…")
+        jobs.insert(job, at: 0)
+        let id = job.id
+        Task {
+            do {
+                _ = try await NASImporter.downloadFile(client: client, entry: entry, library: library)
+                update(id) { $0.status = "完了"; $0.finished = true }
+            } catch {
+                update(id) { $0.status = ""; $0.failed = error.localizedDescription }
+            }
+        }
+    }
+
+    /// フォルダーごと裏でダウンロード。
+    func startFolder(client: SMBClient, entry: SMBEntry, library: LibraryStore) {
+        let job = Job(name: entry.name, status: "一覧を取得しています…")
+        jobs.insert(job, at: 0)
+        let id = job.id
+        Task {
+            do {
+                let count = try await NASImporter.downloadFolder(
+                    client: client,
+                    entry: entry,
+                    library: library
+                ) { text in
+                    Task { @MainActor in
+                        DownloadManager.shared.update(id) { $0.status = text }
+                    }
+                }
+                update(id) { $0.status = "完了（\(count) 冊）"; $0.finished = true }
+            } catch {
+                update(id) { $0.status = ""; $0.failed = error.localizedDescription }
+            }
+        }
+    }
+
+    private func update(_ id: UUID, _ change: (inout Job) -> Void) {
+        guard let i = jobs.firstIndex(where: { $0.id == id }) else { return }
+        change(&jobs[i])
+    }
+}
