@@ -97,11 +97,9 @@ struct PageBrowser: UIViewControllerRepresentable {
         var isBusy: Bool { isSwiping || isTurning }
 
         /// UIKit の「次（after / forward）」が読む順で何単位進むか。
-        /// 右開きの単ページ curl は綴じ目が右端なので読む順そのまま。
-        /// 右開きのスライドと見開きは画面上で左へ進むので逆向き。
+        /// 右開きは常に逆方向: spine .max の before が「左端を右へめくる」進む動作になる。
         private var afterStep: Int {
-            guard parent.rtl else { return 1 }
-            return (usesCurl && unitsPerScreen == 1) ? 1 : -1
+            parent.rtl ? -1 : 1
         }
 
         private var screenCount: Int {
