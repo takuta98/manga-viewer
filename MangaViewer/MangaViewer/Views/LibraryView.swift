@@ -169,7 +169,7 @@ struct LibraryView: View {
             }
         }
         .navigationDestination(isPresented: $showDownloads) {
-            DownloadsView()
+            DownloadsView(library: library)
         }
         .fileImporter(
             isPresented: $showImporter,

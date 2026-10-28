@@ -73,7 +73,7 @@ struct NASBrowserView: View {
                 }
             }
             .navigationDestination(isPresented: $showDownloads) {
-                DownloadsView()
+                DownloadsView(library: library)
             }
             .alert("エラー", isPresented: .constant(errorMessage != nil)) {
                 Button("OK") { errorMessage = nil }
@@ -398,7 +398,7 @@ struct NASBrowserView: View {
 /// ダウンロード進捗の一覧。
 struct DownloadsView: View {
     @ObservedObject private var manager = DownloadManager.shared
-    @ObservedObject private var library = LibraryStore.shared
+    @ObservedObject var library: LibraryStore
 
     var body: some View {
         List(manager.jobs) { job in
