@@ -19,6 +19,14 @@ struct LibraryView: View {
     @State private var folderDeleteTarget: String?
     @State private var showDownloads = false
 
+    // 複数選択
+    @State private var selecting = false
+    @State private var selected = Set<UUID>()
+    @State private var bulkMove = false
+    @State private var bulkDelete = false
+    @State private var bulkNewFolder = false
+    @State private var sortByTitle = false
+
     private var importTypes: [UTType] {
         var types: [UTType] = [.zip, .png, .jpeg, .gif, .heic, .webP, .image]
         if let cbz = UTType(filenameExtension: "cbz") {
@@ -39,12 +47,41 @@ struct LibraryView: View {
 
     /// ルートに並べる巻。検索中はフォルダーの中も含めて全部探す。
     private var shownVolumes: [MangaVolume] {
+        let list: [MangaVolume]
         if needle.isEmpty {
-            return library.volumes.filter { $0.folder == nil }
+            list = library.volumes.filter { $0.folder == nil }
+        } else {
+            list = library.volumes.filter {
+                $0.title.localizedCaseInsensitiveContains(needle)
+            }
         }
-        return library.volumes.filter {
-            $0.title.localizedCaseInsensitiveContains(needle)
+        if sortByTitle {
+            return list.sorted {
+                $0.title.localizedStandardCompare($1.title) == .orderedAscending
+            }
         }
+        return list
+    }
+
+    /// 選択モードでタップされた巻の選択を切り替える。
+    private func toggleSelect(_ volume: MangaVolume) {
+        if selected.contains(volume.id) {
+            selected.remove(volume.id)
+        } else {
+            selected.insert(volume.id)
+        }
+    }
+
+    /// 選んだ巻をまとめてフォルダーへ入れて選択を解除する。
+    private func moveSelected(to folder: String) {
+        for id in selected {
+            if let volume = library.volumes.first(where: { $0.id == id }) {
+                library.move(volume, toFolder: folder)
+            }
+        }
+        selected = []
+        selecting = false
+        bulkMove = false
     }
 
     var body: some View {
@@ -66,13 +103,16 @@ struct LibraryView: View {
                                 volume: volume,
                                 onRead: onRead,
                                 onMove: { folderTarget = volume },
-                                showFolderBadge: !needle.isEmpty
+                                showFolderBadge: !needle.isEmpty,
+                                selecting: selecting,
+                                isSelected: selected.contains(volume.id),
+                                onToggleSelect: { toggleSelect(volume) }
                             )
                         }
                     }
                     .padding(18)
 
-                    Text("build ac9fa5e")
+                    Text("build 2026-10-28c")
                         .font(.caption2)
                         .foregroundStyle(.tertiary)
                         .frame(maxWidth: .infinity)
@@ -85,15 +125,48 @@ struct LibraryView: View {
         .searchable(text: $query, prompt: "タイトルで検索")
         .toolbar {
             ToolbarItem(placement: .topBarLeading) {
-                Button { showDownloads = true } label: {
-                    Image(systemName: "arrow.down.circle")
+                if selecting {
+                    Button("やめる") {
+                        selecting = false
+                        selected = []
+                    }
+                } else {
+                    HStack(spacing: 16) {
+                        Button { showDownloads = true } label: {
+                            Image(systemName: "arrow.down.circle")
+                        }
+                        .accessibilityLabel("ダウンロード進捗")
+                        Button("選択") {
+                            selecting = true
+                        }
+                    }
                 }
-                .accessibilityLabel("ダウンロード進捗")
             }
-            ToolbarItem(placement: .topBarTrailing) { importMenu }
+            ToolbarItem(placement: .topBarTrailing) {
+                if !selecting {
+                    HStack(spacing: 16) {
+                        Menu {
+                            Button("追加順") { sortByTitle = false }
+                            Button("タイトル順") { sortByTitle = true }
+                        } label: {
+                            Image(systemName: "arrow.up.arrow.down")
+                        }
+                        .accessibilityLabel("並び替え")
+                        importMenu
+                    }
+                }
+            }
         }
         .navigationDestination(for: String.self) { name in
             LibraryFolderView(library: library, name: name, onRead: onRead)
+        }
+        .overlay {
+            if !library.volumes.isEmpty,
+               !needle.isEmpty,
+               shownVolumes.isEmpty,
+               shownFolders.isEmpty {
+                ContentUnavailableView.search(text: query)
+            }
         }
         .navigationDestination(isPresented: $showDownloads) {
             DownloadsView()
@@ -120,9 +193,16 @@ struct LibraryView: View {
             TextField("フォルダー名", text: $newFolderName)
             Button("作成") {
                 library.createFolder(newFolderName)
+                if bulkNewFolder {
+                    moveSelected(to: newFolderName.trimmingCharacters(in: .whitespacesAndNewlines))
+                }
                 newFolderName = ""
+                bulkNewFolder = false
             }
-            Button("キャンセル", role: .cancel) { newFolderName = "" }
+            Button("キャンセル", role: .cancel) {
+                newFolderName = ""
+                bulkNewFolder = false
+            }
         }
         .alert("フォルダー名を変える", isPresented: .constant(renameTarget != nil)) {
             TextField("フォルダー名", text: $renameText)
@@ -148,6 +228,50 @@ struct LibraryView: View {
             Button("キャンセル", role: .cancel) { folderDeleteTarget = nil }
         } message: {
             Text("中の巻は消えずに本棚へ戻ります")
+        }
+        .alert("\(selected.count) 冊をフォルダーへ移動", isPresented: $bulkMove) {
+            ForEach(library.folders, id: \.self) { name in
+                Button(name) {
+                    moveSelected(to: name)
+                }
+            }
+            Button("新しいフォルダー") {
+                bulkNewFolder = true
+                showNewFolder = true
+            }
+            Button("キャンセル", role: .cancel) { bulkMove = false }
+        }
+        .alert("\(selected.count) 冊を削除しますか？", isPresented: $bulkDelete) {
+            Button("削除", role: .destructive) {
+                for id in selected {
+                    if let volume = library.volumes.first(where: { $0.id == id }) {
+                        library.delete(volume)
+                    }
+                }
+                selected = []
+                selecting = false
+                bulkDelete = false
+            }
+            Button("キャンセル", role: .cancel) { bulkDelete = false }
+        }
+        .safeAreaInset(edge: .bottom) {
+            if selecting {
+                HStack(spacing: 0) {
+                    Button("すべて選ぶ") {
+                        selected = Set(shownVolumes.map(\.id))
+                    }
+                    Spacer()
+                    Button("フォルダーへ移動") { bulkMove = true }
+                        .disabled(selected.isEmpty)
+                    Spacer()
+                    Button("削除", role: .destructive) { bulkDelete = true }
+                        .disabled(selected.isEmpty)
+                }
+                .font(.callout)
+                .padding(.horizontal, 20)
+                .padding(.vertical, 12)
+                .background(.bar)
+            }
         }
         .alert("フォルダーへ移動", isPresented: .constant(folderTarget != nil)) {
             if let target = folderTarget {
@@ -260,16 +384,47 @@ struct LibraryView: View {
     }
 }
 
-/// フォルダーの中。巻のグリッドだけ。
+/// フォルダーの中。巻のグリッドだけ。巻数順に並べる。
 struct LibraryFolderView: View {
     @ObservedObject var library: LibraryStore
     let name: String
     let onRead: (MangaVolume) -> Void
 
     @State private var folderTarget: MangaVolume?
+    @State private var selecting = false
+    @State private var selected = Set<UUID>()
+    @State private var bulkMove = false
+    @State private var bulkDelete = false
+    @State private var bulkNewFolder = false
+    @State private var showNewFolder = false
+    @State private var newFolderName = ""
 
+    /// シリーズの巻はタイトル順（数字は数値として）が自然。
     private var volumes: [MangaVolume] {
-        library.volumes.filter { $0.folder == name }
+        library.volumes
+            .filter { $0.folder == name }
+            .sorted {
+                $0.title.localizedStandardCompare($1.title) == .orderedAscending
+            }
+    }
+
+    private func toggleSelect(_ volume: MangaVolume) {
+        if selected.contains(volume.id) {
+            selected.remove(volume.id)
+        } else {
+            selected.insert(volume.id)
+        }
+    }
+
+    private func moveSelected(to folder: String) {
+        for id in selected {
+            if let volume = library.volumes.first(where: { $0.id == id }) {
+                library.move(volume, toFolder: folder)
+            }
+        }
+        selected = []
+        selecting = false
+        bulkMove = false
     }
 
     var body: some View {
@@ -283,16 +438,90 @@ struct LibraryFolderView: View {
                         library: library,
                         volume: volume,
                         onRead: onRead,
-                        onMove: { folderTarget = volume }
+                        onMove: { folderTarget = volume },
+                        selecting: selecting,
+                        isSelected: selected.contains(volume.id),
+                        onToggleSelect: { toggleSelect(volume) }
                     )
                 }
             }
             .padding(18)
         }
         .navigationTitle(name)
+        .toolbar {
+            ToolbarItem(placement: .topBarTrailing) {
+                if selecting {
+                    Button("やめる") {
+                        selecting = false
+                        selected = []
+                    }
+                } else {
+                    Button("選択") { selecting = true }
+                }
+            }
+        }
         .overlay {
             if volumes.isEmpty {
                 ContentUnavailableView("巻がありません", systemImage: "folder")
+            }
+        }
+        .safeAreaInset(edge: .bottom) {
+            if selecting {
+                HStack(spacing: 0) {
+                    Button("すべて選ぶ") {
+                        selected = Set(volumes.map(\.id))
+                    }
+                    Spacer()
+                    Button("フォルダーへ移動") { bulkMove = true }
+                        .disabled(selected.isEmpty)
+                    Spacer()
+                    Button("削除", role: .destructive) { bulkDelete = true }
+                        .disabled(selected.isEmpty)
+                }
+                .font(.callout)
+                .padding(.horizontal, 20)
+                .padding(.vertical, 12)
+                .background(.bar)
+            }
+        }
+        .alert("\(selected.count) 冊をフォルダーへ移動", isPresented: $bulkMove) {
+            ForEach(library.folders, id: \.self) { other in
+                if other != name {
+                    Button(other) { moveSelected(to: other) }
+                }
+            }
+            Button("新しいフォルダー") {
+                bulkNewFolder = true
+                showNewFolder = true
+            }
+            Button("キャンセル", role: .cancel) { bulkMove = false }
+        }
+        .alert("\(selected.count) 冊を削除しますか？", isPresented: $bulkDelete) {
+            Button("削除", role: .destructive) {
+                for id in selected {
+                    if let volume = library.volumes.first(where: { $0.id == id }) {
+                        library.delete(volume)
+                    }
+                }
+                selected = []
+                selecting = false
+                bulkDelete = false
+            }
+            Button("キャンセル", role: .cancel) { bulkDelete = false }
+        }
+        .alert("フォルダーを作る", isPresented: $showNewFolder) {
+            TextField("フォルダー名", text: $newFolderName)
+            Button("作成") {
+                library.createFolder(newFolderName)
+                if bulkNewFolder {
+                    moveSelected(to: newFolderName.trimmingCharacters(in: .whitespacesAndNewlines))
+                }
+                newFolderName = ""
+                bulkNewFolder = false
+            }
+            Button("キャンセル", role: .cancel) {
+                newFolderName = ""
+                bulkNewFolder = false
             }
         }
         .alert("フォルダーへ移動", isPresented: .constant(folderTarget != nil)) {
@@ -326,13 +555,25 @@ struct VolumeCard: View {
     var onMove: (() -> Void)? = nil
     /// 検索結果など、どのフォルダーに入っているか見せたいときに true。
     var showFolderBadge = false
+    /// 選択モード中はタップで選択切替になる。
+    var selecting = false
+    var isSelected = false
+    var onToggleSelect: (() -> Void)? = nil
 
     @State private var confirmDelete = false
+    @State private var renaming = false
+    @State private var renameText = ""
 
     private let progress = ReadingProgress.shared
 
     var body: some View {
-        Button { onRead(volume) } label: {
+        Button {
+            if selecting {
+                onToggleSelect?()
+            } else {
+                onRead(volume)
+            }
+        } label: {
             VStack(alignment: .leading, spacing: 6) {
                 cover
                     .resizable()
@@ -343,6 +584,21 @@ struct VolumeCard: View {
                     .clipped()
                     .clipShape(RoundedRectangle(cornerRadius: 8, style: .continuous))
                     .overlay(alignment: .bottom) { progressBar }
+                    .overlay(alignment: .topTrailing) {
+                        if selecting {
+                            Image(systemName: isSelected ? "checkmark.circle.fill" : "circle")
+                                .font(.title3)
+                                .foregroundStyle(isSelected ? .blue : .white)
+                                .shadow(radius: 2)
+                                .padding(6)
+                        }
+                    }
+                    .overlay {
+                        if selecting && isSelected {
+                            RoundedRectangle(cornerRadius: 8, style: .continuous)
+                                .strokeBorder(Color.blue, lineWidth: 3)
+                        }
+                    }
 
                 Text(volume.title)
                     .font(.caption.weight(.medium))
@@ -360,6 +616,13 @@ struct VolumeCard: View {
         .accessibilityLabel("\(volume.title) を読む")
         .contextMenu {
             Button("読む", systemImage: "book") { onRead(volume) }
+            Button("名前を変える", systemImage: "pencil") {
+                renameText = volume.title
+                renaming = true
+            }
+            Button("最初から読む", systemImage: "arrow.counterclockwise") {
+                progress.clear(for: volume.id)
+            }
             if let onMove {
                 Button("フォルダーへ移動", systemImage: "folder") { onMove() }
             }
@@ -379,6 +642,14 @@ struct VolumeCard: View {
             Button("キャンセル", role: .cancel) {}
         } message: {
             Text(volume.title)
+        }
+        .alert("名前を変える", isPresented: $renaming) {
+            TextField("タイトル", text: $renameText)
+            Button("変更") {
+                library.rename(volume, to: renameText)
+                renameText = ""
+            }
+            Button("キャンセル", role: .cancel) { renameText = "" }
         }
     }
 

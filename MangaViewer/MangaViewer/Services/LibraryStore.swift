@@ -53,6 +53,14 @@ final class LibraryStore: ObservableObject {
         save()
     }
 
+    /// 巻の表示名を変える。
+    func rename(_ volume: MangaVolume, to title: String) {
+        let title = title.trimmingCharacters(in: .whitespacesAndNewlines)
+        guard !title.isEmpty, let i = volumes.firstIndex(where: { $0.id == volume.id }) else { return }
+        volumes[i].title = title
+        save()
+    }
+
     func updateDirection(_ volume: MangaVolume, direction: ReadingDirection) {
         guard let i = volumes.firstIndex(where: { $0.id == volume.id }) else { return }
         volumes[i].direction = direction

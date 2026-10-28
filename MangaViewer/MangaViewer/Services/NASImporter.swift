@@ -115,15 +115,34 @@ final class DownloadManager: ObservableObject {
         var status: String
         var failed: String?
         var finished = false
+        /// やり直し・重複防止用。
+        var entry: SMBEntry?
+        var client: SMBClient?
+        var isFolder = false
+        /// 進行中の同じ対象を二重に走らせないためのキー。
+        var key: String { entry?.path ?? name }
     }
 
     @Published private(set) var jobs: [Job] = []
 
     private init() {}
 
-    /// ファイル1本を裏でダウンロード。
-    func startFile(client: SMBClient, entry: SMBEntry, library: LibraryStore) {
-        let job = Job(name: entry.name, status: "ダウンロードしています…")
+    /// 進行中の同じ対象があるか。
+    private func alreadyRunning(_ entry: SMBEntry) -> Bool {
+        jobs.contains { $0.key == entry.path && !$0.finished && $0.failed == nil }
+    }
+
+    /// ファイル1本を裏でダウンロード。進行中なら false。
+    @discardableResult
+    func startFile(client: SMBClient, entry: SMBEntry, library: LibraryStore) -> Bool {
+        guard !alreadyRunning(entry) else { return false }
+        let job = Job(
+            name: entry.name,
+            status: "ダウンロードしています…",
+            entry: entry,
+            client: client,
+            isFolder: false
+        )
         jobs.insert(job, at: 0)
         let id = job.id
         Task {
@@ -134,11 +153,20 @@ final class DownloadManager: ObservableObject {
                 update(id) { $0.status = ""; $0.failed = error.localizedDescription }
             }
         }
+        return true
     }
 
-    /// フォルダーごと裏でダウンロード。
-    func startFolder(client: SMBClient, entry: SMBEntry, library: LibraryStore) {
-        let job = Job(name: entry.name, status: "一覧を取得しています…")
+    /// フォルダーごと裏でダウンロード。進行中なら false。
+    @discardableResult
+    func startFolder(client: SMBClient, entry: SMBEntry, library: LibraryStore) -> Bool {
+        guard !alreadyRunning(entry) else { return false }
+        let job = Job(
+            name: entry.name,
+            status: "一覧を取得しています…",
+            entry: entry,
+            client: client,
+            isFolder: true
+        )
         jobs.insert(job, at: 0)
         let id = job.id
         Task {
@@ -156,6 +184,18 @@ final class DownloadManager: ObservableObject {
             } catch {
                 update(id) { $0.status = ""; $0.failed = error.localizedDescription }
             }
+        }
+        return true
+    }
+
+    /// 失敗したジョブをもう一度走らせる。接続が残っていなければやり直せない。
+    func retry(_ job: Job, library: LibraryStore) {
+        guard let entry = job.entry, let client = job.client, job.failed != nil else { return }
+        jobs.removeAll { $0.id == job.id }
+        if job.isFolder {
+            _ = startFolder(client: client, entry: entry, library: library)
+        } else {
+            _ = startFile(client: client, entry: entry, library: library)
         }
     }
 

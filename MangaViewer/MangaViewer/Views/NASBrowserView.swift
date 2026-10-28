@@ -285,8 +285,24 @@ struct NASBrowserView: View {
                     downloadFile(entry)
                 }
             } label: {
-                Label(entry.name, systemImage: entry.isDirectory ? "folder" : "doc")
-                    .frame(maxWidth: .infinity, alignment: .leading)
+                VStack(alignment: .leading, spacing: 2) {
+                    Label(entry.name, systemImage: icon(for: entry))
+                        .lineLimit(1)
+                        .truncationMode(.middle)
+                        .frame(maxWidth: .infinity, alignment: .leading)
+                    if entry.isDirectory {
+                        Text("フォルダー")
+                            .font(.caption)
+                            .foregroundStyle(.secondary)
+                    } else {
+                        Text(ByteCountFormatter.string(
+                            fromByteCount: entry.size,
+                            countStyle: .file
+                        ))
+                        .font(.caption)
+                        .foregroundStyle(.secondary)
+                    }
+                }
             }
             .buttonStyle(.plain)
 
@@ -302,6 +318,16 @@ struct NASBrowserView: View {
             }
             .buttonStyle(.plain)
             .accessibilityLabel(entry.isDirectory ? "フォルダーごとダウンロード" : "ダウンロード")
+        }
+    }
+
+    /// 拡張子でアイコンを分ける。
+    private func icon(for entry: SMBEntry) -> String {
+        if entry.isDirectory { return "folder" }
+        switch (entry.name as NSString).pathExtension.lowercased() {
+        case "cbz", "zip": return "doc.zipper"
+        case "png", "jpg", "jpeg", "gif", "webp", "heic": return "photo"
+        default: return "doc"
         }
     }
 
@@ -332,14 +358,20 @@ struct NASBrowserView: View {
 
     private func downloadFile(_ entry: SMBEntry) {
         guard let client else { return }
-        DownloadManager.shared.startFile(client: client, entry: entry, library: library)
-        notify("ダウンロードを開始しました")
+        if DownloadManager.shared.startFile(client: client, entry: entry, library: library) {
+            notify("ダウンロードを開始しました")
+        } else {
+            notify("すでにダウンロード中です")
+        }
     }
 
     private func downloadFolder(_ entry: SMBEntry) {
         guard let client else { return }
-        DownloadManager.shared.startFolder(client: client, entry: entry, library: library)
-        notify("ダウンロードを開始しました")
+        if DownloadManager.shared.startFolder(client: client, entry: entry, library: library) {
+            notify("ダウンロードを開始しました")
+        } else {
+            notify("すでにダウンロード中です")
+        }
     }
 
     /// 今開いているフォルダーをまるごと取り込む。
@@ -366,6 +398,7 @@ struct NASBrowserView: View {
 /// ダウンロード進捗の一覧。
 struct DownloadsView: View {
     @ObservedObject private var manager = DownloadManager.shared
+    @ObservedObject private var library = LibraryStore.shared
 
     var body: some View {
         List(manager.jobs) { job in
@@ -385,6 +418,13 @@ struct DownloadsView: View {
                 }
                 Spacer()
                 if job.failed != nil {
+                    Button {
+                        manager.retry(job, library: library)
+                    } label: {
+                        Image(systemName: "arrow.clockwise")
+                    }
+                    .buttonStyle(.plain)
+                    .accessibilityLabel("やり直す")
                     Image(systemName: "exclamationmark.triangle")
                         .foregroundStyle(.red)
                 } else if job.finished {
