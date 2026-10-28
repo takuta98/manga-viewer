@@ -59,10 +59,14 @@ enum NASImporter {
         status("本棚へ取り込んでいます…")
         var volumes = 0
 
+        // NAS のフォルダー名で本棚のフォルダーを作り、取り込んだ巻はそこに入れる
+        library.createFolder(entry.name)
+
         // cbz/zip は各1巻
         for file in wanted where archiveExtensions.contains((file.name as NSString).pathExtension.lowercased()) {
             let local = stage.appendingPathComponent(relativePath(file.path, under: entry.path))
-            _ = try library.importURL(local)
+            let volume = try library.importURL(local)
+            library.move(volume, toFolder: entry.name)
             volumes += 1
         }
 
@@ -81,7 +85,8 @@ enum NASImporter {
                     .appendingPathExtension(ext)
                 try FileManager.default.copyItem(at: src, to: dst)
             }
-            _ = try library.importImageDirectory(imageDir, title: entry.name)
+            let volume = try library.importImageDirectory(imageDir, title: entry.name)
+            library.move(volume, toFolder: entry.name)
             volumes += 1
         }
         return volumes
