@@ -297,13 +297,36 @@ struct LibraryView: View {
 
     /// リスト表示用のフォルダー行。
     private func folderRow(_ name: String) -> some View {
-        let count = library.volumes.filter { $0.folder == name }.count
+        let members = library.volumes
+            .filter { $0.folder == name }
+            .sorted {
+                $0.title.localizedStandardCompare($1.title) == .orderedAscending
+            }
+        let count = members.count
         return NavigationLink(value: name) {
             HStack(spacing: 12) {
-                Image(systemName: "folder.fill")
-                    .font(.title2)
-                    .foregroundStyle(.tint)
-                    .frame(width: 48)
+                ZStack(alignment: .bottomTrailing) {
+                    if let first = members.first {
+                        folderCover(first)
+                            .resizable()
+                            .scaledToFill()
+                            .frame(width: 34, height: 46)
+                            .clipShape(RoundedRectangle(cornerRadius: 4, style: .continuous))
+                    } else {
+                        Image(systemName: "folder.fill")
+                            .font(.title2)
+                            .foregroundStyle(.tint)
+                    }
+                    if !members.isEmpty {
+                        Image(systemName: "folder.fill")
+                            .font(.system(size: 9))
+                            .foregroundStyle(.white)
+                            .padding(3)
+                            .background(.black.opacity(0.55), in: Circle())
+                            .offset(x: 4, y: 4)
+                    }
+                }
+                .frame(width: 48)
                 VStack(alignment: .leading, spacing: 2) {
                     Text(name)
                         .font(.callout.weight(.medium))
@@ -390,24 +413,61 @@ struct LibraryView: View {
     // MARK: - フォルダーカード
 
     private func folderCard(_ name: String) -> some View {
-        let count = library.volumes.filter { $0.folder == name }.count
+        let members = library.volumes
+            .filter { $0.folder == name }
+            .sorted {
+                $0.title.localizedStandardCompare($1.title) == .orderedAscending
+            }
+        let covers = Array(members.prefix(4))
         return NavigationLink(value: name) {
             VStack(alignment: .leading, spacing: 6) {
                 ZStack {
                     RoundedRectangle(cornerRadius: 8, style: .continuous)
                         .fill(Color(uiColor: .secondarySystemGroupedBackground))
-                    Image(systemName: "folder.fill")
-                        .font(.system(size: 40))
-                        .foregroundStyle(.tint)
+                    if covers.isEmpty {
+                        Image(systemName: "folder.fill")
+                            .font(.system(size: 40))
+                            .foregroundStyle(.tint)
+                    } else {
+                        // 先頭4冊の表紙を2×2で並べる
+                        VStack(spacing: 3) {
+                            ForEach(0..<2, id: \.self) { row in
+                                HStack(spacing: 3) {
+                                    ForEach(0..<2, id: \.self) { col in
+                                        let i = row * 2 + col
+                                        if i < covers.count {
+                                            folderCover(covers[i])
+                                                .resizable()
+                                                .scaledToFill()
+                                                .frame(maxWidth: .infinity, maxHeight: .infinity)
+                                                .clipped()
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                        .padding(5)
+                    }
                 }
                 .aspectRatio(2 / 3, contentMode: .fit)
                 .frame(maxWidth: .infinity)
+                .clipShape(RoundedRectangle(cornerRadius: 8, style: .continuous))
+                .overlay(alignment: .topTrailing) {
+                    if !covers.isEmpty {
+                        Image(systemName: "folder.fill")
+                            .font(.footnote)
+                            .foregroundStyle(.white)
+                            .padding(6)
+                            .background(.black.opacity(0.55), in: Circle())
+                            .padding(6)
+                    }
+                }
 
                 Text(name)
                     .font(.caption.weight(.medium))
                     .lineLimit(2)
                     .foregroundStyle(.primary)
-                Text("\(count) 冊")
+                Text("\(members.count) 冊")
                     .font(.caption2)
                     .foregroundStyle(.secondary)
             }
@@ -425,6 +485,16 @@ struct LibraryView: View {
     }
 
     // MARK: - 入手
+
+    /// フォルダーカードの中に敷く1冊分の表紙。
+    private func folderCover(_ volume: MangaVolume) -> Image {
+        if let url = volume.coverURL(),
+           let data = try? Data(contentsOf: url),
+           let uiImage = UIImage(data: data) {
+            return Image(uiImage: uiImage)
+        }
+        return Image("sample-cover")
+    }
 
     private var importMenu: some View {
         Menu {
